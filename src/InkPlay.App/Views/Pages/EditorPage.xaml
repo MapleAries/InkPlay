@@ -51,7 +51,7 @@
 
             <!-- Toolbar -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
-                <Button Content="保存" Icon="Save" Click="Save_Click" />
+                <Button Content="保存" Click="Save_Click" />
                 <Button Content="续写" Click="ContinueWriting_Click" />
                 <Button Content="重写" Click="Rewrite_Click" />
                 <Button Content="润色" Click="Polish_Click" />

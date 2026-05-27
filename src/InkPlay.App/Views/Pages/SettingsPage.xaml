@@ -25,9 +25,9 @@
             <!-- Claude Settings -->
             <StackPanel Spacing="8">
                 <TextBlock Text="Claude (Anthropic)" FontSize="16" FontWeight="SemiBold" />
-                <TextBox Header="API Key"
-                         Text="{x:Bind ViewModel.ClaudeApiKey, Mode=TwoWay}"
-                         IsPasswordRevealButtonEnabled="True" />
+                <PasswordBox Header="API Key"
+                             Password="{x:Bind ViewModel.ClaudeApiKey, Mode=TwoWay}"
+                             PasswordRevealMode="Visible" />
                 <TextBox Header="Base URL"
                          Text="{x:Bind ViewModel.ClaudeBaseUrl, Mode=TwoWay}" />
                 <TextBox Header="Model ID"
@@ -38,9 +38,9 @@
             <!-- OpenAI Settings -->
             <StackPanel Spacing="8">
                 <TextBlock Text="OpenAI GPT" FontSize="16" FontWeight="SemiBold" />
-                <TextBox Header="API Key"
-                         Text="{x:Bind ViewModel.OpenAiApiKey, Mode=TwoWay}"
-                         IsPasswordRevealButtonEnabled="True" />
+                <PasswordBox Header="API Key"
+                             Password="{x:Bind ViewModel.OpenAiApiKey, Mode=TwoWay}"
+                             PasswordRevealMode="Visible" />
                 <TextBox Header="Base URL"
                          Text="{x:Bind ViewModel.OpenAiBaseUrl, Mode=TwoWay}" />
                 <TextBox Header="Model ID"
@@ -51,9 +51,9 @@
             <!-- Qwen Settings -->
             <StackPanel Spacing="8">
                 <TextBlock Text="通义千问 (Qwen)" FontSize="16" FontWeight="SemiBold" />
-                <TextBox Header="API Key"
-                         Text="{x:Bind ViewModel.QwenApiKey, Mode=TwoWay}"
-                         IsPasswordRevealButtonEnabled="True" />
+                <PasswordBox Header="API Key"
+                             Password="{x:Bind ViewModel.QwenApiKey, Mode=TwoWay}"
+                             PasswordRevealMode="Visible" />
                 <TextBox Header="Base URL"
                          Text="{x:Bind ViewModel.QwenBaseUrl, Mode=TwoWay}" />
                 <TextBox Header="Model ID"

@@ -16,7 +16,7 @@
         <!-- Header -->
         <Grid Grid.Row="0" Margin="0,0,0,24">
             <TextBlock Text="我的项目" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center" />
-            <Button Content="新建项目" Icon="Add"
+            <Button Content="新建项目"
                     HorizontalAlignment="Right"
                     Click="CreateProject_Click" />
         </Grid>
@@ -86,7 +86,8 @@
                          TextWrapping="Wrap" AcceptsReturn="True" Height="80" />
 
                 <ComboBox Header="类型" Grid.Row="3" Margin="0,0,0,16"
-                          SelectedItem="{x:Bind ViewModel.NewProjectGenre, Mode=TwoWay}">
+                          SelectedIndex="0"
+                          x:Name="GenreComboBox">
                     <ComboBoxItem Content="短剧" IsSelected="True" />
                     <ComboBoxItem Content="小说" />
                     <ComboBoxItem Content="网文" />

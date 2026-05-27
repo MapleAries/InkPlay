@@ -33,57 +33,47 @@ public sealed partial class EditorPage : Page
         if (sender is ListView listView && listView.SelectedItem is Document doc)
         {
             ViewModel.SelectDocumentCommand.Execute(doc);
-            // Update RichEditBox content
-            var editor = Editor;
-            if (editor?.Document != null)
-            {
-                editor.Document.SetText(Microsoft.UI.Text.TextSetOptions.None, doc.Content);
-            }
+            Editor?.Document.SetText(Microsoft.UI.Text.TextSetOptions.None, doc.Content);
         }
     }
 
-    private async void Save_Click(object sender, RoutedEventArgs e)
+    private void Save_Click(object sender, RoutedEventArgs e)
     {
-        // Get text from RichEditBox
-        Editor?.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out var text);
-        ViewModel.DocumentContent = text ?? string.Empty;
-        await ViewModel.SaveDocumentAsync();
+        SyncEditorContent();
+        ViewModel.SaveDocumentCommand.Execute(null);
     }
 
     private void Editor_TextChanged(object sender, RoutedEventArgs e)
     {
         if (sender is RichEditBox richEditBox)
         {
-            richEditBox.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out var text);
+            string text = string.Empty;
+            richEditBox.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out text);
             ViewModel.DocumentContent = text ?? string.Empty;
         }
     }
 
     private void ContinueWriting_Click(object sender, RoutedEventArgs e)
     {
-        Editor?.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out var text);
-        ViewModel.DocumentContent = text ?? string.Empty;
+        SyncEditorContent();
         ViewModel.AiContinueWritingCommand.Execute(null);
     }
 
     private void Rewrite_Click(object sender, RoutedEventArgs e)
     {
-        Editor?.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out var text);
-        ViewModel.DocumentContent = text ?? string.Empty;
+        SyncEditorContent();
         ViewModel.AiRewriteCommand.Execute(null);
     }
 
     private void Polish_Click(object sender, RoutedEventArgs e)
     {
-        Editor?.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out var text);
-        ViewModel.DocumentContent = text ?? string.Empty;
+        SyncEditorContent();
         ViewModel.AiPolishCommand.Execute(null);
     }
 
     private void Expand_Click(object sender, RoutedEventArgs e)
     {
-        Editor?.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out var text);
-        ViewModel.DocumentContent = text ?? string.Empty;
+        SyncEditorContent();
         ViewModel.AiExpandCommand.Execute(null);
     }
 
@@ -98,5 +88,12 @@ public sealed partial class EditorPage : Page
         {
             ViewModel.SendAiMessageCommand.Execute(null);
         }
+    }
+
+    private void SyncEditorContent()
+    {
+        string text = string.Empty;
+        Editor?.Document.GetText(Microsoft.UI.Text.TextGetOptions.None, out text);
+        ViewModel.DocumentContent = text ?? string.Empty;
     }
 }

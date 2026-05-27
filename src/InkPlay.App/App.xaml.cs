@@ -21,7 +21,6 @@ public partial class App : Application
             {
                 // Database
                 services.AddSingleton<InkPlayDbContext>();
-                services.AddSingleton<DatabaseInitializer>();
 
                 // Repositories
                 services.AddSingleton<IProjectRepository, ProjectRepository>();
@@ -37,7 +36,7 @@ public partial class App : Application
                 services.AddSingleton<ISettingsService, SettingsService>();
 
                 // Navigation
-                services.AddSingleton<INavigationService, NavigationService>();
+                services.AddSingleton<Services.NavigationService>();
 
                 // ViewModels
                 services.AddTransient<ViewModels.MainViewModel>();
@@ -54,6 +53,8 @@ public partial class App : Application
                 services.AddTransient<Views.Pages.SettingsPage>();
             })
             .Build();
+
+        InitializeComponent();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)

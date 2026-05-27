@@ -16,7 +16,7 @@ public class DocumentRepository : IDocumentRepository
     public Task<Document?> GetByIdAsync(Guid id)
     {
         var doc = _db.Documents.FindById(id);
-        return Task.FromResult(doc);
+        return Task.FromResult<Document?>(doc);
     }
 
     public Task<IReadOnlyList<Document>> GetByProjectIdAsync(Guid projectId)

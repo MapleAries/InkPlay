@@ -2,7 +2,6 @@ using InkPlay.App.Services;
 using InkPlay.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 
 namespace InkPlay.App.Views;
 
@@ -18,7 +17,6 @@ public sealed partial class MainWindow : Window
 
         InitializeComponent();
 
-        // Register pages
         _navigationService.RegisterPage("Home", typeof(Pages.HomePage));
         _navigationService.RegisterPage("Editor", typeof(Pages.EditorPage));
         _navigationService.RegisterPage("AiAssistant", typeof(Pages.AiAssistantPage));
@@ -26,7 +24,6 @@ public sealed partial class MainWindow : Window
 
         _navigationService.Initialize(ContentFrame);
 
-        // Navigate to home on startup
         NavView.SelectedItem = NavView.MenuItems[0];
         _navigationService.NavigateTo("Home");
 

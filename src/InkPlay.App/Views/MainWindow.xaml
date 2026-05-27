@@ -3,7 +3,6 @@
     x:Class="InkPlay.App.Views.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:pages="using:InkPlay.App.Views.Pages"
     Title="InkPlay - AI写作助手">
 
     <NavigationView

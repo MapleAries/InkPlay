@@ -16,7 +16,7 @@ public class ProjectRepository : IProjectRepository
     public Task<Project?> GetByIdAsync(Guid id)
     {
         var project = _db.Projects.FindById(id);
-        return Task.FromResult(project);
+        return Task.FromResult<Project?>(project);
     }
 
     public Task<IReadOnlyList<Project>> GetAllAsync()

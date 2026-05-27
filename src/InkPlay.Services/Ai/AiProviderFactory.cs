@@ -1,5 +1,6 @@
 using InkPlay.Core.Interfaces;
 using InkPlay.Services.Ai.Providers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace InkPlay.Services.Ai;
 
