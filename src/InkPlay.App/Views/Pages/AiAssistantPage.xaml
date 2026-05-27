@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="InkPlay.App.Views.Pages.AiAssistantPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Padding="24">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="360" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left: Context & Quick Actions -->
+        <Grid Grid.Column="0" Margin="0,0,24,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="AI 写作助手" FontSize="24" FontWeight="Bold" Margin="0,0,0,16" />
+
+            <!-- Quick Action Buttons -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,16">
+                <Button Content="续写" Click="Continue_Click" />
+                <Button Content="重写" Click="Rewrite_Click" />
+                <Button Content="润色" Click="Polish_Click" />
+                <Button Content="扩写" Click="Expand_Click" />
+                <Button Content="缩写" Click="Summarize_Click" />
+                <Button Content="清空" Click="Clear_Click" />
+            </StackPanel>
+
+            <!-- Context Text -->
+            <TextBox Grid.Row="2"
+                     x:Name="ContextTextBox"
+                     Header="参考内容（可选）"
+                     PlaceholderText="在此粘贴需要处理的文本..."
+                     Text="{x:Bind ViewModel.ContextText, Mode=TwoWay}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     FontSize="14" />
+        </Grid>
+
+        <!-- Right: Chat -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="对话" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+            <!-- Messages -->
+            <ScrollViewer Grid.Row="1">
+                <StackPanel Spacing="8">
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:AiChatMessage"
+                                          xmlns:models="using:InkPlay.Core.Models">
+                                <Grid Padding="8,6"
+                                      Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                      CornerRadius="4">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="{x:Bind Role}" FontSize="11"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    <TextBlock Grid.Row="1" Text="{x:Bind Content}"
+                                               TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Streaming Response -->
+                    <Grid Padding="8,6"
+                          Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                          CornerRadius="4"
+                          Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay}">
+                        <TextBlock Text="{x:Bind ViewModel.AiResponse, Mode=OneWay}"
+                                   TextWrapping="Wrap" />
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Input -->
+            <Grid Grid.Row="2" Margin="0,8,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         x:Name="UserInputBox"
+                         PlaceholderText="输入写作需求..."
+                         Text="{x:Bind ViewModel.UserInput, Mode=TwoWay}"
+                         KeyDown="UserInput_KeyDown" />
+
+                <Button Grid.Column="1" Content="发送" Margin="8,0,0,0"
+                        Click="Send_Click" />
+
+                <Button Grid.Column="2" Content="复制" Margin="8,0,0,0"
+                        Click="Copy_Click" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

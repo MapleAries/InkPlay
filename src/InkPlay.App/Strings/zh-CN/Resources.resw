@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppName" xml:space="preserve">
+    <value>InkPlay - AI写作助手</value>
+  </data>
+  <data name="NavHome" xml:space="preserve">
+    <value>首页</value>
+  </data>
+  <data name="NavEditor" xml:space="preserve">
+    <value>编辑器</value>
+  </data>
+  <data name="NavCharacters" xml:space="preserve">
+    <value>角色管理</value>
+  </data>
+  <data name="NavScript" xml:space="preserve">
+    <value>剧本工坊</value>
+  </data>
+  <data name="NavAiAssistant" xml:space="preserve">
+    <value>AI 助手</value>
+  </data>
+  <data name="NavSettings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="ButtonSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="ButtonCancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="ButtonCreate" xml:space="preserve">
+    <value>创建</value>
+  </data>
+  <data name="ButtonSend" xml:space="preserve">
+    <value>发送</value>
+  </data>
+  <data name="ButtonContinueWriting" xml:space="preserve">
+    <value>续写</value>
+  </data>
+  <data name="ButtonRewrite" xml:space="preserve">
+    <value>重写</value>
+  </data>
+  <data name="ButtonPolish" xml:space="preserve">
+    <value>润色</value>
+  </data>
+  <data name="ButtonExpand" xml:space="preserve">
+    <value>扩写</value>
+  </data>
+</root>

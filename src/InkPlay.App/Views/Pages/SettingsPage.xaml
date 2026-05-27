@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="InkPlay.App.Views.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer Padding="24">
+        <StackPanel MaxWidth="600" Spacing="24">
+
+            <TextBlock Text="设置" FontSize="24" FontWeight="Bold" />
+
+            <!-- Default Provider -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="默认AI提供商" FontSize="16" FontWeight="SemiBold" />
+                <ComboBox SelectedItem="{x:Bind ViewModel.SelectedProviderId, Mode=TwoWay}">
+                    <ComboBoxItem Content="Claude" Tag="claude" IsSelected="True" />
+                    <ComboBoxItem Content="OpenAI" Tag="openai" />
+                    <ComboBoxItem Content="通义千问" Tag="qwen" />
+                </ComboBox>
+            </StackPanel>
+
+            <!-- Claude Settings -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Claude (Anthropic)" FontSize="16" FontWeight="SemiBold" />
+                <TextBox Header="API Key"
+                         Text="{x:Bind ViewModel.ClaudeApiKey, Mode=TwoWay}"
+                         IsPasswordRevealButtonEnabled="True" />
+                <TextBox Header="Base URL"
+                         Text="{x:Bind ViewModel.ClaudeBaseUrl, Mode=TwoWay}" />
+                <TextBox Header="Model ID"
+                         Text="{x:Bind ViewModel.ClaudeModelId, Mode=TwoWay}" />
+                <Button Content="测试连接" Click="TestClaude_Click" />
+            </StackPanel>
+
+            <!-- OpenAI Settings -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="OpenAI GPT" FontSize="16" FontWeight="SemiBold" />
+                <TextBox Header="API Key"
+                         Text="{x:Bind ViewModel.OpenAiApiKey, Mode=TwoWay}"
+                         IsPasswordRevealButtonEnabled="True" />
+                <TextBox Header="Base URL"
+                         Text="{x:Bind ViewModel.OpenAiBaseUrl, Mode=TwoWay}" />
+                <TextBox Header="Model ID"
+                         Text="{x:Bind ViewModel.OpenAiModelId, Mode=TwoWay}" />
+                <Button Content="测试连接" Click="TestOpenAi_Click" />
+            </StackPanel>
+
+            <!-- Qwen Settings -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="通义千问 (Qwen)" FontSize="16" FontWeight="SemiBold" />
+                <TextBox Header="API Key"
+                         Text="{x:Bind ViewModel.QwenApiKey, Mode=TwoWay}"
+                         IsPasswordRevealButtonEnabled="True" />
+                <TextBox Header="Base URL"
+                         Text="{x:Bind ViewModel.QwenBaseUrl, Mode=TwoWay}" />
+                <TextBox Header="Model ID"
+                         Text="{x:Bind ViewModel.QwenModelId, Mode=TwoWay}" />
+                <Button Content="测试连接" Click="TestQwen_Click" />
+            </StackPanel>
+
+            <!-- Save Button -->
+            <Button Content="保存设置" Style="{StaticResource AccentButtonStyle}"
+                    Click="Save_Click" />
+
+            <!-- Status -->
+            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+    </ScrollViewer>
+</Page>
