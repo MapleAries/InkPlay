@@ -1,4 +1,4 @@
-using InkPlay.Core.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 
@@ -41,7 +41,13 @@ public class NavigationService : INavigationService
         if (_frame is null || !_pageTypes.TryGetValue(pageKey, out var pageType))
             return false;
 
-        return _frame.Navigate(pageType, parameter);
+        // Resolve page from DI
+        var page = _serviceProvider.GetService(pageType) as Page;
+        if (page is null)
+            return false;
+
+        _frame.Content = page;
+        return true;
     }
 
     public void GoBack()

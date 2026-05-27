@@ -36,7 +36,9 @@ public partial class App : Application
                 services.AddSingleton<ISettingsService, SettingsService>();
 
                 // Navigation
-                services.AddSingleton<Services.NavigationService>();
+                services.AddSingleton<Services.INavigationService, Services.NavigationService>();
+                services.AddSingleton<Services.NavigationService>(sp =>
+                    (Services.NavigationService)sp.GetRequiredService<Services.INavigationService>());
 
                 // ViewModels
                 services.AddTransient<ViewModels.MainViewModel>();

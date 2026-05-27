@@ -17,7 +17,7 @@
             <NavigationViewItem Content="编辑器" Icon="Edit" Tag="Editor" />
             <NavigationViewItem Content="角色管理" Icon="People" Tag="Characters" />
             <NavigationViewItem Content="剧本工坊" Icon="Video" Tag="Script" />
-            <NavigationViewItem Content="AI 助手" Icon="Robot" Tag="AiAssistant" />
+            <NavigationViewItem Content="AI 助手" Icon="Comment" Tag="AiAssistant" />
         </NavigationView.MenuItems>
 
         <Frame x:Name="ContentFrame" />
