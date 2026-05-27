@@ -1,4 +1,5 @@
 using InkPlay.App.ViewModels;
+using InkPlay.Core.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -21,23 +22,56 @@ public sealed partial class SettingsPage : Page
         ViewModel.NavigatedTo(e.Parameter);
     }
 
-    private void Save_Click(object sender, RoutedEventArgs e)
+    private void AddTextKey_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.SaveSettingsCommand.Execute(null);
+        ViewModel.AddTextKeyCommand.Execute(null);
     }
 
-    private void TestClaude_Click(object sender, RoutedEventArgs e)
+    private void AddVideoKey_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.TestConnectionCommand.Execute("claude");
+        ViewModel.AddVideoKeyCommand.Execute(null);
     }
 
-    private void TestOpenAi_Click(object sender, RoutedEventArgs e)
+    private void EditKey_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.TestConnectionCommand.Execute("openai");
+        if (sender is Button btn && btn.Tag is string idStr && Guid.TryParse(idStr, out var id))
+        {
+            var config = FindKeyById(id);
+            ViewModel.EditKeyCommand.Execute(config);
+        }
     }
 
-    private void TestQwen_Click(object sender, RoutedEventArgs e)
+    private void SetDefault_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.TestConnectionCommand.Execute("qwen");
+        if (sender is Button btn && btn.Tag is string idStr && Guid.TryParse(idStr, out var id))
+        {
+            var config = FindKeyById(id);
+            ViewModel.SetDefaultCommand.Execute(config);
+        }
+    }
+
+    private void DeleteKey_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string idStr && Guid.TryParse(idStr, out var id))
+        {
+            var config = FindKeyById(id);
+            ViewModel.DeleteKeyCommand.Execute(config);
+        }
+    }
+
+    private void CancelEdit_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.CancelEditCommand.Execute(null);
+    }
+
+    private void SaveKey_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SaveKeyCommand.Execute(null);
+    }
+
+    private ApiKeyConfig? FindKeyById(Guid id)
+    {
+        return ViewModel.TextApiKeys.FirstOrDefault(k => k.Id == id)
+            ?? ViewModel.VideoApiKeys.FirstOrDefault(k => k.Id == id);
     }
 }

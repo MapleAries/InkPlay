@@ -7,67 +7,199 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer Padding="24">
-        <StackPanel MaxWidth="600" Spacing="24">
+    <Grid Padding="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-            <TextBlock Text="设置" FontSize="24" FontWeight="Bold" />
+        <TextBlock Grid.Row="0" Text="设置" FontSize="24" FontWeight="Bold" Margin="0,0,0,24" />
 
-            <!-- Default Provider -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="默认AI提供商" FontSize="16" FontWeight="SemiBold" />
-                <ComboBox SelectedItem="{x:Bind ViewModel.SelectedProviderId, Mode=TwoWay}">
-                    <ComboBoxItem Content="Claude" Tag="claude" IsSelected="True" />
-                    <ComboBoxItem Content="OpenAI" Tag="openai" />
-                    <ComboBoxItem Content="通义千问" Tag="qwen" />
-                </ComboBox>
+        <ScrollViewer Grid.Row="1">
+            <StackPanel MaxWidth="700" Spacing="32">
+
+                <!-- Text API Keys Section -->
+                <StackPanel Spacing="12">
+                    <Grid>
+                        <TextBlock Text="文本生成 API" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Button Content="添加" HorizontalAlignment="Right"
+                                Click="AddTextKey_Click" />
+                    </Grid>
+                    <TextBlock Text="用于AI写作助手、续写、重写等文本生成功能"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="13" />
+
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.TextApiKeys, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:ApiKeyConfig"
+                                          xmlns:models="using:InkPlay.Core.Models">
+                                <Grid Padding="12,10"
+                                      Margin="0,0,0,8"
+                                      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                      CornerRadius="8"
+                                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                      BorderThickness="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Default indicator -->
+                                    <SymbolIcon Grid.Column="0" Grid.RowSpan="2"
+                                                Symbol="Accept"
+                                                VerticalAlignment="Center" Margin="0,0,12,0"
+                                                Visibility="{x:Bind IsDefault, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                    <!-- Name + Model -->
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{x:Bind Name}" FontSize="15" FontWeight="SemiBold" />
+                                        <TextBlock Text="{x:Bind ModelId}" FontSize="13"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <!-- Base URL -->
+                                    <TextBlock Grid.Column="1" Grid.Row="1"
+                                               Text="{x:Bind BaseUrl}" FontSize="12"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                               Margin="0,4,0,0" />
+
+                                    <!-- Actions -->
+                                    <StackPanel Grid.Column="2" Grid.RowSpan="2"
+                                                Orientation="Horizontal" Spacing="4"
+                                                VerticalAlignment="Center">
+                                        <Button Content="默认" Click="SetDefault_Click"
+                                                Tag="{x:Bind Id}" />
+                                        <Button Content="编辑" Click="EditKey_Click"
+                                                Tag="{x:Bind Id}" />
+                                        <Button Content="删除" Click="DeleteKey_Click"
+                                                Tag="{x:Bind Id}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Video API Keys Section -->
+                <StackPanel Spacing="12">
+                    <Grid>
+                        <TextBlock Text="视频生成 API" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Button Content="添加" HorizontalAlignment="Right"
+                                Click="AddVideoKey_Click" />
+                    </Grid>
+                    <TextBlock Text="用于短剧创作中的视频生成功能"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="13" />
+
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.VideoApiKeys, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:ApiKeyConfig"
+                                          xmlns:models="using:InkPlay.Core.Models">
+                                <Grid Padding="12,10"
+                                      Margin="0,0,0,8"
+                                      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                      CornerRadius="8"
+                                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                      BorderThickness="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <SymbolIcon Grid.Column="0" Grid.RowSpan="2"
+                                                Symbol="Accept"
+                                                VerticalAlignment="Center" Margin="0,0,12,0"
+                                                Visibility="{x:Bind IsDefault, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{x:Bind Name}" FontSize="15" FontWeight="SemiBold" />
+                                        <TextBlock Text="{x:Bind ModelId}" FontSize="13"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1" Grid.Row="1"
+                                               Text="{x:Bind BaseUrl}" FontSize="12"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                               Margin="0,4,0,0" />
+
+                                    <StackPanel Grid.Column="2" Grid.RowSpan="2"
+                                                Orientation="Horizontal" Spacing="4"
+                                                VerticalAlignment="Center">
+                                        <Button Content="默认" Click="SetDefault_Click"
+                                                Tag="{x:Bind Id}" />
+                                        <Button Content="编辑" Click="EditKey_Click"
+                                                Tag="{x:Bind Id}" />
+                                        <Button Content="删除" Click="DeleteKey_Click"
+                                                Tag="{x:Bind Id}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Edit Panel (overlay) -->
+                <Grid Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                      Padding="16"
+                      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                      CornerRadius="8"
+                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                      BorderThickness="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12">
+                        <Run Text="{x:Bind ViewModel.IsNewKey, Mode=OneWay, Converter={StaticResource BoolToTextConverter}}" />
+                    </TextBlock>
+
+                    <TextBox Grid.Row="1" Header="名称" Margin="0,0,0,12"
+                             Text="{x:Bind ViewModel.EditName, Mode=TwoWay}"
+                             PlaceholderText="例如: 我的Claude、视频API" />
+
+                    <PasswordBox Grid.Row="2" Header="API Key" Margin="0,0,0,12"
+                                 Password="{x:Bind ViewModel.EditApiKey, Mode=TwoWay}"
+                                 PasswordRevealMode="Visible" />
+
+                    <TextBox Grid.Row="3" Header="Base URL" Margin="0,0,0,12"
+                             Text="{x:Bind ViewModel.EditBaseUrl, Mode=TwoWay}"
+                             PlaceholderText="https://api.example.com/v1" />
+
+                    <TextBox Grid.Row="4" Header="Model ID" Margin="0,0,0,12"
+                             Text="{x:Bind ViewModel.EditModelId, Mode=TwoWay}"
+                             PlaceholderText="模型名称，如 gpt-4o、kling-v1" />
+
+                    <CheckBox Grid.Row="5" Content="设为默认" Margin="0,0,0,16"
+                              IsChecked="{x:Bind ViewModel.EditIsDefault, Mode=TwoWay}" />
+
+                    <StackPanel Grid.Row="6" Orientation="Horizontal" Spacing="8"
+                                HorizontalAlignment="Right">
+                        <Button Content="取消" Click="CancelEdit_Click" />
+                        <Button Content="保存" Style="{StaticResource AccentButtonStyle}"
+                                Click="SaveKey_Click" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Status -->
+                <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </StackPanel>
-
-            <!-- Claude Settings -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="Claude (Anthropic)" FontSize="16" FontWeight="SemiBold" />
-                <PasswordBox Header="API Key"
-                             Password="{x:Bind ViewModel.ClaudeApiKey, Mode=TwoWay}"
-                             PasswordRevealMode="Visible" />
-                <TextBox Header="Base URL"
-                         Text="{x:Bind ViewModel.ClaudeBaseUrl, Mode=TwoWay}" />
-                <TextBox Header="Model ID"
-                         Text="{x:Bind ViewModel.ClaudeModelId, Mode=TwoWay}" />
-                <Button Content="测试连接" Click="TestClaude_Click" />
-            </StackPanel>
-
-            <!-- OpenAI Settings -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="OpenAI GPT" FontSize="16" FontWeight="SemiBold" />
-                <PasswordBox Header="API Key"
-                             Password="{x:Bind ViewModel.OpenAiApiKey, Mode=TwoWay}"
-                             PasswordRevealMode="Visible" />
-                <TextBox Header="Base URL"
-                         Text="{x:Bind ViewModel.OpenAiBaseUrl, Mode=TwoWay}" />
-                <TextBox Header="Model ID"
-                         Text="{x:Bind ViewModel.OpenAiModelId, Mode=TwoWay}" />
-                <Button Content="测试连接" Click="TestOpenAi_Click" />
-            </StackPanel>
-
-            <!-- Qwen Settings -->
-            <StackPanel Spacing="8">
-                <TextBlock Text="通义千问 (Qwen)" FontSize="16" FontWeight="SemiBold" />
-                <PasswordBox Header="API Key"
-                             Password="{x:Bind ViewModel.QwenApiKey, Mode=TwoWay}"
-                             PasswordRevealMode="Visible" />
-                <TextBox Header="Base URL"
-                         Text="{x:Bind ViewModel.QwenBaseUrl, Mode=TwoWay}" />
-                <TextBox Header="Model ID"
-                         Text="{x:Bind ViewModel.QwenModelId, Mode=TwoWay}" />
-                <Button Content="测试连接" Click="TestQwen_Click" />
-            </StackPanel>
-
-            <!-- Save Button -->
-            <Button Content="保存设置" Style="{StaticResource AccentButtonStyle}"
-                    Click="Save_Click" />
-
-            <!-- Status -->
-            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-        </StackPanel>
-    </ScrollViewer>
+        </ScrollViewer>
+    </Grid>
 </Page>

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InkPlay.Core.Interfaces;
@@ -8,118 +9,153 @@ namespace InkPlay.App.ViewModels;
 public partial class SettingsViewModel : ViewModelBase
 {
     private readonly ISettingsService _settingsService;
-    private readonly IAiProviderFactory _aiProviderFactory;
 
     [ObservableProperty]
-    private string _claudeApiKey = string.Empty;
+    private ObservableCollection<ApiKeyConfig> _textApiKeys = new();
 
     [ObservableProperty]
-    private string _claudeBaseUrl = "https://api.anthropic.com";
+    private ObservableCollection<ApiKeyConfig> _videoApiKeys = new();
 
     [ObservableProperty]
-    private string _claudeModelId = "claude-sonnet-4-20250514";
+    private ApiKeyConfig? _editingKey;
 
     [ObservableProperty]
-    private string _openAiApiKey = string.Empty;
+    private bool _isEditing;
 
     [ObservableProperty]
-    private string _openAiBaseUrl = "https://api.openai.com";
+    private bool _isNewKey;
+
+    // Edit form fields
+    [ObservableProperty]
+    private string _editName = string.Empty;
 
     [ObservableProperty]
-    private string _openAiModelId = "gpt-4o";
+    private string _editApiKey = string.Empty;
 
     [ObservableProperty]
-    private string _qwenApiKey = string.Empty;
+    private string _editBaseUrl = string.Empty;
 
     [ObservableProperty]
-    private string _qwenBaseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1";
+    private string _editModelId = string.Empty;
 
     [ObservableProperty]
-    private string _qwenModelId = "qwen-plus";
+    private ApiKeyCategory _editCategory = ApiKeyCategory.Text;
 
     [ObservableProperty]
-    private string _selectedProviderId = "claude";
+    private bool _editIsDefault;
 
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
-    public SettingsViewModel(ISettingsService settingsService, IAiProviderFactory aiProviderFactory)
+    public SettingsViewModel(ISettingsService settingsService)
     {
         _settingsService = settingsService;
-        _aiProviderFactory = aiProviderFactory;
     }
 
     public override void NavigatedTo(object? parameter)
     {
-        LoadSettings();
+        LoadApiKeys();
     }
 
-    private void LoadSettings()
+    private void LoadApiKeys()
     {
-        var claudeConfig = _settingsService.GetAiProviderConfig("claude");
-        ClaudeApiKey = claudeConfig.ApiKey;
-        ClaudeBaseUrl = claudeConfig.BaseUrl;
-        ClaudeModelId = string.IsNullOrEmpty(claudeConfig.ModelId) ? "claude-sonnet-4-20250514" : claudeConfig.ModelId;
+        var textKeys = _settingsService.GetApiKeys(ApiKeyCategory.Text);
+        TextApiKeys = new ObservableCollection<ApiKeyConfig>(textKeys);
 
-        var openAiConfig = _settingsService.GetAiProviderConfig("openai");
-        OpenAiApiKey = openAiConfig.ApiKey;
-        OpenAiBaseUrl = openAiConfig.BaseUrl;
-        OpenAiModelId = string.IsNullOrEmpty(openAiConfig.ModelId) ? "gpt-4o" : openAiConfig.ModelId;
-
-        var qwenConfig = _settingsService.GetAiProviderConfig("qwen");
-        QwenApiKey = qwenConfig.ApiKey;
-        QwenBaseUrl = qwenConfig.BaseUrl;
-        QwenModelId = string.IsNullOrEmpty(qwenConfig.ModelId) ? "qwen-plus" : qwenConfig.ModelId;
-
-        SelectedProviderId = _settingsService.GetDefaultAiProviderId();
+        var videoKeys = _settingsService.GetApiKeys(ApiKeyCategory.Video);
+        VideoApiKeys = new ObservableCollection<ApiKeyConfig>(videoKeys);
     }
 
     [RelayCommand]
-    private void SaveSettings()
+    private void AddTextKey()
     {
-        _settingsService.SaveAiProviderConfig(new AiProviderConfig
-        {
-            ProviderId = "claude",
-            ApiKey = ClaudeApiKey,
-            BaseUrl = ClaudeBaseUrl,
-            ModelId = ClaudeModelId
-        });
-
-        _settingsService.SaveAiProviderConfig(new AiProviderConfig
-        {
-            ProviderId = "openai",
-            ApiKey = OpenAiApiKey,
-            BaseUrl = OpenAiBaseUrl,
-            ModelId = OpenAiModelId
-        });
-
-        _settingsService.SaveAiProviderConfig(new AiProviderConfig
-        {
-            ProviderId = "qwen",
-            ApiKey = QwenApiKey,
-            BaseUrl = QwenBaseUrl,
-            ModelId = QwenModelId
-        });
-
-        _settingsService.SetDefaultAiProviderId(SelectedProviderId);
-
-        StatusMessage = "设置已保存";
+        StartEdit(new ApiKeyConfig { Category = ApiKeyCategory.Text }, isNew: true);
     }
 
     [RelayCommand]
-    private async Task TestConnectionAsync(string providerId)
+    private void AddVideoKey()
     {
-        StatusMessage = $"正在测试 {providerId} 连接...";
-        try
+        StartEdit(new ApiKeyConfig { Category = ApiKeyCategory.Video }, isNew: true);
+    }
+
+    [RelayCommand]
+    private void EditKey(ApiKeyConfig? config)
+    {
+        if (config is null) return;
+        StartEdit(config, isNew: false);
+    }
+
+    private void StartEdit(ApiKeyConfig config, bool isNew)
+    {
+        EditingKey = config;
+        IsNewKey = isNew;
+        EditName = config.Name;
+        EditApiKey = config.ApiKey;
+        EditBaseUrl = config.BaseUrl;
+        EditModelId = config.ModelId;
+        EditCategory = config.Category;
+        EditIsDefault = config.IsDefault;
+        IsEditing = true;
+    }
+
+    [RelayCommand]
+    private void CancelEdit()
+    {
+        IsEditing = false;
+        EditingKey = null;
+        StatusMessage = string.Empty;
+    }
+
+    [RelayCommand]
+    private void SaveKey()
+    {
+        if (string.IsNullOrWhiteSpace(EditName))
         {
-            var config = _settingsService.GetAiProviderConfig(providerId);
-            var provider = _aiProviderFactory.GetProvider(providerId);
-            var result = await provider.ValidateConfigurationAsync(config);
-            StatusMessage = result ? $"{providerId} 连接成功" : $"{providerId} 连接失败";
+            StatusMessage = "请输入名称";
+            return;
         }
-        catch (Exception ex)
+
+        if (string.IsNullOrWhiteSpace(EditApiKey))
         {
-            StatusMessage = $"{providerId} 连接失败: {ex.Message}";
+            StatusMessage = "请输入 API Key";
+            return;
         }
+
+        var config = EditingKey ?? new ApiKeyConfig();
+        config.Name = EditName.Trim();
+        config.ApiKey = EditApiKey.Trim();
+        config.BaseUrl = EditBaseUrl.Trim();
+        config.ModelId = EditModelId.Trim();
+        config.Category = EditCategory;
+        config.IsDefault = EditIsDefault;
+
+        if (IsNewKey && config.Id == Guid.Empty)
+        {
+            config.Id = Guid.NewGuid();
+        }
+
+        _settingsService.SaveApiKey(config);
+        IsEditing = false;
+        EditingKey = null;
+        StatusMessage = "已保存";
+        LoadApiKeys();
+    }
+
+    [RelayCommand]
+    private void DeleteKey(ApiKeyConfig? config)
+    {
+        if (config is null) return;
+        _settingsService.DeleteApiKey(config.Id);
+        StatusMessage = "已删除";
+        LoadApiKeys();
+    }
+
+    [RelayCommand]
+    private void SetDefault(ApiKeyConfig? config)
+    {
+        if (config is null) return;
+        _settingsService.SetDefaultApiKey(config.Id, config.Category);
+        StatusMessage = $"已设为默认: {config.Name}";
+        LoadApiKeys();
     }
 }
