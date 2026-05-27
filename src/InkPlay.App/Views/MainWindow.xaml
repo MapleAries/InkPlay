@@ -8,7 +8,8 @@
     <NavigationView
         x:Name="NavView"
         IsBackButtonVisible="Auto"
-        IsSettingsVisible="True"
+        IsSettingsVisible="False"
+        PaneDisplayMode="LeftCompact"
         ItemInvoked="NavView_ItemInvoked"
         SelectionChanged="NavView_SelectionChanged">
 
@@ -19,6 +20,10 @@
             <NavigationViewItem Content="剧本工坊" Icon="Video" Tag="Script" />
             <NavigationViewItem Content="AI 助手" Icon="Comment" Tag="AiAssistant" />
         </NavigationView.MenuItems>
+
+        <NavigationView.FooterMenuItems>
+            <NavigationViewItem Content="设置" Icon="Setting" Tag="Settings" />
+        </NavigationView.FooterMenuItems>
 
         <Frame x:Name="ContentFrame" />
     </NavigationView>

@@ -121,8 +121,22 @@ public partial class SettingsViewModel : ViewModelBase
             return;
         }
 
+        var trimmedName = EditName.Trim();
+
+        // Check for duplicate name in the same category (exclude current when editing)
+        var existingKeys = _settingsService.GetApiKeys(EditCategory);
+        var duplicate = existingKeys.FirstOrDefault(k =>
+            k.Name.Equals(trimmedName, StringComparison.OrdinalIgnoreCase)
+            && k.Id != EditingKey?.Id);
+
+        if (duplicate is not null)
+        {
+            StatusMessage = $"名称 \"{trimmedName}\" 已存在，请使用其他名称";
+            return;
+        }
+
         var config = EditingKey ?? new ApiKeyConfig();
-        config.Name = EditName.Trim();
+        config.Name = trimmedName;
         config.ApiKey = EditApiKey.Trim();
         config.BaseUrl = EditBaseUrl.Trim();
         config.ModelId = EditModelId.Trim();
