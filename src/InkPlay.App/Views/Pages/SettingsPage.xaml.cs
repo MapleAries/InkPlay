@@ -34,7 +34,7 @@ public sealed partial class SettingsPage : Page
 
     private void EditKey_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is string idStr && Guid.TryParse(idStr, out var id))
+        if (sender is Button btn && btn.Tag is Guid id)
         {
             var config = FindKeyById(id);
             ViewModel.EditKeyCommand.Execute(config);
@@ -43,7 +43,7 @@ public sealed partial class SettingsPage : Page
 
     private void SetDefault_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is string idStr && Guid.TryParse(idStr, out var id))
+        if (sender is Button btn && btn.Tag is Guid id)
         {
             var config = FindKeyById(id);
             ViewModel.SetDefaultCommand.Execute(config);
@@ -52,7 +52,7 @@ public sealed partial class SettingsPage : Page
 
     private void DeleteKey_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is string idStr && Guid.TryParse(idStr, out var id))
+        if (sender is Button btn && btn.Tag is Guid id)
         {
             var config = FindKeyById(id);
             ViewModel.DeleteKeyCommand.Execute(config);
