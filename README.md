@@ -1,4 +1,4 @@
-# InkPlay
+# InkPlay (墨戏)
 
 AI-powered creative writing tool for web novels — Windows native application
 

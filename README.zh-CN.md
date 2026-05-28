@@ -1,4 +1,4 @@
-# InkPlay
+# InkPlay（墨戏）
 
 AI 辅助网文创作工具 — Windows 原生应用
 

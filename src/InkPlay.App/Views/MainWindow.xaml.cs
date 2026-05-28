@@ -31,7 +31,7 @@ public sealed partial class MainWindow : Window
         NavView.SelectedItem = NavView.MenuItems[0];
         _navigationService.NavigateTo("Home");
 
-        Title = "InkPlay - AI创作助手";
+        Title = "墨戏 - AI创作助手";
     }
 
     private void OnNavigated(string pageKey, object? parameter)
