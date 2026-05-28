@@ -161,18 +161,23 @@ public partial class HomeViewModel : ViewModelBase
         // 保存到 LiteDB 索引
         await _projectRepository.CreateAsync(project);
 
-        // 保存大纲到 LiteDB（供页面读取）
+        // 拆分大纲并保存为多个文档
         if (generatedOutline is not null)
         {
-            var outline = new Document
+            var sections = SplitOutlineBySections(generatedOutline);
+            for (int i = 0; i < sections.Count; i++)
             {
-                ProjectId = project.Id,
-                Title = "故事大纲",
-                Type = DocumentType.Outline,
-                Content = generatedOutline,
-                SortOrder = 0
-            };
-            await _documentRepository.CreateAsync(outline);
+                var (title, content) = sections[i];
+                var outline = new Document
+                {
+                    ProjectId = project.Id,
+                    Title = title,
+                    Type = DocumentType.Outline,
+                    Content = content,
+                    SortOrder = i
+                };
+                await _documentRepository.CreateAsync(outline);
+            }
         }
 
         IsCreating = false;
@@ -225,6 +230,46 @@ public partial class HomeViewModel : ViewModelBase
         {
             return null;
         }
+    }
+
+    private static List<(string Title, string Content)> SplitOutlineBySections(string outline)
+    {
+        var sections = new List<(string Title, string Content)>();
+        var lines = outline.Split('\n');
+        var currentTitle = "故事大纲";
+        var currentContent = new System.Text.StringBuilder();
+
+        foreach (var line in lines)
+        {
+            if (line.StartsWith("## "))
+            {
+                // 保存上一个 section
+                if (currentContent.Length > 0)
+                {
+                    sections.Add((currentTitle, currentContent.ToString().Trim()));
+                    currentContent.Clear();
+                }
+                currentTitle = line[3..].Trim();
+            }
+            else
+            {
+                currentContent.AppendLine(line);
+            }
+        }
+
+        // 保存最后一个 section
+        if (currentContent.Length > 0)
+        {
+            sections.Add((currentTitle, currentContent.ToString().Trim()));
+        }
+
+        // 如果没有拆分出多个 section，返回整体
+        if (sections.Count == 0)
+        {
+            sections.Add(("故事大纲", outline));
+        }
+
+        return sections;
     }
 
     [RelayCommand]

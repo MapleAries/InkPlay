@@ -8,6 +8,12 @@ namespace InkPlay.Services;
 public class FileProjectService : IFileProjectService
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+    private readonly IProjectRepository _projectRepository;
+
+    public FileProjectService(IProjectRepository projectRepository)
+    {
+        _projectRepository = projectRepository;
+    }
 
     public async Task<Project> CreateProjectAsync(string parentDirectory, Project project, string? outlineContent = null)
     {
@@ -92,11 +98,9 @@ public class FileProjectService : IFileProjectService
         await File.WriteAllTextAsync(metaPath, json);
     }
 
-    private Task<Project?> LoadProjectMetaAsync(Guid projectId)
+    private async Task<Project?> LoadProjectMetaAsync(Guid projectId)
     {
-        // 需要从索引中查找项目路径
-        // 这个方法在仓储层会被覆盖
-        return Task.FromResult<Project?>(null);
+        return await _projectRepository.GetByIdAsync(projectId);
     }
 
     private static string SanitizeFileName(string name)
