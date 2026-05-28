@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Input;
 
 namespace InkPlay.App.Views.Pages;
 
-public sealed partial class ScriptPage : Page
+public sealed partial class ScriptPage : Page, IParameterizedPage
 {
     public ScriptViewModel ViewModel { get; }
 
@@ -14,7 +14,11 @@ public sealed partial class ScriptPage : Page
     {
         ViewModel = viewModel;
         InitializeComponent();
-        Loaded += (_, _) => ViewModel.NavigatedTo(null);
+    }
+
+    public void SetParameter(object? parameter)
+    {
+        ViewModel.NavigatedTo(parameter);
     }
 
     private void AddEpisode_Click(object sender, RoutedEventArgs e)
