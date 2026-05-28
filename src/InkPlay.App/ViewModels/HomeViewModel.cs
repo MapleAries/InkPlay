@@ -45,6 +45,9 @@ public partial class HomeViewModel : ViewModelBase
     private bool _isCreating;
 
     [ObservableProperty]
+    private bool _createDialogOpen;
+
+    [ObservableProperty]
     private string _editProjectTitle = string.Empty;
 
     [ObservableProperty]
@@ -95,8 +98,9 @@ public partial class HomeViewModel : ViewModelBase
         NewProjectTitle = string.Empty;
         NewProjectDescription = string.Empty;
         InspirationText = string.Empty;
+        CreateStatusMessage = string.Empty;
         GoToOutlineAfterCreate = true;
-        ShowCreateDialog = true;
+        CreateDialogOpen = true;
     }
 
     [RelayCommand]
@@ -141,7 +145,7 @@ public partial class HomeViewModel : ViewModelBase
 
         if (string.IsNullOrEmpty(CreateStatusMessage))
         {
-            ShowCreateDialog = false;
+            CreateDialogOpen = false;
             if (GoToOutlineAfterCreate)
             {
                 _projectContext.SetCurrentProject(project.Id);
@@ -154,14 +158,9 @@ public partial class HomeViewModel : ViewModelBase
         }
         else
         {
-            // 有错误提示，回到表单让用户看到
-            CreateFormVisible = true;
             await LoadProjectsAsync();
         }
     }
-
-    [ObservableProperty]
-    private bool _createFormVisible = true;
 
     private async Task<bool> ExpandInspirationAsync(Project project, string inspiration)
     {
@@ -219,7 +218,7 @@ public partial class HomeViewModel : ViewModelBase
     [RelayCommand]
     private void CancelCreateProject()
     {
-        ShowCreateDialog = false;
+        CreateDialogOpen = false;
     }
 
     [RelayCommand]

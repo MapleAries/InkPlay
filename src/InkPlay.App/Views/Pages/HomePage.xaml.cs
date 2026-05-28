@@ -20,12 +20,10 @@ public sealed partial class HomePage : Page
     private void CreateProject_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.ShowCreateProjectDialogCommand.Execute(null);
-        CreateDialog.Visibility = Visibility.Visible;
     }
 
     private void CancelCreate_Click(object sender, RoutedEventArgs e)
     {
-        CreateDialog.Visibility = Visibility.Collapsed;
         ViewModel.CancelCreateProjectCommand.Execute(null);
     }
 
@@ -42,13 +40,7 @@ public sealed partial class HomePage : Page
 
         await ViewModel.CreateProjectCommand.ExecuteAsync(null);
 
-        // 如果创建成功（没有错误消息），关闭对话框
-        if (string.IsNullOrEmpty(ViewModel.CreateStatusMessage))
-        {
-            CreateDialog.Visibility = Visibility.Collapsed;
-        }
-
-        // 恢复表单状态
+        // 恢复表单状态（无论成功或失败）
         CreateForm.Visibility = Visibility.Visible;
         CreateLoading.Visibility = Visibility.Collapsed;
     }

@@ -68,7 +68,7 @@
         <!-- Create Project Dialog -->
         <Grid x:Name="CreateDialog" Grid.RowSpan="2"
               Background="{ThemeResource SmokeFillColorDefaultBrush}"
-              Visibility="Collapsed">
+              Visibility="{x:Bind ViewModel.CreateDialogOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid Width="480" Padding="24"
                   VerticalAlignment="Center" HorizontalAlignment="Center"
                   Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
