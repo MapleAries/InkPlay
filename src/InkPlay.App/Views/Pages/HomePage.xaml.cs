@@ -65,4 +65,53 @@ public sealed partial class HomePage : Page
     {
         ActionsDialog.Visibility = Visibility.Collapsed;
     }
+
+    private void EditProject_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is Guid projectId)
+        {
+            var project = ViewModel.Projects.FirstOrDefault(p => p.Id == projectId);
+            if (project is null) return;
+
+            ViewModel.SelectedProject = project;
+            ViewModel.EditProjectTitle = project.Title;
+            ViewModel.EditProjectDescription = project.Description;
+            EditDialog.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void CancelEdit_Click(object sender, RoutedEventArgs e)
+    {
+        EditDialog.Visibility = Visibility.Collapsed;
+    }
+
+    private async void SaveEdit_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.UpdateProjectCommand.ExecuteAsync(null);
+        EditDialog.Visibility = Visibility.Collapsed;
+    }
+
+    private void DeleteProject_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is Guid projectId)
+        {
+            var project = ViewModel.Projects.FirstOrDefault(p => p.Id == projectId);
+            if (project is null) return;
+
+            ViewModel.SelectedProject = project;
+            ViewModel.EditProjectTitle = project.Title;
+            DeleteDialog.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void CancelDelete_Click(object sender, RoutedEventArgs e)
+    {
+        DeleteDialog.Visibility = Visibility.Collapsed;
+    }
+
+    private async void ConfirmDelete_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.DeleteSelectedProjectCommand.ExecuteAsync(null);
+        DeleteDialog.Visibility = Visibility.Collapsed;
+    }
 }

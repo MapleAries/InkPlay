@@ -31,7 +31,7 @@
             <GridView.ItemTemplate>
                 <DataTemplate x:DataType="models:Project"
                               xmlns:models="using:InkPlay.Core.Models">
-                    <Grid Width="280" Height="160" Padding="16"
+                    <Grid Width="280" Height="180" Padding="16"
                           Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                           CornerRadius="8"
                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -40,6 +40,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <TextBlock Text="{x:Bind Title}" FontSize="18" FontWeight="SemiBold"
@@ -47,12 +48,17 @@
                         <TextBlock Text="{x:Bind Description}" FontSize="14"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    Grid.Row="1" Margin="0,8,0,0"
-                                   TextTrimming="CharacterEllipsis" MaxLines="3" />
-                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12" Margin="0,8,0,0">
-                            <TextBlock Text="{x:Bind Genre}" FontSize="12"
-                                       Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                            <TextBlock Text="{x:Bind UpdatedAt}" FontSize="12"
-                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                   TextTrimming="CharacterEllipsis" MaxLines="2" />
+                        <TextBlock Grid.Row="2" Text="{x:Bind UpdatedAt}" FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                   Margin="0,8,0,0" />
+                        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="4"
+                                    Margin="0,8,0,0" HorizontalAlignment="Right">
+                            <Button Content="编辑" Tag="{x:Bind Id}"
+                                    Click="EditProject_Click" Padding="8,4" FontSize="12" />
+                            <Button Content="删除" Tag="{x:Bind Id}"
+                                    Click="DeleteProject_Click" Padding="8,4" FontSize="12"
+                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
                         </StackPanel>
                     </Grid>
                 </DataTemplate>
@@ -151,6 +157,59 @@
                         HorizontalAlignment="Right"
                         Margin="0,24,0,0"
                         Click="CancelActions_Click" />
+            </Grid>
+        </Grid>
+
+        <!-- Edit Project Dialog -->
+        <Grid x:Name="EditDialog" Grid.RowSpan="2"
+              Background="{ThemeResource SmokeFillColorDefaultBrush}"
+              Visibility="Collapsed">
+            <Grid Width="400" Padding="24"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="编辑项目" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
+
+                    <TextBox Header="项目标题"
+                             Text="{x:Bind ViewModel.EditProjectTitle, Mode=TwoWay}" />
+
+                    <TextBox Header="项目描述"
+                             Text="{x:Bind ViewModel.EditProjectDescription, Mode=TwoWay}"
+                             TextWrapping="Wrap" AcceptsReturn="True" Height="80" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Content="取消" Click="CancelEdit_Click" />
+                        <Button Content="保存" Style="{StaticResource AccentButtonStyle}" Click="SaveEdit_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Grid>
+
+        <!-- Delete Confirmation Dialog -->
+        <Grid x:Name="DeleteDialog" Grid.RowSpan="2"
+              Background="{ThemeResource SmokeFillColorDefaultBrush}"
+              Visibility="Collapsed">
+            <Grid Width="360" Padding="24"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="确认删除" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock TextWrapping="Wrap"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                        <Run Text="确定要删除项目" />
+                        <Run Text="{x:Bind ViewModel.EditProjectTitle, Mode=OneWay}" FontWeight="SemiBold" />
+                        <Run Text="吗？此操作不可撤销。" />
+                    </TextBlock>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Content="取消" Click="CancelDelete_Click" />
+                        <Button Content="删除" Style="{StaticResource AccentButtonStyle}"
+                                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                Click="ConfirmDelete_Click" />
+                    </StackPanel>
+                </StackPanel>
             </Grid>
         </Grid>
     </Grid>

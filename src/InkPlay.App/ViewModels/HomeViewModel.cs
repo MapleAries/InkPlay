@@ -44,6 +44,12 @@ public partial class HomeViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isCreating;
 
+    [ObservableProperty]
+    private string _editProjectTitle = string.Empty;
+
+    [ObservableProperty]
+    private string _editProjectDescription = string.Empty;
+
     public HomeViewModel(
         IProjectRepository projectRepository,
         IDocumentRepository documentRepository,
@@ -186,6 +192,33 @@ public partial class HomeViewModel : ViewModelBase
 
         _projectContext.SetCurrentProject(SelectedProject.Id);
         _navigationService.NavigateTo(feature, SelectedProject.Id);
+    }
+
+    [RelayCommand]
+    private async Task UpdateProjectAsync()
+    {
+        if (SelectedProject is null) return;
+
+        SelectedProject.Title = EditProjectTitle.Trim();
+        SelectedProject.Description = EditProjectDescription.Trim();
+        await _projectRepository.UpdateAsync(SelectedProject);
+
+        // Refresh the list
+        var index = Projects.IndexOf(SelectedProject);
+        if (index >= 0)
+        {
+            Projects[index] = SelectedProject;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteSelectedProjectAsync()
+    {
+        if (SelectedProject is null) return;
+
+        await _projectRepository.DeleteAsync(SelectedProject.Id);
+        Projects.Remove(SelectedProject);
+        SelectedProject = null;
     }
 
     [RelayCommand]
