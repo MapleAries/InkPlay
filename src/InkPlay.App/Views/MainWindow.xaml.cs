@@ -35,7 +35,7 @@ public sealed partial class MainWindow : Window
         Title = "InkPlay - AI写作助手";
     }
 
-    private void OnNavigated(string pageKey)
+    private void OnNavigated(string pageKey, object? parameter)
     {
         _isNavigating = true;
         foreach (NavigationViewItem item in NavView.MenuItems)

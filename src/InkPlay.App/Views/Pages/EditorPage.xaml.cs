@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Input;
 
 namespace InkPlay.App.Views.Pages;
 
-public sealed partial class EditorPage : Page
+public sealed partial class EditorPage : Page, IParameterizedPage
 {
     public EditorViewModel ViewModel { get; }
 
@@ -17,10 +17,9 @@ public sealed partial class EditorPage : Page
         DataContext = ViewModel;
     }
 
-    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    public void SetParameter(object? parameter)
     {
-        base.OnNavigatedTo(e);
-        ViewModel.NavigatedTo(e.Parameter);
+        ViewModel.NavigatedTo(parameter);
     }
 
     private void AddDocument_Click(object sender, RoutedEventArgs e)

@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Input;
 
 namespace InkPlay.App.Views.Pages;
 
-public sealed partial class CharactersPage : Page
+public sealed partial class CharactersPage : Page, IParameterizedPage
 {
     public CharactersViewModel ViewModel { get; }
 
@@ -13,7 +13,11 @@ public sealed partial class CharactersPage : Page
     {
         ViewModel = viewModel;
         InitializeComponent();
-        Loaded += (_, _) => ViewModel.NavigatedTo(null);
+    }
+
+    public void SetParameter(object? parameter)
+    {
+        ViewModel.NavigatedTo(parameter);
     }
 
     private void GoHome_Click(object sender, RoutedEventArgs e)

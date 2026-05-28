@@ -1,3 +1,4 @@
+using InkPlay.App.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -7,7 +8,7 @@ namespace InkPlay.App.Services;
 public interface INavigationService
 {
     bool CanGoBack { get; }
-    event Action<string>? Navigated;
+    event Action<string, object?>? Navigated;
     void Initialize(Frame frame);
     bool NavigateTo(string pageKey, object? parameter = null);
     void GoBack();
@@ -20,7 +21,7 @@ public class NavigationService : INavigationService
     private readonly Dictionary<string, Type> _pageTypes = new();
 
     public bool CanGoBack => _frame?.CanGoBack ?? false;
-    public event Action<string>? Navigated;
+    public event Action<string, object?>? Navigated;
 
     public NavigationService(IServiceProvider serviceProvider)
     {
@@ -48,8 +49,14 @@ public class NavigationService : INavigationService
         if (page is null)
             return false;
 
+        // Pass parameter to page if it supports it
+        if (page is IParameterizedPage parameterizedPage)
+        {
+            parameterizedPage.SetParameter(parameter);
+        }
+
         _frame.Content = page;
-        Navigated?.Invoke(pageKey);
+        Navigated?.Invoke(pageKey, parameter);
         return true;
     }
 
