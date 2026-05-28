@@ -15,26 +15,20 @@
             <ColumnDefinition Width="360" />
         </Grid.ColumnDefinitions>
 
-        <!-- Left: Episode/Scene List -->
+        <!-- Left: Outline List -->
         <Grid Grid.Column="0" Padding="12"
               Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
-                <TextBlock Text="大纲" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
-                <Button Content="+章节" Click="AddEpisode_Click" Padding="8,4" />
-            </StackPanel>
+            <TextBlock Grid.Row="0" Text="大纲" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" />
 
-            <!-- Episode List -->
             <ListView Grid.Row="1"
                       ItemsSource="{x:Bind ViewModel.Episodes, Mode=OneWay}"
                       SelectedItem="{x:Bind ViewModel.CurrentEpisode, Mode=TwoWay}"
-                      SelectionChanged="EpisodeList_SelectionChanged"
-                      MaxHeight="200">
+                      SelectionChanged="EpisodeList_SelectionChanged">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Document">
                         <Grid Padding="8,6">
@@ -43,32 +37,6 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-
-            <!-- Scene List -->
-            <Grid Grid.Row="2" Margin="0,12,0,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
-                    <TextBlock Text="条目" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <Button Content="+" Click="AddScene_Click" Padding="6,2" />
-                </StackPanel>
-
-                <ListView Grid.Row="1"
-                          ItemsSource="{x:Bind ViewModel.Scenes, Mode=OneWay}"
-                          SelectedItem="{x:Bind ViewModel.CurrentScene, Mode=TwoWay}"
-                          SelectionChanged="SceneList_SelectionChanged">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="models:ScriptScene">
-                            <Grid Padding="8,6">
-                                <TextBlock Text="{x:Bind SceneHeading}" TextTrimming="CharacterEllipsis" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
         </Grid>
 
         <!-- Center: Content Area -->
