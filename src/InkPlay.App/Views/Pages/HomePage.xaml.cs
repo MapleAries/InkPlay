@@ -31,12 +31,16 @@ public sealed partial class HomePage : Page
 
     private async void ConfirmCreate_Click(object sender, RoutedEventArgs e)
     {
-        if (GenreComboBox.SelectedItem is ComboBoxItem selectedItem)
-        {
-            ViewModel.NewProjectGenre = selectedItem.Content?.ToString() ?? "短剧";
-        }
+        if (string.IsNullOrWhiteSpace(ViewModel.NewProjectTitle)) return;
+
+        CreateForm.Visibility = Visibility.Collapsed;
+        CreateLoading.Visibility = Visibility.Visible;
+
         await ViewModel.CreateProjectCommand.ExecuteAsync(null);
+
         CreateDialog.Visibility = Visibility.Collapsed;
+        CreateForm.Visibility = Visibility.Visible;
+        CreateLoading.Visibility = Visibility.Collapsed;
     }
 
     private void ProjectItem_Click(object sender, ItemClickEventArgs e)

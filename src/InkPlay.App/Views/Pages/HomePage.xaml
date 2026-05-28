@@ -67,41 +67,33 @@
                   VerticalAlignment="Center" HorizontalAlignment="Center"
                   Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                   CornerRadius="8">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
 
-                <TextBlock Text="新建项目" FontSize="20" FontWeight="SemiBold" Grid.Row="0" Margin="0,0,0,16" />
+                <!-- Normal Form -->
+                <StackPanel x:Name="CreateForm" Spacing="12">
+                    <TextBlock Text="新建项目" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
 
-                <TextBox Header="项目标题" Grid.Row="1" Margin="0,0,0,12"
-                         Text="{x:Bind ViewModel.NewProjectTitle, Mode=TwoWay}" PlaceholderText="输入项目标题..." />
+                    <TextBox Header="项目标题"
+                             Text="{x:Bind ViewModel.NewProjectTitle, Mode=TwoWay}" PlaceholderText="输入项目标题..." />
 
-                <ComboBox Header="类型" Grid.Row="2" Margin="0,0,0,12"
-                          SelectedIndex="0"
-                          x:Name="GenreComboBox">
-                    <ComboBoxItem Content="短剧" IsSelected="True" />
-                    <ComboBoxItem Content="小说" />
-                    <ComboBoxItem Content="网文" />
-                    <ComboBoxItem Content="其他" />
-                </ComboBox>
+                    <TextBox Header="你有创作灵感或大纲吗？（可选）"
+                             Text="{x:Bind ViewModel.InspirationText, Mode=TwoWay}"
+                             PlaceholderText="随便写点想法，AI会帮你扩展为完整大纲..."
+                             TextWrapping="Wrap" AcceptsReturn="True" Height="120" />
 
-                <TextBox Header="你有创作灵感或大纲吗？（可选）" Grid.Row="3" Margin="0,0,0,12"
-                         Text="{x:Bind ViewModel.InspirationText, Mode=TwoWay}"
-                         PlaceholderText="随便写点想法，AI会帮你扩展为完整大纲..."
-                         TextWrapping="Wrap" AcceptsReturn="True" Height="120" />
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Content="取消" Click="CancelCreate_Click" />
+                        <Button Content="创建" Style="{StaticResource AccentButtonStyle}" Click="ConfirmCreate_Click" />
+                    </StackPanel>
+                </StackPanel>
 
-                <CheckBox Grid.Row="4" Margin="0,0,0,16"
-                          Content="创建后直接进入大纲规划"
-                          IsChecked="{x:Bind ViewModel.GoToOutlineAfterCreate, Mode=TwoWay}" />
-
-                <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                    <Button Content="取消" Click="CancelCreate_Click" />
-                    <Button Content="创建" Style="{StaticResource AccentButtonStyle}" Click="ConfirmCreate_Click" />
+                <!-- Loading State -->
+                <StackPanel x:Name="CreateLoading" Spacing="16"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Visibility="Collapsed">
+                    <ProgressRing IsActive="True" Width="48" Height="48" />
+                    <TextBlock Text="正在创建项目并生成大纲..." FontSize="16"
+                               HorizontalAlignment="Center"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
             </Grid>
         </Grid>

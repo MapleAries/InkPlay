@@ -36,9 +36,6 @@ public partial class HomeViewModel : ViewModelBase
     private string _newProjectDescription = string.Empty;
 
     [ObservableProperty]
-    private string _newProjectGenre = "短剧";
-
-    [ObservableProperty]
     private string _inspirationText = string.Empty;
 
     [ObservableProperty]
@@ -88,7 +85,6 @@ public partial class HomeViewModel : ViewModelBase
     {
         NewProjectTitle = string.Empty;
         NewProjectDescription = string.Empty;
-        NewProjectGenre = "短剧";
         InspirationText = string.Empty;
         GoToOutlineAfterCreate = true;
         ShowCreateDialog = true;
@@ -105,7 +101,7 @@ public partial class HomeViewModel : ViewModelBase
         {
             Title = NewProjectTitle.Trim(),
             Description = NewProjectDescription.Trim(),
-            Genre = NewProjectGenre
+            Genre = "网文"
         };
 
         await _projectRepository.CreateAsync(project);
