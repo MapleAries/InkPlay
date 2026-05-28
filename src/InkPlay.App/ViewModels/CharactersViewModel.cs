@@ -13,6 +13,7 @@ public partial class CharactersViewModel : ViewModelBase
     private readonly IProjectRepository _projectRepository;
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
+    private readonly IProjectContext _projectContext;
     private readonly NavigationService _navigationService;
     private CancellationTokenSource? _aiCts;
 
@@ -24,6 +25,9 @@ public partial class CharactersViewModel : ViewModelBase
 
     [ObservableProperty]
     private Character? _currentCharacter;
+
+    [ObservableProperty]
+    private bool _isCharacterSelected;
 
     [ObservableProperty]
     private string _characterName = string.Empty;
@@ -72,20 +76,23 @@ public partial class CharactersViewModel : ViewModelBase
         IProjectRepository projectRepository,
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
+        IProjectContext projectContext,
         NavigationService navigationService)
     {
         _characterRepository = characterRepository;
         _projectRepository = projectRepository;
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
+        _projectContext = projectContext;
         _navigationService = navigationService;
     }
 
     public override async void NavigatedTo(object? parameter)
     {
-        if (parameter is Guid projectId)
+        var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
+        if (projectId.HasValue)
         {
-            CurrentProject = await _projectRepository.GetByIdAsync(projectId);
+            CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
             if (CurrentProject is not null)
             {
                 await LoadCharactersAsync();
@@ -100,11 +107,9 @@ public partial class CharactersViewModel : ViewModelBase
 
         var characters = await _characterRepository.GetByProjectIdAsync(CurrentProject.Id);
         Characters = new ObservableCollection<Character>(characters);
-
-        if (Characters.Count > 0 && CurrentCharacter is null)
-        {
-            SelectCharacter(Characters[0]);
-        }
+        CurrentCharacter = null;
+        IsCharacterSelected = false;
+        ClearCharacterFields();
     }
 
     [RelayCommand]
@@ -158,33 +163,46 @@ public partial class CharactersViewModel : ViewModelBase
         await _characterRepository.DeleteAsync(CurrentCharacter.Id);
         Characters.Remove(CurrentCharacter);
 
-        CurrentCharacter = Characters.FirstOrDefault();
-        LoadCharacterFields();
+        CurrentCharacter = null;
+        IsCharacterSelected = false;
+        ClearCharacterFields();
     }
 
     [RelayCommand]
     private void SelectCharacter(Character? character)
     {
-        if (character is null) return;
+        if (character is null)
+        {
+            CurrentCharacter = null;
+            IsCharacterSelected = false;
+            ClearCharacterFields();
+            return;
+        }
 
         CurrentCharacter = character;
+        IsCharacterSelected = true;
         LoadCharacterFields();
+    }
+
+    private void ClearCharacterFields()
+    {
+        CharacterName = string.Empty;
+        CharacterAlias = string.Empty;
+        CharacterAge = string.Empty;
+        CharacterGender = string.Empty;
+        CharacterRole = string.Empty;
+        CharacterAppearance = string.Empty;
+        CharacterPersonality = string.Empty;
+        CharacterMotivation = string.Empty;
+        CharacterWeakness = string.Empty;
+        CharacterBackstory = string.Empty;
     }
 
     private void LoadCharacterFields()
     {
         if (CurrentCharacter is null)
         {
-            CharacterName = string.Empty;
-            CharacterAlias = string.Empty;
-            CharacterAge = string.Empty;
-            CharacterGender = string.Empty;
-            CharacterRole = string.Empty;
-            CharacterAppearance = string.Empty;
-            CharacterPersonality = string.Empty;
-            CharacterMotivation = string.Empty;
-            CharacterWeakness = string.Empty;
-            CharacterBackstory = string.Empty;
+            ClearCharacterFields();
             return;
         }
 

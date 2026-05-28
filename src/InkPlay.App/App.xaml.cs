@@ -1,4 +1,5 @@
 using InkPlay.Core.Interfaces;
+using InkPlay.Services;
 using InkPlay.Services.Ai;
 using InkPlay.Services.Ai.Providers;
 using InkPlay.Services.Data;
@@ -41,6 +42,9 @@ public partial class App : Application
                     var httpClient = new HttpClient();
                     return new KlingVideoProvider(httpClient);
                 });
+
+                // Context
+                services.AddSingleton<IProjectContext, ProjectContext>();
 
                 // Settings
                 services.AddSingleton<ISettingsService, SettingsService>();

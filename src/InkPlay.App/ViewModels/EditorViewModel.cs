@@ -14,6 +14,7 @@ public partial class EditorViewModel : ViewModelBase
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
     private readonly IConversationRepository _conversationRepository;
+    private readonly IProjectContext _projectContext;
     private readonly NavigationService _navigationService;
     private CancellationTokenSource? _aiCts;
     private AiConversation? _currentConversation;
@@ -48,6 +49,7 @@ public partial class EditorViewModel : ViewModelBase
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
         IConversationRepository conversationRepository,
+        IProjectContext projectContext,
         NavigationService navigationService)
     {
         _documentRepository = documentRepository;
@@ -55,6 +57,7 @@ public partial class EditorViewModel : ViewModelBase
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
         _conversationRepository = conversationRepository;
+        _projectContext = projectContext;
         _navigationService = navigationService;
     }
 
@@ -62,6 +65,7 @@ public partial class EditorViewModel : ViewModelBase
     {
         if (parameter is Guid projectId)
         {
+            _projectContext.SetCurrentProject(projectId);
             CurrentProject = await _projectRepository.GetByIdAsync(projectId);
             if (CurrentProject is not null)
             {

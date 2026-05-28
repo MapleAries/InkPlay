@@ -47,7 +47,8 @@
         </Grid>
 
         <!-- Center: Character Details -->
-        <ScrollViewer Grid.Column="1" Padding="12">
+        <ScrollViewer Grid.Column="1" Padding="12"
+                      Visibility="{x:Bind ViewModel.IsCharacterSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
             <StackPanel Spacing="12">
                 <TextBlock Text="角色详情" FontSize="16" FontWeight="SemiBold" />
 
@@ -74,6 +75,14 @@
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>
+
+        <!-- Center: Empty State -->
+        <StackPanel Grid.Column="1" Padding="12"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{x:Bind ViewModel.IsCharacterSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+            <TextBlock Text="请选择或创建一个角色" FontSize="16"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
 
         <!-- Right: AI Panel -->
         <Grid Grid.Column="2" Padding="12"
