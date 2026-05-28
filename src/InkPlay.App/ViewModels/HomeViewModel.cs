@@ -122,39 +122,50 @@ public partial class HomeViewModel : ViewModelBase
 
         IsCreating = true;
 
+        string? generatedOutline = null;
+
+        // 如果有灵感文本，先用 AI 生成大纲
+        if (!string.IsNullOrWhiteSpace(InspirationText))
+        {
+            generatedOutline = await GenerateOutlineAsync(InspirationText, trimmedTitle);
+            if (generatedOutline is null)
+            {
+                CreateStatusMessage = "AI 生成大纲失败，请检查 API 设置或网络连接";
+                IsCreating = false;
+                return;
+            }
+        }
+
+        // AI 成功或无灵感，创建项目
         var project = new Project
         {
             Title = trimmedTitle,
             Description = NewProjectDescription.Trim(),
             Genre = "网文"
         };
-
         await _projectRepository.CreateAsync(project);
 
-        // 如果有灵感文本，用 AI 扩展为大纲
-        if (!string.IsNullOrWhiteSpace(InspirationText))
+        // 保存大纲
+        if (generatedOutline is not null)
         {
-            var success = await ExpandInspirationAsync(project, InspirationText);
-            if (!success)
+            var outline = new Document
             {
-                CreateStatusMessage = "AI 生成大纲失败，请检查 API 设置或网络连接。项目已创建，可稍后在大纲规划页面手动生成。";
-            }
+                ProjectId = project.Id,
+                Title = "故事大纲",
+                Type = DocumentType.Outline,
+                Content = generatedOutline,
+                SortOrder = 0
+            };
+            await _documentRepository.CreateAsync(outline);
         }
 
         IsCreating = false;
+        CreateDialogOpen = false;
 
-        if (string.IsNullOrEmpty(CreateStatusMessage))
+        if (GoToOutlineAfterCreate)
         {
-            CreateDialogOpen = false;
-            if (GoToOutlineAfterCreate)
-            {
-                _projectContext.SetCurrentProject(project.Id);
-                _navigationService.NavigateTo("Script", project.Id);
-            }
-            else
-            {
-                await LoadProjectsAsync();
-            }
+            _projectContext.SetCurrentProject(project.Id);
+            _navigationService.NavigateTo("Script", project.Id);
         }
         else
         {
@@ -162,15 +173,12 @@ public partial class HomeViewModel : ViewModelBase
         }
     }
 
-    private async Task<bool> ExpandInspirationAsync(Project project, string inspiration)
+    private async Task<string?> GenerateOutlineAsync(string inspiration, string projectTitle)
     {
         try
         {
             var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
-            if (apiKeyConfig is null)
-            {
-                return false;
-            }
+            if (apiKeyConfig is null) return null;
 
             var provider = _aiProviderFactory.GetProviderForApiKey(apiKeyConfig);
             var messages = new List<AiChatMessage>
@@ -185,7 +193,7 @@ public partial class HomeViewModel : ViewModelBase
                 new()
                 {
                     Role = "user",
-                    Content = $"项目标题：{project.Title}\n类型：{project.Genre}\n\n我的创作灵感：\n{inspiration}\n\n请帮我扩展为完整的故事大纲。"
+                    Content = $"项目标题：{projectTitle}\n\n我的创作灵感：\n{inspiration}\n\n请帮我扩展为完整的故事大纲。"
                 }
             };
 
@@ -195,23 +203,11 @@ public partial class HomeViewModel : ViewModelBase
                 response.Append(chunk);
             }
 
-            if (response.Length == 0) return false;
-
-            // 保存为大纲文档
-            var outline = new Document
-            {
-                ProjectId = project.Id,
-                Title = "故事大纲",
-                Type = DocumentType.Outline,
-                Content = response.ToString(),
-                SortOrder = 0
-            };
-            await _documentRepository.CreateAsync(outline);
-            return true;
+            return response.Length > 0 ? response.ToString() : null;
         }
         catch
         {
-            return false;
+            return null;
         }
     }
 
