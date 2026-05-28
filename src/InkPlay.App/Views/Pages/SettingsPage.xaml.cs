@@ -14,12 +14,7 @@ public sealed partial class SettingsPage : Page
         ViewModel = viewModel;
         InitializeComponent();
         DataContext = ViewModel;
-    }
-
-    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-        ViewModel.NavigatedTo(e.Parameter);
+        Loaded += (_, _) => ViewModel.NavigatedTo(null);
     }
 
     private void AddTextKey_Click(object sender, RoutedEventArgs e)
