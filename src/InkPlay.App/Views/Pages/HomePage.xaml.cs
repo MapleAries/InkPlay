@@ -43,7 +43,22 @@ public sealed partial class HomePage : Page
     {
         if (e.ClickedItem is Project project)
         {
-            ViewModel.OpenProjectCommand.Execute(project);
+            ViewModel.SelectedProject = project;
+            ActionsDialog.Visibility = Visibility.Visible;
         }
+    }
+
+    private void NavigateToFeature_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is string feature)
+        {
+            ActionsDialog.Visibility = Visibility.Collapsed;
+            ViewModel.NavigateToFeatureCommand.Execute(feature);
+        }
+    }
+
+    private void CancelActions_Click(object sender, RoutedEventArgs e)
+    {
+        ActionsDialog.Visibility = Visibility.Collapsed;
     }
 }

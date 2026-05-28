@@ -19,7 +19,6 @@ public sealed partial class MainWindow : Window
         InitializeComponent();
 
         _navigationService.RegisterPage("Home", typeof(Pages.HomePage));
-        _navigationService.RegisterPage("Editor", typeof(Pages.EditorPage));
         _navigationService.RegisterPage("Characters", typeof(Pages.CharactersPage));
         _navigationService.RegisterPage("Script", typeof(Pages.ScriptPage));
         _navigationService.RegisterPage("VideoGeneration", typeof(Pages.VideoGenerationPage));

@@ -57,7 +57,6 @@ public partial class App : Application
                 // ViewModels
                 services.AddTransient<ViewModels.MainViewModel>();
                 services.AddTransient<ViewModels.HomeViewModel>();
-                services.AddTransient<ViewModels.EditorViewModel>();
                 services.AddTransient<ViewModels.AiAssistantViewModel>();
                 services.AddTransient<ViewModels.SettingsViewModel>();
                 services.AddTransient<ViewModels.CharactersViewModel>();
@@ -67,7 +66,6 @@ public partial class App : Application
                 // Views
                 services.AddTransient<Views.MainWindow>();
                 services.AddTransient<Views.Pages.HomePage>();
-                services.AddTransient<Views.Pages.EditorPage>();
                 services.AddTransient<Views.Pages.AiAssistantPage>();
                 services.AddTransient<Views.Pages.SettingsPage>();
                 services.AddTransient<Views.Pages.CharactersPage>();

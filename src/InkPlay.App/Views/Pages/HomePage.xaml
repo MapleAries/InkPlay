@@ -100,5 +100,55 @@
                 </StackPanel>
             </Grid>
         </Grid>
+
+        <!-- Project Actions Dialog -->
+        <Grid x:Name="ActionsDialog" Grid.RowSpan="2"
+              Background="{ThemeResource SmokeFillColorDefaultBrush}"
+              Visibility="Collapsed">
+            <Grid Width="500" Padding="32"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  CornerRadius="12">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="{x:Bind ViewModel.SelectedProject.Title, Mode=OneWay}"
+                           FontSize="22" FontWeight="SemiBold" Grid.Row="0" Margin="0,0,0,24" />
+
+                <TextBlock Text="选择要进入的功能" FontSize="14"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           Grid.Row="1" Margin="0,0,0,16" />
+
+                <StackPanel Grid.Row="2" Spacing="12">
+                    <Button Content="&#xE8F5; 角色管理" Tag="Characters"
+                            Click="NavigateToFeature_Click"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="16,12" FontSize="16" />
+
+                    <Button Content="&#xE8F5; 剧本生成" Tag="Script"
+                            Click="NavigateToFeature_Click"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="16,12" FontSize="16" />
+
+                    <Button Content="&#xE8F5; 视频生成" Tag="VideoGeneration"
+                            Click="NavigateToFeature_Click"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="16,12" FontSize="16" />
+                </StackPanel>
+
+                <Button Grid.Row="4" Content="取消"
+                        HorizontalAlignment="Right"
+                        Margin="0,24,0,0"
+                        Click="CancelActions_Click" />
+            </Grid>
+        </Grid>
     </Grid>
 </Page>

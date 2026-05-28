@@ -10,6 +10,7 @@ namespace InkPlay.App.ViewModels;
 public partial class HomeViewModel : ViewModelBase
 {
     private readonly IProjectRepository _projectRepository;
+    private readonly IProjectContext _projectContext;
     private readonly INavigationService _navigationService;
 
     [ObservableProperty]
@@ -33,9 +34,13 @@ public partial class HomeViewModel : ViewModelBase
     [ObservableProperty]
     private string _newProjectGenre = "短剧";
 
-    public HomeViewModel(IProjectRepository projectRepository, INavigationService navigationService)
+    public HomeViewModel(
+        IProjectRepository projectRepository,
+        IProjectContext projectContext,
+        INavigationService navigationService)
     {
         _projectRepository = projectRepository;
+        _projectContext = projectContext;
         _navigationService = navigationService;
     }
 
@@ -92,9 +97,12 @@ public partial class HomeViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void OpenProject(Project project)
+    private void NavigateToFeature(string feature)
     {
-        _navigationService.NavigateTo("Editor", project.Id);
+        if (SelectedProject is null) return;
+
+        _projectContext.SetCurrentProject(SelectedProject.Id);
+        _navigationService.NavigateTo(feature, SelectedProject.Id);
     }
 
     [RelayCommand]

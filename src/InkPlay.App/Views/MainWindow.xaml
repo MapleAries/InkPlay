@@ -15,7 +15,6 @@
 
         <NavigationView.MenuItems>
             <NavigationViewItem Content="首页" Icon="Home" Tag="Home" />
-            <NavigationViewItem Content="编辑器" Icon="Edit" Tag="Editor" />
             <NavigationViewItem Content="角色管理" Icon="People" Tag="Characters" />
             <NavigationViewItem Content="剧本生成" Icon="Video" Tag="Script" />
             <NavigationViewItem Content="视频生成" Icon="Play" Tag="VideoGeneration" />
