@@ -81,6 +81,11 @@
                     <TextBox Header="项目标题"
                              Text="{x:Bind ViewModel.NewProjectTitle, Mode=TwoWay}" PlaceholderText="输入项目标题..." />
 
+                    <TextBox Header="项目描述（可选）"
+                             Text="{x:Bind ViewModel.NewProjectDescription, Mode=TwoWay}"
+                             PlaceholderText="简要描述你的故事..."
+                             TextWrapping="Wrap" AcceptsReturn="True" Height="60" />
+
                     <TextBox Header="你有创作灵感或大纲吗？（可选）"
                              Text="{x:Bind ViewModel.InspirationText, Mode=TwoWay}"
                              PlaceholderText="随便写点想法，AI会帮你扩展为完整大纲..."
