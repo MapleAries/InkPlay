@@ -7,10 +7,14 @@ namespace InkPlay.Services.Data.Repositories;
 public class DocumentRepository : IDocumentRepository
 {
     private readonly InkPlayDbContext _db;
+    private readonly IProjectRepository _projectRepository;
+    private readonly IFileProjectService _fileProjectService;
 
-    public DocumentRepository(InkPlayDbContext db)
+    public DocumentRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService)
     {
         _db = db;
+        _projectRepository = projectRepository;
+        _fileProjectService = fileProjectService;
     }
 
     public Task<Document?> GetByIdAsync(Guid id)
@@ -28,27 +32,49 @@ public class DocumentRepository : IDocumentRepository
         return Task.FromResult<IReadOnlyList<Document>>(docs);
     }
 
-    public Task<Document> CreateAsync(Document document)
+    public async Task<Document> CreateAsync(Document document)
     {
         document.CreatedAt = DateTime.UtcNow;
         document.UpdatedAt = DateTime.UtcNow;
         document.WordCount = CalculateWordCount(document.Content);
         _db.Documents.Insert(document);
-        return Task.FromResult(document);
+
+        // 保存到文件系统
+        await SaveToFileSystemAsync(document);
+
+        return document;
     }
 
-    public Task UpdateAsync(Document document)
+    public async Task UpdateAsync(Document document)
     {
         document.UpdatedAt = DateTime.UtcNow;
         document.WordCount = CalculateWordCount(document.Content);
         _db.Documents.Update(document);
-        return Task.CompletedTask;
+
+        // 保存到文件系统
+        await SaveToFileSystemAsync(document);
     }
 
     public Task DeleteAsync(Guid id)
     {
         _db.Documents.Delete(id);
         return Task.CompletedTask;
+    }
+
+    private async Task SaveToFileSystemAsync(Document document)
+    {
+        try
+        {
+            var project = await _projectRepository.GetByIdAsync(document.ProjectId);
+            if (project is not null && !string.IsNullOrEmpty(project.ProjectPath))
+            {
+                await _fileProjectService.SaveDocumentAsync(document);
+            }
+        }
+        catch
+        {
+            // 文件保存失败不影响 LiteDB 操作
+        }
     }
 
     private static int CalculateWordCount(string content)

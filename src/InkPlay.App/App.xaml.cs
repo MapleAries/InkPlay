@@ -14,6 +14,7 @@ namespace InkPlay.App;
 public partial class App : Application
 {
     public IHost Host { get; }
+    public static Window? MainWindow { get; private set; }
 
     public App()
     {
@@ -45,6 +46,9 @@ public partial class App : Application
 
                 // Context
                 services.AddSingleton<IProjectContext, ProjectContext>();
+
+                // File Service
+                services.AddSingleton<IFileProjectService, FileProjectService>();
 
                 // Settings
                 services.AddSingleton<ISettingsService, SettingsService>();
@@ -83,6 +87,7 @@ public partial class App : Application
         DatabaseInitializer.Initialize(db);
 
         var mainWindow = Host.Services.GetRequiredService<Views.MainWindow>();
+        MainWindow = mainWindow;
         mainWindow.Activate();
     }
 }

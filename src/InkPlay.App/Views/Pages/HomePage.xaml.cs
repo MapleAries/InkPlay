@@ -3,6 +3,7 @@ using InkPlay.App.ViewModels;
 using InkPlay.Core.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Windows.Storage.Pickers;
 
 namespace InkPlay.App.Views.Pages;
 
@@ -30,6 +31,21 @@ public sealed partial class HomePage : Page
     private void CreateProject_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.ShowCreateProjectDialogCommand.Execute(null);
+    }
+
+    private async void SelectDirectory_Click(object sender, RoutedEventArgs e)
+    {
+        var folderPicker = new FolderPicker();
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
+        WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hwnd);
+        folderPicker.SuggestedStartLocation = PickerLocationId.Desktop;
+        folderPicker.FileTypeFilter.Add("*");
+
+        var folder = await folderPicker.PickSingleFolderAsync();
+        if (folder is not null)
+        {
+            ViewModel.SelectedParentDirectory = folder.Path;
+        }
     }
 
     private void CancelCreate_Click(object sender, RoutedEventArgs e)

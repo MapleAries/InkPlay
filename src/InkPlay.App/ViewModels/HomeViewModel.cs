@@ -16,6 +16,7 @@ public partial class HomeViewModel : ViewModelBase
     private readonly INavigationService _navigationService;
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
+    private readonly IFileProjectService _fileProjectService;
 
     [ObservableProperty]
     private ObservableCollection<Project> _projects = new();
@@ -56,13 +57,17 @@ public partial class HomeViewModel : ViewModelBase
     [ObservableProperty]
     private string _createStatusMessage = string.Empty;
 
+    [ObservableProperty]
+    private string _selectedParentDirectory = string.Empty;
+
     public HomeViewModel(
         IProjectRepository projectRepository,
         IDocumentRepository documentRepository,
         IProjectContext projectContext,
         INavigationService navigationService,
         IAiProviderFactory aiProviderFactory,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        IFileProjectService fileProjectService)
     {
         _projectRepository = projectRepository;
         _documentRepository = documentRepository;
@@ -70,6 +75,7 @@ public partial class HomeViewModel : ViewModelBase
         _navigationService = navigationService;
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
+        _fileProjectService = fileProjectService;
     }
 
     public override async void NavigatedTo(object? parameter)
@@ -107,6 +113,11 @@ public partial class HomeViewModel : ViewModelBase
     private async Task CreateProjectAsync()
     {
         if (string.IsNullOrWhiteSpace(NewProjectTitle)) return;
+        if (string.IsNullOrWhiteSpace(SelectedParentDirectory))
+        {
+            CreateStatusMessage = "请选择项目保存目录";
+            return;
+        }
 
         CreateStatusMessage = string.Empty;
 
@@ -136,16 +147,21 @@ public partial class HomeViewModel : ViewModelBase
             }
         }
 
-        // AI 成功或无灵感，创建项目
+        // AI 成功或无灵感，创建项目文件和索引
         var project = new Project
         {
             Title = trimmedTitle,
             Description = NewProjectDescription.Trim(),
             Genre = "网文"
         };
+
+        // 创建项目文件目录
+        project = await _fileProjectService.CreateProjectAsync(SelectedParentDirectory, project, generatedOutline);
+
+        // 保存到 LiteDB 索引
         await _projectRepository.CreateAsync(project);
 
-        // 保存大纲
+        // 保存大纲到 LiteDB（供页面读取）
         if (generatedOutline is not null)
         {
             var outline = new Document

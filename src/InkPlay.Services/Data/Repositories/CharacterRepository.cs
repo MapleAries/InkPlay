@@ -7,10 +7,14 @@ namespace InkPlay.Services.Data.Repositories;
 public class CharacterRepository : ICharacterRepository
 {
     private readonly InkPlayDbContext _db;
+    private readonly IProjectRepository _projectRepository;
+    private readonly IFileProjectService _fileProjectService;
 
-    public CharacterRepository(InkPlayDbContext db)
+    public CharacterRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService)
     {
         _db = db;
+        _projectRepository = projectRepository;
+        _fileProjectService = fileProjectService;
     }
 
     public Task<Character?> GetByIdAsync(Guid id)
@@ -28,24 +32,44 @@ public class CharacterRepository : ICharacterRepository
         return Task.FromResult<IReadOnlyList<Character>>(characters);
     }
 
-    public Task<Character> CreateAsync(Character character)
+    public async Task<Character> CreateAsync(Character character)
     {
         character.CreatedAt = DateTime.UtcNow;
         character.UpdatedAt = DateTime.UtcNow;
         _db.Characters.Insert(character);
-        return Task.FromResult(character);
+
+        await SaveToFileSystemAsync(character);
+
+        return character;
     }
 
-    public Task UpdateAsync(Character character)
+    public async Task UpdateAsync(Character character)
     {
         character.UpdatedAt = DateTime.UtcNow;
         _db.Characters.Update(character);
-        return Task.CompletedTask;
+
+        await SaveToFileSystemAsync(character);
     }
 
     public Task DeleteAsync(Guid id)
     {
         _db.Characters.Delete(id);
         return Task.CompletedTask;
+    }
+
+    private async Task SaveToFileSystemAsync(Character character)
+    {
+        try
+        {
+            var project = await _projectRepository.GetByIdAsync(character.ProjectId);
+            if (project is not null && !string.IsNullOrEmpty(project.ProjectPath))
+            {
+                await _fileProjectService.SaveCharacterAsync(character);
+            }
+        }
+        catch
+        {
+            // 文件保存失败不影响 LiteDB 操作
+        }
     }
 }
