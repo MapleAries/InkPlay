@@ -68,7 +68,7 @@
         <!-- Create Project Dialog -->
         <Grid x:Name="CreateDialog" Grid.RowSpan="2"
               Background="{ThemeResource SmokeFillColorDefaultBrush}"
-              Visibility="{x:Bind ViewModel.CreateDialogOpen, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+              Visibility="Collapsed">
             <Grid Width="480" Padding="24"
                   VerticalAlignment="Center" HorizontalAlignment="Center"
                   Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -91,10 +91,10 @@
                              PlaceholderText="随便写点想法，AI会帮你扩展为完整大纲..."
                              TextWrapping="Wrap" AcceptsReturn="True" Height="120" />
 
-                    <TextBlock Text="{x:Bind ViewModel.CreateStatusMessage, Mode=OneWay}"
+                    <TextBlock x:Name="StatusText"
+                               Text="{x:Bind ViewModel.CreateStatusMessage, Mode=OneWay}"
                                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                               TextWrapping="Wrap"
-                               Visibility="{x:Bind ViewModel.CreateStatusMessage, Converter={StaticResource StringToVisibilityConverter}}" />
+                               TextWrapping="Wrap" />
 
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="取消" Click="CancelCreate_Click" />

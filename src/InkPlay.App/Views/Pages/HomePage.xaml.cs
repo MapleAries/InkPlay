@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using InkPlay.App.ViewModels;
 using InkPlay.Core.Models;
 using Microsoft.UI.Xaml;
@@ -15,6 +16,15 @@ public sealed partial class HomePage : Page
         InitializeComponent();
         DataContext = ViewModel;
         Loaded += async (_, _) => await ViewModel.LoadProjectsCommand.ExecuteAsync(null);
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ViewModel.CreateDialogOpen))
+        {
+            CreateDialog.Visibility = ViewModel.CreateDialogOpen ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 
     private void CreateProject_Click(object sender, RoutedEventArgs e)
