@@ -25,12 +25,19 @@ public partial class App : Application
                 // Repositories
                 services.AddSingleton<IProjectRepository, ProjectRepository>();
                 services.AddSingleton<IDocumentRepository, DocumentRepository>();
+                services.AddSingleton<ICharacterRepository, CharacterRepository>();
+                services.AddSingleton<ICharacterRelationshipRepository, CharacterRelationshipRepository>();
+                services.AddSingleton<IConversationRepository, ConversationRepository>();
 
                 // AI
                 services.AddHttpClient<ClaudeProvider>();
                 services.AddHttpClient<OpenAiProvider>();
                 services.AddHttpClient<QwenProvider>();
                 services.AddSingleton<IAiProviderFactory, AiProviderFactory>();
+
+                // Video
+                services.AddHttpClient<KlingVideoProvider>();
+                services.AddSingleton<IVideoProvider, KlingVideoProvider>();
 
                 // Settings
                 services.AddSingleton<ISettingsService, SettingsService>();
@@ -46,6 +53,9 @@ public partial class App : Application
                 services.AddTransient<ViewModels.EditorViewModel>();
                 services.AddTransient<ViewModels.AiAssistantViewModel>();
                 services.AddTransient<ViewModels.SettingsViewModel>();
+                services.AddTransient<ViewModels.CharactersViewModel>();
+                services.AddTransient<ViewModels.ScriptViewModel>();
+                services.AddTransient<ViewModels.VideoGenerationViewModel>();
 
                 // Views
                 services.AddTransient<Views.MainWindow>();
@@ -53,6 +63,9 @@ public partial class App : Application
                 services.AddTransient<Views.Pages.EditorPage>();
                 services.AddTransient<Views.Pages.AiAssistantPage>();
                 services.AddTransient<Views.Pages.SettingsPage>();
+                services.AddTransient<Views.Pages.CharactersPage>();
+                services.AddTransient<Views.Pages.ScriptPage>();
+                services.AddTransient<Views.Pages.VideoGenerationPage>();
             })
             .Build();
 

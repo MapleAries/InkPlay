@@ -13,8 +13,10 @@ public partial class EditorViewModel : ViewModelBase
     private readonly IProjectRepository _projectRepository;
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
+    private readonly IConversationRepository _conversationRepository;
     private readonly NavigationService _navigationService;
     private CancellationTokenSource? _aiCts;
+    private AiConversation? _currentConversation;
 
     [ObservableProperty]
     private Project? _currentProject;
@@ -45,12 +47,14 @@ public partial class EditorViewModel : ViewModelBase
         IProjectRepository projectRepository,
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
+        IConversationRepository conversationRepository,
         NavigationService navigationService)
     {
         _documentRepository = documentRepository;
         _projectRepository = projectRepository;
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
+        _conversationRepository = conversationRepository;
         _navigationService = navigationService;
     }
 
@@ -62,6 +66,7 @@ public partial class EditorViewModel : ViewModelBase
             if (CurrentProject is not null)
             {
                 await LoadDocumentsAsync();
+                await LoadConversationAsync();
             }
         }
     }
@@ -78,6 +83,38 @@ public partial class EditorViewModel : ViewModelBase
         {
             SelectDocument(Documents[0]);
         }
+    }
+
+    private async Task LoadConversationAsync()
+    {
+        if (CurrentProject is null) return;
+
+        var conversations = await _conversationRepository.GetByProjectIdAsync(CurrentProject.Id);
+        _currentConversation = conversations.FirstOrDefault(c => c.DocumentId == CurrentDocument?.Id);
+
+        if (_currentConversation is not null)
+        {
+            AiMessages = new ObservableCollection<AiChatMessage>(_currentConversation.Messages);
+        }
+    }
+
+    private async Task SaveConversationAsync()
+    {
+        if (CurrentProject is null || AiMessages.Count == 0) return;
+
+        if (_currentConversation is null)
+        {
+            _currentConversation = new AiConversation
+            {
+                ProjectId = CurrentProject.Id,
+                DocumentId = CurrentDocument?.Id,
+                Title = $"编辑器对话 - {DateTime.Now:yyyy-MM-dd HH:mm}"
+            };
+            await _conversationRepository.CreateAsync(_currentConversation);
+        }
+
+        _currentConversation.Messages = AiMessages.ToList();
+        await _conversationRepository.UpdateAsync(_currentConversation);
     }
 
     [RelayCommand]
@@ -221,6 +258,9 @@ public partial class EditorViewModel : ViewModelBase
             }
 
             AiMessages.Add(new AiChatMessage { Role = "assistant", Content = AiResponse });
+
+            // Save conversation after each AI response
+            await SaveConversationAsync();
         }
         catch (OperationCanceledException)
         {
@@ -247,10 +287,16 @@ public partial class EditorViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ClearAiChat()
+    private async Task ClearAiChatAsync()
     {
         AiMessages.Clear();
         AiResponse = string.Empty;
+
+        if (_currentConversation is not null)
+        {
+            await _conversationRepository.DeleteAsync(_currentConversation.Id);
+            _currentConversation = null;
+        }
     }
 
     [RelayCommand]

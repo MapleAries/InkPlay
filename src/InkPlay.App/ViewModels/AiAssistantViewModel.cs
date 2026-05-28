@@ -12,7 +12,9 @@ public partial class AiAssistantViewModel : ViewModelBase
 {
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
+    private readonly IConversationRepository _conversationRepository;
     private CancellationTokenSource? _aiCts;
+    private AiConversation? _currentConversation;
 
     [ObservableProperty]
     private string _userInput = string.Empty;
@@ -32,10 +34,14 @@ public partial class AiAssistantViewModel : ViewModelBase
     [ObservableProperty]
     private string _contextText = string.Empty;
 
-    public AiAssistantViewModel(IAiProviderFactory aiProviderFactory, ISettingsService settingsService)
+    public AiAssistantViewModel(
+        IAiProviderFactory aiProviderFactory,
+        ISettingsService settingsService,
+        IConversationRepository conversationRepository)
     {
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
+        _conversationRepository = conversationRepository;
     }
 
     [RelayCommand]
@@ -123,6 +129,9 @@ public partial class AiAssistantViewModel : ViewModelBase
             }
 
             Messages.Add(new AiChatMessage { Role = "assistant", Content = AiResponse });
+
+            // Save conversation after each AI response
+            await SaveConversationAsync();
         }
         catch (OperationCanceledException)
         {
@@ -138,6 +147,23 @@ public partial class AiAssistantViewModel : ViewModelBase
         }
     }
 
+    private async Task SaveConversationAsync()
+    {
+        if (Messages.Count == 0) return;
+
+        if (_currentConversation is null)
+        {
+            _currentConversation = new AiConversation
+            {
+                Title = $"AI助手对话 - {DateTime.Now:yyyy-MM-dd HH:mm}"
+            };
+            await _conversationRepository.CreateAsync(_currentConversation);
+        }
+
+        _currentConversation.Messages = Messages.ToList();
+        await _conversationRepository.UpdateAsync(_currentConversation);
+    }
+
     [RelayCommand]
     private void CancelOperation()
     {
@@ -145,10 +171,16 @@ public partial class AiAssistantViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ClearChat()
+    private async Task ClearChatAsync()
     {
         Messages.Clear();
         AiResponse = string.Empty;
+
+        if (_currentConversation is not null)
+        {
+            await _conversationRepository.DeleteAsync(_currentConversation.Id);
+            _currentConversation = null;
+        }
     }
 
     [RelayCommand]
