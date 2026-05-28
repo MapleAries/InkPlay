@@ -50,6 +50,9 @@ public partial class HomeViewModel : ViewModelBase
     [ObservableProperty]
     private string _editProjectDescription = string.Empty;
 
+    [ObservableProperty]
+    private string _createStatusMessage = string.Empty;
+
     public HomeViewModel(
         IProjectRepository projectRepository,
         IDocumentRepository documentRepository,
@@ -101,11 +104,23 @@ public partial class HomeViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(NewProjectTitle)) return;
 
+        CreateStatusMessage = string.Empty;
+
+        // 检查重名
+        var trimmedTitle = NewProjectTitle.Trim();
+        var duplicate = Projects.FirstOrDefault(p =>
+            p.Title.Equals(trimmedTitle, StringComparison.OrdinalIgnoreCase));
+        if (duplicate is not null)
+        {
+            CreateStatusMessage = $"项目 \"{trimmedTitle}\" 已存在，请使用其他名称";
+            return;
+        }
+
         IsCreating = true;
 
         var project = new Project
         {
-            Title = NewProjectTitle.Trim(),
+            Title = trimmedTitle,
             Description = NewProjectDescription.Trim(),
             Genre = "网文"
         };
@@ -115,29 +130,48 @@ public partial class HomeViewModel : ViewModelBase
         // 如果有灵感文本，用 AI 扩展为大纲
         if (!string.IsNullOrWhiteSpace(InspirationText))
         {
-            await ExpandInspirationAsync(project, InspirationText);
+            var success = await ExpandInspirationAsync(project, InspirationText);
+            if (!success)
+            {
+                CreateStatusMessage = "AI 生成大纲失败，请检查 API 设置或网络连接。项目已创建，可稍后在大纲规划页面手动生成。";
+            }
         }
 
-        ShowCreateDialog = false;
         IsCreating = false;
 
-        if (GoToOutlineAfterCreate)
+        if (string.IsNullOrEmpty(CreateStatusMessage))
         {
-            _projectContext.SetCurrentProject(project.Id);
-            _navigationService.NavigateTo("Script", project.Id);
+            ShowCreateDialog = false;
+            if (GoToOutlineAfterCreate)
+            {
+                _projectContext.SetCurrentProject(project.Id);
+                _navigationService.NavigateTo("Script", project.Id);
+            }
+            else
+            {
+                await LoadProjectsAsync();
+            }
         }
         else
         {
+            // 有错误提示，回到表单让用户看到
+            CreateFormVisible = true;
             await LoadProjectsAsync();
         }
     }
 
-    private async Task ExpandInspirationAsync(Project project, string inspiration)
+    [ObservableProperty]
+    private bool _createFormVisible = true;
+
+    private async Task<bool> ExpandInspirationAsync(Project project, string inspiration)
     {
         try
         {
             var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
-            if (apiKeyConfig is null) return;
+            if (apiKeyConfig is null)
+            {
+                return false;
+            }
 
             var provider = _aiProviderFactory.GetProviderForApiKey(apiKeyConfig);
             var messages = new List<AiChatMessage>
@@ -162,6 +196,8 @@ public partial class HomeViewModel : ViewModelBase
                 response.Append(chunk);
             }
 
+            if (response.Length == 0) return false;
+
             // 保存为大纲文档
             var outline = new Document
             {
@@ -172,10 +208,11 @@ public partial class HomeViewModel : ViewModelBase
                 SortOrder = 0
             };
             await _documentRepository.CreateAsync(outline);
+            return true;
         }
         catch
         {
-            // AI 扩展失败不影响项目创建
+            return false;
         }
     }
 

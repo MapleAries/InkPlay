@@ -91,6 +91,11 @@
                              PlaceholderText="随便写点想法，AI会帮你扩展为完整大纲..."
                              TextWrapping="Wrap" AcceptsReturn="True" Height="120" />
 
+                    <TextBlock Text="{x:Bind ViewModel.CreateStatusMessage, Mode=OneWay}"
+                               Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind ViewModel.CreateStatusMessage, Converter={StaticResource StringToVisibilityConverter}}" />
+
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="取消" Click="CancelCreate_Click" />
                         <Button Content="创建" Style="{StaticResource AccentButtonStyle}" Click="ConfirmCreate_Click" />

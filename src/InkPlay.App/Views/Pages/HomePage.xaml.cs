@@ -33,12 +33,22 @@ public sealed partial class HomePage : Page
     {
         if (string.IsNullOrWhiteSpace(ViewModel.NewProjectTitle)) return;
 
-        CreateForm.Visibility = Visibility.Collapsed;
-        CreateLoading.Visibility = Visibility.Visible;
+        // 如果有灵感，显示加载状态
+        if (!string.IsNullOrWhiteSpace(ViewModel.InspirationText))
+        {
+            CreateForm.Visibility = Visibility.Collapsed;
+            CreateLoading.Visibility = Visibility.Visible;
+        }
 
         await ViewModel.CreateProjectCommand.ExecuteAsync(null);
 
-        CreateDialog.Visibility = Visibility.Collapsed;
+        // 如果创建成功（没有错误消息），关闭对话框
+        if (string.IsNullOrEmpty(ViewModel.CreateStatusMessage))
+        {
+            CreateDialog.Visibility = Visibility.Collapsed;
+        }
+
+        // 恢复表单状态
         CreateForm.Visibility = Visibility.Visible;
         CreateLoading.Visibility = Visibility.Collapsed;
     }
