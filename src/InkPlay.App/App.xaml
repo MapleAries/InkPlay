@@ -11,6 +11,8 @@
             </ResourceDictionary.MergedDictionaries>
             <converters:BoolToTextConverter x:Key="BoolToTextConverter" />
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:BoolNegationConverter x:Key="BoolNegationConverter" />
+            <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

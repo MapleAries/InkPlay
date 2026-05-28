@@ -50,8 +50,7 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button Content="生成视频" Click="Generate_Click"
-                            Style="{ThemeResource AccentButtonStyle}"
-                            IsEnabled="{x:Bind ViewModel.IsGenerating, Converter={StaticResource BoolNegationConverter}}" />
+                            Style="{ThemeResource AccentButtonStyle}" />
                     <Button Content="取消" Click="Cancel_Click"
                             IsEnabled="{x:Bind ViewModel.IsGenerating}" />
                 </StackPanel>
@@ -80,15 +79,9 @@
 
             <!-- Video Preview -->
             <Grid Grid.Row="1" Background="{ThemeResource ControlFillColorDefaultBrush}" CornerRadius="8">
-                <MediaPlayerElement x:Name="VideoPlayer"
-                                    Source="{x:Bind ViewModel.CurrentVideoUrl, Mode=OneWay}"
-                                    AreTransportControlsEnabled="True"
-                                    Visibility="{x:Bind ViewModel.CurrentVideoUrl, Converter={StaticResource StringToVisibilityConverter}}" />
-
                 <TextBlock Text="视频预览区域"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                           Visibility="{x:Bind ViewModel.CurrentVideoUrl, Converter={StaticResource StringToVisibilityConverter}, ConverterParameter=Invert}" />
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
             </Grid>
 
             <!-- History -->
