@@ -52,6 +52,11 @@ public sealed partial class ScriptPage : Page, IParameterizedPage
         ViewModel.SaveSceneCommand.Execute(null);
     }
 
+    private void SaveOutline_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SaveEpisodeContentCommand.Execute(null);
+    }
+
     private void DeleteScene_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.DeleteSceneCommand.Execute(null);

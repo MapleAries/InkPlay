@@ -52,6 +52,12 @@ public partial class ScriptViewModel : ViewModelBase
     private ObservableCollection<SceneDialogue> _sceneDialogues = new();
 
     [ObservableProperty]
+    private string _episodeContent = string.Empty;
+
+    [ObservableProperty]
+    private bool _isOutlineSelected;
+
+    [ObservableProperty]
     private bool _isAiProcessing;
 
     [ObservableProperty]
@@ -144,15 +150,23 @@ public partial class ScriptViewModel : ViewModelBase
         if (episode is null) return;
 
         CurrentEpisode = episode;
-        Scenes = new ObservableCollection<ScriptScene>(episode.Scenes);
+        IsOutlineSelected = episode.Type == DocumentType.Outline;
 
-        if (Scenes.Count > 0 && CurrentScene is null)
+        if (IsOutlineSelected)
         {
-            SelectScene(Scenes[0]);
+            EpisodeContent = episode.Content;
         }
-        else if (Scenes.Count == 0)
+        else
         {
-            ClearSceneFields();
+            Scenes = new ObservableCollection<ScriptScene>(episode.Scenes);
+            if (Scenes.Count > 0 && CurrentScene is null)
+            {
+                SelectScene(Scenes[0]);
+            }
+            else if (Scenes.Count == 0)
+            {
+                ClearSceneFields();
+            }
         }
     }
 
@@ -173,6 +187,15 @@ public partial class ScriptViewModel : ViewModelBase
 
         Scenes.Add(scene);
         SelectScene(scene);
+    }
+
+    [RelayCommand]
+    private async Task SaveEpisodeContentAsync()
+    {
+        if (CurrentEpisode is null) return;
+
+        CurrentEpisode.Content = EpisodeContent;
+        await _documentRepository.UpdateAsync(CurrentEpisode);
     }
 
     [RelayCommand]
