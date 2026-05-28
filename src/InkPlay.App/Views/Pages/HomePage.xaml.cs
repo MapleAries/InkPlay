@@ -14,12 +14,7 @@ public sealed partial class HomePage : Page
         ViewModel = viewModel;
         InitializeComponent();
         DataContext = ViewModel;
-    }
-
-    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-        ViewModel.NavigatedTo(e.Parameter);
+        Loaded += async (_, _) => await ViewModel.LoadProjectsCommand.ExecuteAsync(null);
     }
 
     private void CreateProject_Click(object sender, RoutedEventArgs e)
