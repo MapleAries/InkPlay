@@ -7,6 +7,7 @@ namespace InkPlay.App.Services;
 public interface INavigationService
 {
     bool CanGoBack { get; }
+    event Action<string>? Navigated;
     void Initialize(Frame frame);
     bool NavigateTo(string pageKey, object? parameter = null);
     void GoBack();
@@ -19,6 +20,7 @@ public class NavigationService : INavigationService
     private readonly Dictionary<string, Type> _pageTypes = new();
 
     public bool CanGoBack => _frame?.CanGoBack ?? false;
+    public event Action<string>? Navigated;
 
     public NavigationService(IServiceProvider serviceProvider)
     {
@@ -47,6 +49,7 @@ public class NavigationService : INavigationService
             return false;
 
         _frame.Content = page;
+        Navigated?.Invoke(pageKey);
         return true;
     }
 
