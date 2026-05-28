@@ -15,6 +15,7 @@ public partial class ScriptViewModel : ViewModelBase
     private readonly ICharacterRepository _characterRepository;
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
+    private readonly IProjectContext _projectContext;
     private readonly NavigationService _navigationService;
     private CancellationTokenSource? _aiCts;
 
@@ -75,6 +76,7 @@ public partial class ScriptViewModel : ViewModelBase
         ICharacterRepository characterRepository,
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
+        IProjectContext projectContext,
         NavigationService navigationService)
     {
         _documentRepository = documentRepository;
@@ -82,14 +84,16 @@ public partial class ScriptViewModel : ViewModelBase
         _characterRepository = characterRepository;
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
+        _projectContext = projectContext;
         _navigationService = navigationService;
     }
 
     public override async void NavigatedTo(object? parameter)
     {
-        if (parameter is Guid projectId)
+        var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
+        if (projectId.HasValue)
         {
-            CurrentProject = await _projectRepository.GetByIdAsync(projectId);
+            CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
             if (CurrentProject is not null)
             {
                 await LoadEpisodesAsync();
