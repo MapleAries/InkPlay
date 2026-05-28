@@ -9,15 +9,26 @@
     mc:Ignorable="d">
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="320" />
-        </Grid.ColumnDefinitions>
+        <!-- No Project State -->
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{x:Bind ViewModel.HasProject, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+            <TextBlock Text="请先在首页选择一个项目" FontSize="18"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Button Content="前往首页" Margin="0,16,0,0"
+                    Click="GoHome_Click" />
+        </StackPanel>
 
-        <!-- Left: Character List -->
-        <Grid Grid.Column="0" Padding="12"
-              Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+        <!-- Main Content -->
+        <Grid Visibility="{x:Bind ViewModel.HasProject, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="320" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: Character List -->
+            <Grid Grid.Column="0" Padding="12"
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -152,6 +163,7 @@
                 <Button Grid.Column="1" Content="发送" Margin="8,0,0,0"
                         Click="SendAi_Click" />
             </Grid>
+        </Grid>
         </Grid>
     </Grid>
 </Page>

@@ -16,6 +16,11 @@ public sealed partial class CharactersPage : Page
         Loaded += (_, _) => ViewModel.NavigatedTo(null);
     }
 
+    private void GoHome_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.GoBackCommand.Execute(null);
+    }
+
     private void AddCharacter_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.CreateCharacterCommand.Execute(null);

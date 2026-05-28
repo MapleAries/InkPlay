@@ -30,6 +30,9 @@ public partial class CharactersViewModel : ViewModelBase
     private bool _isCharacterSelected;
 
     [ObservableProperty]
+    private bool _hasProject;
+
+    [ObservableProperty]
     private string _characterName = string.Empty;
 
     [ObservableProperty]
@@ -93,10 +96,15 @@ public partial class CharactersViewModel : ViewModelBase
         if (projectId.HasValue)
         {
             CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
+            HasProject = CurrentProject is not null;
             if (CurrentProject is not null)
             {
                 await LoadCharactersAsync();
             }
+        }
+        else
+        {
+            HasProject = false;
         }
     }
 
