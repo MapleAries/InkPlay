@@ -42,6 +42,13 @@
         <!-- Center: Content Area -->
         <Grid Grid.Column="1" Padding="12">
 
+            <!-- Empty State -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                        Visibility="{x:Bind ViewModel.IsEpisodeSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                <TextBlock Text="请在左侧选择一个大纲条目" FontSize="16"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+
             <!-- Outline Editor (Markdown) -->
             <Grid Visibility="{x:Bind ViewModel.IsOutlineSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Grid.RowDefinitions>

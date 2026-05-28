@@ -56,6 +56,9 @@ public partial class ScriptViewModel : ViewModelBase
     private string _episodeContent = string.Empty;
 
     [ObservableProperty]
+    private bool _isEpisodeSelected;
+
+    [ObservableProperty]
     private bool _isOutlineSelected;
 
     [ObservableProperty]
@@ -151,9 +154,19 @@ public partial class ScriptViewModel : ViewModelBase
     [RelayCommand]
     private void SelectEpisode(Document? episode)
     {
-        if (episode is null) return;
+        if (episode is null)
+        {
+            CurrentEpisode = null;
+            IsEpisodeSelected = false;
+            IsOutlineSelected = false;
+            EpisodeContent = string.Empty;
+            Scenes.Clear();
+            ClearSceneFields();
+            return;
+        }
 
         CurrentEpisode = episode;
+        IsEpisodeSelected = true;
         IsOutlineSelected = episode.Type == DocumentType.Outline;
 
         if (IsOutlineSelected)
