@@ -264,6 +264,7 @@ public partial class HomeViewModel : ViewModelBase
     {
         if (SelectedProject is null) return;
 
+        DeleteProjectFiles(SelectedProject);
         await _projectRepository.DeleteAsync(SelectedProject.Id);
         Projects.Remove(SelectedProject);
         SelectedProject = null;
@@ -272,7 +273,23 @@ public partial class HomeViewModel : ViewModelBase
     [RelayCommand]
     private async Task DeleteProjectAsync(Project project)
     {
+        DeleteProjectFiles(project);
         await _projectRepository.DeleteAsync(project.Id);
         Projects.Remove(project);
+    }
+
+    private static void DeleteProjectFiles(Project project)
+    {
+        if (!string.IsNullOrEmpty(project.ProjectPath) && Directory.Exists(project.ProjectPath))
+        {
+            try
+            {
+                Directory.Delete(project.ProjectPath, recursive: true);
+            }
+            catch
+            {
+                // 文件删除失败不影响数据库删除
+            }
+        }
     }
 }
