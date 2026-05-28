@@ -38,6 +38,7 @@
                           BorderThickness="1">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -45,14 +46,18 @@
 
                         <TextBlock Text="{x:Bind Title}" FontSize="18" FontWeight="SemiBold"
                                    Grid.Row="0" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{x:Bind ProjectPath}" FontSize="11"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                   Grid.Row="1" Margin="0,4,0,0"
+                                   TextTrimming="CharacterEllipsis" />
                         <TextBlock Text="{x:Bind Description}" FontSize="14"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                   Grid.Row="1" Margin="0,8,0,0"
+                                   Grid.Row="2" Margin="0,8,0,0"
                                    TextTrimming="CharacterEllipsis" MaxLines="2" />
-                        <TextBlock Grid.Row="2" Text="{x:Bind UpdatedAt}" FontSize="12"
+                        <TextBlock Grid.Row="3" Text="{x:Bind UpdatedAt}" FontSize="12"
                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                    Margin="0,8,0,0" />
-                        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="4"
+                        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="4"
                                     Margin="0,8,0,0" HorizontalAlignment="Right">
                             <Button Content="编辑" Tag="{x:Bind Id}"
                                     Click="EditProject_Click" Padding="8,4" FontSize="12" />
