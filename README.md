@@ -1,31 +1,34 @@
 # InkPlay
 
-AI辅助写作与短剧创作工具 — Windows原生应用
+AI-powered creative writing tool for web novels — Windows native application
 
-## 功能
+## Features
 
-- **AI写作助手** — 智能续写、重写、润色、扩写、风格转换
-- **短剧创作** — 剧本生成、分集大纲、场景编辑、对话生成
-- **角色管理** — 角色档案、人物关系、性格设定
-- **多模型支持** — Claude、OpenAI GPT、通义千问，用户可自由切换
-- **导出** — Markdown、Word、PDF
+- **Outline Planning** — AI-assisted story outline generation, plot expansion, chapter planning
+- **Character Design** — Character profiles, personality traits, background stories, AI-generated suggestions
+- **Chapter Writing** — AI-assisted writing with continue, rewrite, polish, expand, summarize styles
+- **Video Generation** — AI video generation from text prompts
+- **Local File Storage** — Projects saved as browsable files (Markdown, JSON) in user-chosen directories
+- **Multi-model Support** — Claude, OpenAI GPT, Qwen (Tongyi Qianwen), freely switchable
+- **Inspiration to Outline** — Input creative ideas, AI expands them into complete story outlines
 
-## 技术栈
+## Tech Stack
 
 - WinUI 3 + .NET 8
 - CommunityToolkit.Mvvm (MVVM)
-- LiteDB (本地数据库)
-- HttpClient + SSE (AI流式对话)
+- LiteDB (local index database)
+- HttpClient + SSE (AI streaming)
+- Local file system (project data storage)
 
-## 快速开始
+## Quick Start
 
-### 环境要求
+### Prerequisites
 
 - Windows 10/11 (10.0.22621+)
 - .NET 8 SDK
-- Visual Studio 2022 (推荐) 或 VS Code + C# Dev Kit
+- Visual Studio 2022 (recommended) or VS Code + C# Dev Kit
 
-### 安装与运行
+### Install & Run
 
 ```bash
 git clone <repo-url>
@@ -35,32 +38,61 @@ dotnet build
 dotnet run --project src/InkPlay.App
 ```
 
-### 配置AI
+### Configure AI
 
-1. 启动应用后进入「设置」页面
-2. 选择AI提供商（Claude/OpenAI/通义千问）
-3. 填入API Key和Base URL
-4. 返回首页，创建项目开始写作
+1. Launch the app and go to **Settings**
+2. Add a Text API key (Claude/OpenAI/Qwen) for writing features
+3. Add a Video API key for video generation
+4. Return to home, create a project and start writing
 
-## 项目结构
+## Workflow
+
+```
+Home → Create Project (choose save directory, optional AI outline generation)
+  ├── Outline Planning — View/edit story outline, AI-assisted expansion
+  ├── Character Design — Create/manage characters with AI assistance
+  ├── Chapter Writing — Write chapters with AI continue/rewrite/polish
+  └── Video Generation — Generate videos from text prompts
+```
+
+## Project Structure
 
 ```
 InkPlay/
 ├── src/
-│   ├── InkPlay.Core/       # 领域模型、接口
-│   ├── InkPlay.Services/   # AI、数据、导出服务
-│   └── InkPlay.App/        # WinUI 3 应用
+│   ├── InkPlay.Core/       # Domain models, interfaces
+│   ├── InkPlay.Services/   # AI, data, file services
+│   └── InkPlay.App/        # WinUI 3 application
 └── tests/
     └── InkPlay.Services.Tests/
 ```
 
-## 开发阶段
+### Project File Structure
 
-- [x] Phase 0: 项目初始化
-- [ ] Phase 1: 基础框架 — 项目管理、编辑器、AI集成
-- [ ] Phase 2: 富编辑 + 多模型支持
-- [ ] Phase 3: 剧本工坊 + 导出功能
-- [ ] Phase 4: 关系图谱 + 世界观设定
+Each project is saved as a local directory:
+
+```
+ProjectTitle/
+├── project.json          # Project metadata
+├── 大纲/
+│   └── 故事大纲.md        # Story outline (Markdown)
+├── 章节/
+│   ├── 第1章.md
+│   └── 第2章.md
+├── 角色/
+│   ├── 角色名.json        # Character profile (JSON)
+│   └── ...
+└── 对话历史/
+    └── xxx.json           # AI conversation history
+```
+
+## Development Phases
+
+- [x] Phase 0: Project initialization
+- [x] Phase 1: Core framework — Project management, outline, characters, AI integration
+- [ ] Phase 2: Rich editor + multi-model support
+- [ ] Phase 3: Advanced writing tools + export
+- [ ] Phase 4: Relationship graph + world building
 
 ## License
 
