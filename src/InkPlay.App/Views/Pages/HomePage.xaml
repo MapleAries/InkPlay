@@ -125,19 +125,25 @@
                            Grid.Row="1" Margin="0,0,0,16" />
 
                 <StackPanel Grid.Row="2" Spacing="12">
-                    <Button Content="&#xE8F5; 角色管理" Tag="Characters"
+                    <Button Content="角色管理" Tag="Characters"
                             Click="NavigateToFeature_Click"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
                             Padding="16,12" FontSize="16" />
 
-                    <Button Content="&#xE8F5; 剧本生成" Tag="Script"
+                    <Button Content="AI写作" Tag="AiAssistant"
                             Click="NavigateToFeature_Click"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
                             Padding="16,12" FontSize="16" />
 
-                    <Button Content="&#xE8F5; 视频生成" Tag="VideoGeneration"
+                    <Button Content="剧本生成" Tag="Script"
+                            Click="NavigateToFeature_Click"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="16,12" FontSize="16" />
+
+                    <Button Content="视频生成" Tag="VideoGeneration"
                             Click="NavigateToFeature_Click"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
