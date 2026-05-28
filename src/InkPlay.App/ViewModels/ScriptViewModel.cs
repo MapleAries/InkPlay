@@ -98,7 +98,7 @@ public partial class ScriptViewModel : ViewModelBase
         if (CurrentProject is null) return;
 
         var docs = await _documentRepository.GetByProjectIdAsync(CurrentProject.Id);
-        var scriptDocs = docs.Where(d => d.Type == DocumentType.Script)
+        var scriptDocs = docs.Where(d => d.Type == DocumentType.Script || d.Type == DocumentType.Outline)
                              .OrderBy(d => d.EpisodeNumber)
                              .ThenBy(d => d.SortOrder)
                              .ToList();
