@@ -13,8 +13,11 @@ public partial class AiAssistantViewModel : ViewModelBase
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
     private readonly IConversationRepository _conversationRepository;
+    private readonly IProjectContext _projectContext;
+    private readonly IProjectRepository _projectRepository;
     private CancellationTokenSource? _aiCts;
     private AiConversation? _currentConversation;
+    private Project? _currentProject;
 
     [ObservableProperty]
     private string _userInput = string.Empty;
@@ -37,11 +40,23 @@ public partial class AiAssistantViewModel : ViewModelBase
     public AiAssistantViewModel(
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
-        IConversationRepository conversationRepository)
+        IConversationRepository conversationRepository,
+        IProjectContext projectContext,
+        IProjectRepository projectRepository)
     {
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
         _conversationRepository = conversationRepository;
+        _projectContext = projectContext;
+        _projectRepository = projectRepository;
+    }
+
+    public override async void NavigatedTo(object? parameter)
+    {
+        if (_projectContext.CurrentProjectId.HasValue)
+        {
+            _currentProject = await _projectRepository.GetByIdAsync(_projectContext.CurrentProjectId.Value);
+        }
     }
 
     [RelayCommand]
@@ -112,17 +127,33 @@ public partial class AiAssistantViewModel : ViewModelBase
 
         try
         {
-            var providerId = _settingsService.GetDefaultAiProviderId();
-            var config = _settingsService.GetAiProviderConfig(providerId);
-            var provider = _aiProviderFactory.GetProvider(providerId);
-
-            var messages = new List<AiChatMessage>
+            var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            if (apiKeyConfig is null)
             {
-                new() { Role = "user", Content = prompt }
-            };
+                AiResponse = "请先在设置中配置文本生成 API Key";
+                return;
+            }
+            var provider = _aiProviderFactory.GetProviderForApiKey(apiKeyConfig);
+
+            var messages = new List<AiChatMessage>();
+
+            messages.Add(new AiChatMessage
+            {
+                Role = "system",
+                Content = "你是一个专业的写作助手。你的任务是帮助用户进行各种类型的写作创作。" +
+                          "你应该根据用户的指令进行续写、重写、润色、扩写等操作，保持文风的一致性和连贯性，" +
+                          "提供高质量的文学创作，注意语法、修辞和表达的准确性。请用中文回复。"
+            });
+
+            if (_currentProject?.SystemPrompt is { Length: > 0 } systemPrompt)
+            {
+                messages.Add(new AiChatMessage { Role = "system", Content = systemPrompt });
+            }
+
+            messages.Add(new AiChatMessage { Role = "user", Content = prompt });
 
             var response = new StringBuilder();
-            await foreach (var chunk in provider.StreamCompletionAsync(config, messages, _aiCts.Token))
+            await foreach (var chunk in provider.StreamCompletionAsync(apiKeyConfig, messages, _aiCts.Token))
             {
                 response.Append(chunk);
                 AiResponse = response.ToString();
@@ -130,7 +161,6 @@ public partial class AiAssistantViewModel : ViewModelBase
 
             Messages.Add(new AiChatMessage { Role = "assistant", Content = AiResponse });
 
-            // Save conversation after each AI response
             await SaveConversationAsync();
         }
         catch (OperationCanceledException)

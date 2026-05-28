@@ -14,6 +14,7 @@ public sealed partial class AiAssistantPage : Page
         ViewModel = viewModel;
         InitializeComponent();
         DataContext = ViewModel;
+        Loaded += (_, _) => ViewModel.NavigatedTo(null);
     }
 
     private void Continue_Click(object sender, RoutedEventArgs e)

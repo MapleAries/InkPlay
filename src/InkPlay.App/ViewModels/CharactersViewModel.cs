@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InkPlay.App.Services;
+using InkPlay.Core.Enums;
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
 
@@ -267,11 +268,23 @@ public partial class CharactersViewModel : ViewModelBase
 
         try
         {
-            var providerId = _settingsService.GetDefaultAiProviderId();
-            var config = _settingsService.GetAiProviderConfig(providerId);
-            var provider = _aiProviderFactory.GetProvider(providerId);
+            var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            if (apiKeyConfig is null)
+            {
+                AiResponse = "请先在设置中配置文本生成 API Key";
+                return;
+            }
+            var provider = _aiProviderFactory.GetProviderForApiKey(apiKeyConfig);
 
             var messages = new List<AiChatMessage>();
+
+            messages.Add(new AiChatMessage
+            {
+                Role = "system",
+                Content = "你是一个专业的角色设计助手。你的任务是帮助用户创建和管理小说/剧本中的角色。" +
+                          "你应该帮助设计角色的性格特点、背景故事、外貌描述，确保角色设定的内在一致性和逻辑性，" +
+                          "提供有深度、有层次的角色塑造建议，考虑角色在故事中的作用和与其他角色的关系。请用中文回复。"
+            });
 
             if (CurrentProject?.SystemPrompt is { Length: > 0 } systemPrompt)
             {
@@ -283,7 +296,7 @@ public partial class CharactersViewModel : ViewModelBase
             AiMessages.Add(new AiChatMessage { Role = "user", Content = prompt });
 
             var response = new System.Text.StringBuilder();
-            await foreach (var chunk in provider.StreamCompletionAsync(config, messages, _aiCts.Token))
+            await foreach (var chunk in provider.StreamCompletionAsync(apiKeyConfig, messages, _aiCts.Token))
             {
                 response.Append(chunk);
                 AiResponse = response.ToString();

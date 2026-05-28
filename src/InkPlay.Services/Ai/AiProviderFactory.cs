@@ -1,4 +1,5 @@
 using InkPlay.Core.Interfaces;
+using InkPlay.Core.Models;
 using InkPlay.Services.Ai.Providers;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,6 +24,19 @@ public class AiProviderFactory : IAiProviderFactory
         if (_providerFactories.TryGetValue(providerId, out var factory))
             return factory();
         throw new ArgumentException($"Unknown AI provider: {providerId}");
+    }
+
+    public IAiProvider GetProviderForApiKey(ApiKeyConfig apiKeyConfig)
+    {
+        var baseUrl = apiKeyConfig.BaseUrl?.ToLowerInvariant() ?? "";
+        var providerId = baseUrl switch
+        {
+            var u when u.Contains("anthropic") => "claude",
+            var u when u.Contains("openai") => "openai",
+            var u when u.Contains("dashscope") => "qwen",
+            _ => "openai" // 默认使用 OpenAI 兼容格式
+        };
+        return GetProvider(providerId);
     }
 
     public IReadOnlyList<string> GetAvailableProviders()

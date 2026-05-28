@@ -283,11 +283,23 @@ public partial class ScriptViewModel : ViewModelBase
 
         try
         {
-            var providerId = _settingsService.GetDefaultAiProviderId();
-            var config = _settingsService.GetAiProviderConfig(providerId);
-            var provider = _aiProviderFactory.GetProvider(providerId);
+            var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            if (apiKeyConfig is null)
+            {
+                AiResponse = "请先在设置中配置文本生成 API Key";
+                return;
+            }
+            var provider = _aiProviderFactory.GetProviderForApiKey(apiKeyConfig);
 
             var messages = new List<AiChatMessage>();
+
+            messages.Add(new AiChatMessage
+            {
+                Role = "system",
+                Content = "你是一个专业的剧本创作助手。你的任务是帮助用户编写和管理剧本。" +
+                          "你应该帮助生成分集大纲、场景描述、对话内容，遵循剧本格式规范（场景标题、动作描写、对话格式），" +
+                          "确保对话自然、符合角色性格，考虑节奏、冲突和戏剧张力。请用中文回复。"
+            });
 
             if (CurrentProject?.SystemPrompt is { Length: > 0 } systemPrompt)
             {
@@ -299,7 +311,7 @@ public partial class ScriptViewModel : ViewModelBase
             AiMessages.Add(new AiChatMessage { Role = "user", Content = prompt });
 
             var response = new System.Text.StringBuilder();
-            await foreach (var chunk in provider.StreamCompletionAsync(config, messages, _aiCts.Token))
+            await foreach (var chunk in provider.StreamCompletionAsync(apiKeyConfig, messages, _aiCts.Token))
             {
                 response.Append(chunk);
                 AiResponse = response.ToString();

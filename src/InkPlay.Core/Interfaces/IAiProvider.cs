@@ -17,5 +17,15 @@ public interface IAiProvider
         IReadOnlyList<AiChatMessage> messages,
         CancellationToken cancellationToken = default);
 
+    IAsyncEnumerable<string> StreamCompletionAsync(
+        ApiKeyConfig apiKeyConfig,
+        IReadOnlyList<AiChatMessage> messages,
+        CancellationToken cancellationToken = default);
+
+    Task<string> GetCompletionAsync(
+        ApiKeyConfig apiKeyConfig,
+        IReadOnlyList<AiChatMessage> messages,
+        CancellationToken cancellationToken = default);
+
     Task<bool> ValidateConfigurationAsync(AiProviderConfig config);
 }

@@ -35,7 +35,35 @@ public abstract class AiProviderBase : IAiProvider
         return sb.ToString();
     }
 
+    public IAsyncEnumerable<string> StreamCompletionAsync(
+        ApiKeyConfig apiKeyConfig,
+        IReadOnlyList<AiChatMessage> messages,
+        CancellationToken cancellationToken = default)
+    {
+        var config = ConvertApiKeyConfig(apiKeyConfig);
+        return StreamCompletionAsync(config, messages, cancellationToken);
+    }
+
+    public Task<string> GetCompletionAsync(
+        ApiKeyConfig apiKeyConfig,
+        IReadOnlyList<AiChatMessage> messages,
+        CancellationToken cancellationToken = default)
+    {
+        var config = ConvertApiKeyConfig(apiKeyConfig);
+        return GetCompletionAsync(config, messages, cancellationToken);
+    }
+
     public abstract Task<bool> ValidateConfigurationAsync(AiProviderConfig config);
+
+    protected static AiProviderConfig ConvertApiKeyConfig(ApiKeyConfig apiKeyConfig)
+    {
+        return new AiProviderConfig
+        {
+            ApiKey = apiKeyConfig.ApiKey,
+            BaseUrl = apiKeyConfig.BaseUrl,
+            ModelId = apiKeyConfig.ModelId
+        };
+    }
 
     protected static async IAsyncEnumerable<string> ReadSseStreamAsync(
         HttpResponseMessage response,
