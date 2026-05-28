@@ -63,11 +63,12 @@
         <Grid x:Name="CreateDialog" Grid.RowSpan="2"
               Background="{ThemeResource SmokeFillColorDefaultBrush}"
               Visibility="Collapsed">
-            <Grid Width="400" Padding="24"
+            <Grid Width="480" Padding="24"
                   VerticalAlignment="Center" HorizontalAlignment="Center"
                   Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                   CornerRadius="8">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -80,12 +81,7 @@
                 <TextBox Header="项目标题" Grid.Row="1" Margin="0,0,0,12"
                          Text="{x:Bind ViewModel.NewProjectTitle, Mode=TwoWay}" PlaceholderText="输入项目标题..." />
 
-                <TextBox Header="项目描述" Grid.Row="2" Margin="0,0,0,12"
-                         Text="{x:Bind ViewModel.NewProjectDescription, Mode=TwoWay}"
-                         PlaceholderText="输入项目描述..."
-                         TextWrapping="Wrap" AcceptsReturn="True" Height="80" />
-
-                <ComboBox Header="类型" Grid.Row="3" Margin="0,0,0,16"
+                <ComboBox Header="类型" Grid.Row="2" Margin="0,0,0,12"
                           SelectedIndex="0"
                           x:Name="GenreComboBox">
                     <ComboBoxItem Content="短剧" IsSelected="True" />
@@ -94,7 +90,16 @@
                     <ComboBoxItem Content="其他" />
                 </ComboBox>
 
-                <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                <TextBox Header="你有创作灵感或大纲吗？（可选）" Grid.Row="3" Margin="0,0,0,12"
+                         Text="{x:Bind ViewModel.InspirationText, Mode=TwoWay}"
+                         PlaceholderText="随便写点想法，AI会帮你扩展为完整大纲..."
+                         TextWrapping="Wrap" AcceptsReturn="True" Height="120" />
+
+                <CheckBox Grid.Row="4" Margin="0,0,0,16"
+                          Content="创建后直接进入大纲规划"
+                          IsChecked="{x:Bind ViewModel.GoToOutlineAfterCreate, Mode=TwoWay}" />
+
+                <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                     <Button Content="取消" Click="CancelCreate_Click" />
                     <Button Content="创建" Style="{StaticResource AccentButtonStyle}" Click="ConfirmCreate_Click" />
                 </StackPanel>
@@ -125,19 +130,19 @@
                            Grid.Row="1" Margin="0,0,0,16" />
 
                 <StackPanel Grid.Row="2" Spacing="12">
-                    <Button Content="角色管理" Tag="Characters"
+                    <Button Content="大纲规划" Tag="Script"
                             Click="NavigateToFeature_Click"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
                             Padding="16,12" FontSize="16" />
 
-                    <Button Content="AI写作" Tag="AiAssistant"
+                    <Button Content="角色设计" Tag="Characters"
                             Click="NavigateToFeature_Click"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
                             Padding="16,12" FontSize="16" />
 
-                    <Button Content="剧本生成" Tag="Script"
+                    <Button Content="章节写作" Tag="AiAssistant"
                             Click="NavigateToFeature_Click"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"

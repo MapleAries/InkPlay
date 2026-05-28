@@ -29,13 +29,13 @@ public sealed partial class HomePage : Page
         ViewModel.CancelCreateProjectCommand.Execute(null);
     }
 
-    private void ConfirmCreate_Click(object sender, RoutedEventArgs e)
+    private async void ConfirmCreate_Click(object sender, RoutedEventArgs e)
     {
         if (GenreComboBox.SelectedItem is ComboBoxItem selectedItem)
         {
             ViewModel.NewProjectGenre = selectedItem.Content?.ToString() ?? "短剧";
         }
-        ViewModel.CreateProjectCommand.Execute(null);
+        await ViewModel.CreateProjectCommand.ExecuteAsync(null);
         CreateDialog.Visibility = Visibility.Collapsed;
     }
 

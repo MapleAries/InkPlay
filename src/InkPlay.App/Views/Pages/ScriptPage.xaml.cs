@@ -75,8 +75,8 @@ public sealed partial class ScriptPage : Page
                 case "outline":
                     ViewModel.GenerateOutlineCommand.Execute(null);
                     break;
-                case "dialogue":
-                    ViewModel.GenerateDialogueCommand.Execute(null);
+                case "expand":
+                    ViewModel.ExpandPlotCommand.Execute(null);
                     break;
                 case "scene":
                     ViewModel.GenerateSceneDescriptionCommand.Execute(null);

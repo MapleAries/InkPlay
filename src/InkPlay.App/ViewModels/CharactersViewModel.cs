@@ -281,9 +281,10 @@ public partial class CharactersViewModel : ViewModelBase
             messages.Add(new AiChatMessage
             {
                 Role = "system",
-                Content = "你是一个专业的角色设计助手。你的任务是帮助用户创建和管理小说/剧本中的角色。" +
+                Content = "你是一个专业的网文角色设计助手。你的任务是帮助用户创建和管理网文/小说中的角色。" +
                           "你应该帮助设计角色的性格特点、背景故事、外貌描述，确保角色设定的内在一致性和逻辑性，" +
-                          "提供有深度、有层次的角色塑造建议，考虑角色在故事中的作用和与其他角色的关系。请用中文回复。"
+                          "提供有深度、有层次的角色塑造建议，考虑角色在故事中的作用和与其他角色的关系，" +
+                          "注重角色的读者吸引力和故事功能性。请用中文回复。"
             });
 
             if (CurrentProject?.SystemPrompt is { Length: > 0 } systemPrompt)

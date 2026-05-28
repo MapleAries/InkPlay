@@ -238,21 +238,21 @@ public partial class ScriptViewModel : ViewModelBase
     [RelayCommand]
     private async Task GenerateOutlineAsync()
     {
-        var prompt = $"请为以下剧本生成分集大纲：\n标题：{CurrentProject?.Title}\n类型：{CurrentProject?.Genre}";
+        var prompt = $"请为以下网文生成故事大纲：\n标题：{CurrentProject?.Title}\n类型：{CurrentProject?.Genre}\n\n请生成分卷/分章大纲，包含每章标题和简要内容概述。";
         await SendAiRequestAsync(prompt);
     }
 
     [RelayCommand]
-    private async Task GenerateDialogueAsync()
+    private async Task ExpandPlotAsync()
     {
-        var prompt = $"请为以下场景生成对话：\n场景：{SceneHeading}\n地点：{SceneLocation}\n时间：{SceneTimeOfDay}\n动作描述：{SceneAction}";
+        var prompt = $"请扩展以下大纲条目的情节：\n标题：{SceneHeading}\n内容：{SceneAction}\n\n请补充更多细节、冲突和转折。";
         await SendAiRequestAsync(prompt);
     }
 
     [RelayCommand]
     private async Task GenerateSceneDescriptionAsync()
     {
-        var prompt = $"请为以下场景生成详细的动作描述：\n场景：{SceneHeading}\n地点：{SceneLocation}\n时间：{SceneTimeOfDay}";
+        var prompt = $"请为以下大纲条目生成详细内容：\n标题：{SceneHeading}\n地点：{SceneLocation}\n时间：{SceneTimeOfDay}";
         await SendAiRequestAsync(prompt);
     }
 
@@ -296,9 +296,9 @@ public partial class ScriptViewModel : ViewModelBase
             messages.Add(new AiChatMessage
             {
                 Role = "system",
-                Content = "你是一个专业的剧本创作助手。你的任务是帮助用户编写和管理剧本。" +
-                          "你应该帮助生成分集大纲、场景描述、对话内容，遵循剧本格式规范（场景标题、动作描写、对话格式），" +
-                          "确保对话自然、符合角色性格，考虑节奏、冲突和戏剧张力。请用中文回复。"
+                Content = "你是一个专业的网文大纲规划助手。你的任务是帮助用户规划网文/小说的故事大纲。" +
+                          "你应该帮助生成故事大纲、分卷规划、章节梗概、情节扩展，注重故事结构的合理性、" +
+                          "情节的吸引力和节奏感，考虑伏笔设置、冲突设计和高潮安排。请用中文回复。"
             });
 
             if (CurrentProject?.SystemPrompt is { Length: > 0 } systemPrompt)

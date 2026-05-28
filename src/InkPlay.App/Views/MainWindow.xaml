@@ -3,7 +3,7 @@
     x:Class="InkPlay.App.Views.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="InkPlay - AI写作助手">
+    Title="InkPlay - AI创作助手">
 
     <NavigationView
         x:Name="NavView"
@@ -15,9 +15,9 @@
 
         <NavigationView.MenuItems>
             <NavigationViewItem Content="首页" Icon="Home" Tag="Home" />
-            <NavigationViewItem Content="角色管理" Icon="People" Tag="Characters" />
-            <NavigationViewItem Content="AI写作" Icon="Comment" Tag="AiAssistant" />
-            <NavigationViewItem Content="剧本生成" Icon="Video" Tag="Script" />
+            <NavigationViewItem Content="大纲规划" Icon="Map" Tag="Script" />
+            <NavigationViewItem Content="角色设计" Icon="People" Tag="Characters" />
+            <NavigationViewItem Content="章节写作" Icon="Edit" Tag="AiAssistant" />
             <NavigationViewItem Content="视频生成" Icon="Play" Tag="VideoGeneration" />
         </NavigationView.MenuItems>
 

@@ -25,8 +25,8 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,12">
-                <TextBlock Text="剧本" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
-                <Button Content="+剧集" Click="AddEpisode_Click" Padding="8,4" />
+                <TextBlock Text="大纲" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <Button Content="+章节" Click="AddEpisode_Click" Padding="8,4" />
             </StackPanel>
 
             <!-- Episode List -->
@@ -52,7 +52,7 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
-                    <TextBlock Text="场景" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Text="条目" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
                     <Button Content="+" Click="AddScene_Click" Padding="6,2" />
                 </StackPanel>
 
@@ -74,13 +74,13 @@
         <!-- Center: Scene Editor -->
         <ScrollViewer Grid.Column="1" Padding="12">
             <StackPanel Spacing="12">
-                <TextBlock Text="场景编辑" FontSize="16" FontWeight="SemiBold" />
+                <TextBlock Text="大纲编辑" FontSize="16" FontWeight="SemiBold" />
 
-                <TextBox Header="场景标题" Text="{x:Bind ViewModel.SceneHeading, Mode=TwoWay}" />
+                <TextBox Header="标题" Text="{x:Bind ViewModel.SceneHeading, Mode=TwoWay}" />
                 <TextBox Header="地点" Text="{x:Bind ViewModel.SceneLocation, Mode=TwoWay}" />
                 <TextBox Header="时间" Text="{x:Bind ViewModel.SceneTimeOfDay, Mode=TwoWay}" />
 
-                <TextBox Header="动作描述" Text="{x:Bind ViewModel.SceneAction, Mode=TwoWay}"
+                <TextBox Header="内容描述" Text="{x:Bind ViewModel.SceneAction, Mode=TwoWay}"
                          TextWrapping="Wrap" AcceptsReturn="True" MinHeight="120" />
 
                 <!-- Dialogues -->
@@ -125,8 +125,8 @@
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Content="保存场景" Click="SaveScene_Click" Style="{ThemeResource AccentButtonStyle}" />
-                    <Button Content="删除场景" Click="DeleteScene_Click" />
+                    <Button Content="保存条目" Click="SaveScene_Click" Style="{ThemeResource AccentButtonStyle}" />
+                    <Button Content="删除条目" Click="DeleteScene_Click" />
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>
@@ -146,8 +146,8 @@
             <!-- Quick Actions -->
             <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
                 <Button Content="生成大纲" Click="QuickAction_Click" Tag="outline" />
-                <Button Content="生成对话" Click="QuickAction_Click" Tag="dialogue" />
-                <Button Content="生成场景" Click="QuickAction_Click" Tag="scene" />
+                <Button Content="扩展情节" Click="QuickAction_Click" Tag="expand" />
+                <Button Content="生成内容" Click="QuickAction_Click" Tag="scene" />
             </StackPanel>
 
             <!-- Chat Messages -->

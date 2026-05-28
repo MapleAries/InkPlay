@@ -140,9 +140,9 @@ public partial class AiAssistantViewModel : ViewModelBase
             messages.Add(new AiChatMessage
             {
                 Role = "system",
-                Content = "你是一个专业的写作助手。你的任务是帮助用户进行各种类型的写作创作。" +
+                Content = "你是一个专业的网文写作助手。你的任务是帮助用户进行网文/小说的章节创作。" +
                           "你应该根据用户的指令进行续写、重写、润色、扩写等操作，保持文风的一致性和连贯性，" +
-                          "提供高质量的文学创作，注意语法、修辞和表达的准确性。请用中文回复。"
+                          "注重故事节奏、人物刻画和情节推进，提供引人入胜的章节内容。请用中文回复。"
             });
 
             if (_currentProject?.SystemPrompt is { Length: > 0 } systemPrompt)
