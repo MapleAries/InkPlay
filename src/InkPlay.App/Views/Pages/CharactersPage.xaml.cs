@@ -1,5 +1,6 @@
 using InkPlay.App.Services;
 using InkPlay.App.ViewModels;
+using InkPlay.Core.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -70,6 +71,31 @@ public sealed partial class CharactersPage : Page, IParameterizedPage
         {
             ViewModel.SendAiMessageCommand.Execute(null);
             e.Handled = true;
+        }
+    }
+
+    private void GenerateVoice_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Guid characterId)
+        {
+            var character = ViewModel.Characters.FirstOrDefault(c => c.Id == characterId);
+            if (character is not null)
+            {
+                ViewModel.GenerateVoiceCommand.Execute(character);
+            }
+        }
+    }
+
+    private void DeleteCharacterMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Guid characterId)
+        {
+            var character = ViewModel.Characters.FirstOrDefault(c => c.Id == characterId);
+            if (character is not null)
+            {
+                ViewModel.SelectCharacterCommand.Execute(character);
+                ViewModel.DeleteCharacterCommand.Execute(null);
+            }
         }
     }
 }

@@ -55,7 +55,14 @@
                       SelectionChanged="CharacterList_SelectionChanged">
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="models:Character">
-                        <Grid Padding="8,6">
+                        <Grid Padding="8,6" Tag="{x:Bind Id}">
+                            <Grid.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="生成音色" Click="GenerateVoice_Click" Tag="{x:Bind Id}" />
+                                    <MenuFlyoutItem Text="删除角色" Click="DeleteCharacterMenu_Click" Tag="{x:Bind Id}"
+                                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                </MenuFlyout>
+                            </Grid.ContextFlyout>
                             <StackPanel>
                                 <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" />
                                 <TextBlock Text="{x:Bind Role}" FontSize="12"

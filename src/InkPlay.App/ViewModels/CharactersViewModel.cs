@@ -12,6 +12,7 @@ public partial class CharactersViewModel : ViewModelBase
 {
     private readonly ICharacterRepository _characterRepository;
     private readonly IProjectRepository _projectRepository;
+    private readonly IVoiceRepository _voiceRepository;
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
     private readonly IProjectContext _projectContext;
@@ -84,6 +85,7 @@ public partial class CharactersViewModel : ViewModelBase
     public CharactersViewModel(
         ICharacterRepository characterRepository,
         IProjectRepository projectRepository,
+        IVoiceRepository voiceRepository,
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
         IProjectContext projectContext,
@@ -91,6 +93,7 @@ public partial class CharactersViewModel : ViewModelBase
     {
         _characterRepository = characterRepository;
         _projectRepository = projectRepository;
+        _voiceRepository = voiceRepository;
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
         _projectContext = projectContext;
@@ -348,6 +351,29 @@ public partial class CharactersViewModel : ViewModelBase
     {
         AiMessages.Clear();
         AiResponse = string.Empty;
+    }
+
+    [RelayCommand]
+    private async Task GenerateVoiceAsync(Character character)
+    {
+        if (character is null || CurrentProject is null) return;
+
+        // Create voice from character info
+        var voice = new Voice
+        {
+            ProjectId = CurrentProject.Id,
+            Name = $"{character.Name}的音色",
+            Gender = character.Gender,
+            Tone = character.Personality,
+            Description = $"{character.Gender}，{character.Personality}",
+            SampleText = $"我叫{character.Name}，{character.Role}。{character.Personality}"
+        };
+
+        await _voiceRepository.CreateAsync(voice);
+
+        // Navigate to voices page
+        _projectContext.SetCurrentProject(CurrentProject.Id);
+        _navigationService.NavigateTo("Voices", CurrentProject.Id);
     }
 
     [RelayCommand]
