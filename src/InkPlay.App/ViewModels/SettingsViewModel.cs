@@ -215,30 +215,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     private static void ApplyTheme(string theme)
     {
-        var elementTheme = theme switch
+        if (App.MainWindow is Views.MainWindow mainWindow)
         {
-            "Dark" => ElementTheme.Dark,
-            "Light" => ElementTheme.Light,
-            _ => ElementTheme.Default
-        };
-
-        // Apply to root element
-        if (App.MainWindow?.Content is FrameworkElement root)
-        {
-            root.RequestedTheme = elementTheme;
-        }
-
-        // Apply to window title bar
-        if (App.MainWindow is not null)
-        {
-            var titleBar = App.MainWindow.AppWindow?.TitleBar;
-            if (titleBar is not null)
-            {
-                var isDark = theme == "Dark" || (theme == "Default" && Application.Current.RequestedTheme == ApplicationTheme.Dark);
-                titleBar.ButtonForegroundColor = isDark ? Microsoft.UI.Colors.White : Microsoft.UI.Colors.Black;
-                titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
-                titleBar.BackgroundColor = Microsoft.UI.Colors.Transparent;
-            }
+            mainWindow.ApplyTheme(theme);
         }
     }
 }

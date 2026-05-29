@@ -1,5 +1,6 @@
 using InkPlay.App.Services;
 using InkPlay.App.ViewModels;
+using InkPlay.Core.Interfaces;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -9,12 +10,14 @@ public sealed partial class MainWindow : Window
 {
     private readonly MainViewModel _viewModel;
     private readonly NavigationService _navigationService;
+    private readonly ISettingsService _settingsService;
     private bool _isNavigating;
 
-    public MainWindow(MainViewModel viewModel, NavigationService navigationService)
+    public MainWindow(MainViewModel viewModel, NavigationService navigationService, ISettingsService settingsService)
     {
         _viewModel = viewModel;
         _navigationService = navigationService;
+        _settingsService = settingsService;
 
         InitializeComponent();
 
@@ -34,6 +37,32 @@ public sealed partial class MainWindow : Window
         _navigationService.NavigateTo("Home");
 
         Title = "墨戏 - AI创作助手";
+
+        // Apply saved theme
+        ApplyTheme(_settingsService.GetTheme());
+    }
+
+    public void ApplyTheme(string theme)
+    {
+        var elementTheme = theme switch
+        {
+            "Dark" => ElementTheme.Dark,
+            "Light" => ElementTheme.Light,
+            _ => ElementTheme.Default
+        };
+
+        // Apply to NavigationView (root element)
+        NavView.RequestedTheme = elementTheme;
+
+        // Apply to window title bar
+        var titleBar = AppWindow?.TitleBar;
+        if (titleBar is not null)
+        {
+            var isDark = theme == "Dark" || (theme == "Default" && Application.Current.RequestedTheme == ApplicationTheme.Dark);
+            titleBar.ButtonForegroundColor = isDark ? Microsoft.UI.Colors.White : Microsoft.UI.Colors.Black;
+            titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
+            titleBar.BackgroundColor = Microsoft.UI.Colors.Transparent;
+        }
     }
 
     private void OnNavigated(string pageKey, object? parameter)
