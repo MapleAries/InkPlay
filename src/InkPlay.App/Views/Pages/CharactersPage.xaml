@@ -124,15 +124,8 @@
                       SelectedItem="{x:Bind ViewModel.SelectedModel, Mode=TwoWay}"
                       DisplayMemberPath="Name" />
 
-            <!-- Quick Actions -->
-            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
-                <Button Content="生成性格" Click="QuickAction_Click" Tag="personality" />
-                <Button Content="生成背景" Click="QuickAction_Click" Tag="backstory" />
-                <Button Content="生成外貌" Click="QuickAction_Click" Tag="appearance" />
-            </StackPanel>
-
             <!-- Chat Messages -->
-            <ScrollViewer Grid.Row="3">
+            <ScrollViewer Grid.Row="2">
                 <StackPanel Spacing="8">
                     <ItemsControl ItemsSource="{x:Bind ViewModel.AiMessages, Mode=OneWay}">
                         <ItemsControl.ItemTemplate>
