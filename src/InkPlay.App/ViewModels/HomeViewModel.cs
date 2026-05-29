@@ -93,7 +93,22 @@ public partial class HomeViewModel : ViewModelBase
         try
         {
             var projects = await _projectRepository.GetAllAsync();
-            Projects = new ObservableCollection<Project>(projects);
+            var validProjects = new List<Project>();
+
+            foreach (var project in projects)
+            {
+                if (!string.IsNullOrEmpty(project.ProjectPath) && Directory.Exists(project.ProjectPath))
+                {
+                    validProjects.Add(project);
+                }
+                else
+                {
+                    // 目录已删除，从索引中移除
+                    await _projectRepository.DeleteAsync(project.Id);
+                }
+            }
+
+            Projects = new ObservableCollection<Project>(validProjects);
         }
         finally
         {
