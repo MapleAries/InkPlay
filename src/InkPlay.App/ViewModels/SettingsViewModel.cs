@@ -215,6 +215,14 @@ public partial class SettingsViewModel : ViewModelBase
 
     private static void ApplyTheme(string theme)
     {
-        // Theme will be applied on next app launch
+        if (App.MainWindow?.Content is FrameworkElement root)
+        {
+            root.RequestedTheme = theme switch
+            {
+                "Dark" => ElementTheme.Dark,
+                "Light" => ElementTheme.Light,
+                _ => ElementTheme.Default
+            };
+        }
     }
 }
