@@ -71,6 +71,7 @@ public partial class App : Application
                 services.AddTransient<ViewModels.CharactersViewModel>();
                 services.AddTransient<ViewModels.ScriptViewModel>();
                 services.AddTransient<ViewModels.VideoGenerationViewModel>();
+                services.AddTransient<ViewModels.ScriptManagementViewModel>();
                 services.AddTransient<ViewModels.VoicesViewModel>();
 
                 // Views
