@@ -186,10 +186,12 @@ public partial class AiAssistantViewModel : ViewModelBase
     {
         if (_currentProject is null) return;
 
+        var chapterCount = Chapters.Count(c => c.Title != "目录");
+
         var chapter = new Document
         {
             ProjectId = _currentProject.Id,
-            Title = $"第 {Chapters.Count + 1} 章",
+            Title = $"第 {chapterCount + 1} 章",
             Type = DocumentType.Chapter,
             SortOrder = Chapters.Count
         };
