@@ -85,17 +85,17 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <!-- Video API Keys Section -->
+                <!-- Voice API Keys Section -->
                 <StackPanel Spacing="12">
                     <Grid>
-                        <TextBlock Text="视频生成 API" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock Text="语音合成 API" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
                         <Button Content="添加" HorizontalAlignment="Right"
-                                Click="AddVideoKey_Click" />
+                                Click="AddVoiceKey_Click" />
                     </Grid>
-                    <TextBlock Text="用于短剧创作中的视频生成功能"
+                    <TextBlock Text="用于角色音色管理和语音合成功能"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="13" />
 
-                    <ItemsControl ItemsSource="{x:Bind ViewModel.VideoApiKeys, Mode=OneWay}">
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.VoiceApiKeys, Mode=OneWay}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:ApiKeyConfig"
                                           xmlns:models="using:InkPlay.Core.Models">
@@ -148,17 +148,17 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <!-- Voice API Keys Section -->
+                <!-- Video API Keys Section -->
                 <StackPanel Spacing="12">
                     <Grid>
-                        <TextBlock Text="语音合成 API" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <TextBlock Text="视频生成 API" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
                         <Button Content="添加" HorizontalAlignment="Right"
-                                Click="AddVoiceKey_Click" />
+                                Click="AddVideoKey_Click" />
                     </Grid>
-                    <TextBlock Text="用于角色音色管理和语音合成功能"
+                    <TextBlock Text="用于短剧创作中的视频生成功能"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="13" />
 
-                    <ItemsControl ItemsSource="{x:Bind ViewModel.VoiceApiKeys, Mode=OneWay}">
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.VideoApiKeys, Mode=OneWay}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:ApiKeyConfig"
                                           xmlns:models="using:InkPlay.Core.Models">

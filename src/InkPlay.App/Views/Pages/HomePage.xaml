@@ -171,13 +171,13 @@
                             HorizontalContentAlignment="Left"
                             Padding="16,12" FontSize="16" />
 
-                    <Button Content="视频生成" Tag="VideoGeneration"
+                    <Button Content="音色管理" Tag="Voices"
                             Click="NavigateToFeature_Click"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
                             Padding="16,12" FontSize="16" />
 
-                    <Button Content="音色管理" Tag="Voices"
+                    <Button Content="视频生成" Tag="VideoGeneration"
                             Click="NavigateToFeature_Click"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
