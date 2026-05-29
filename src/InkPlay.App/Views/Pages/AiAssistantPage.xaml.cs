@@ -117,6 +117,12 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         {
             ViewModel.CurrentChapter.Title = newTitle;
             await ViewModel.SaveChapterCommand.ExecuteAsync(null);
+            // Refresh the item in the list
+            var index = ViewModel.Chapters.IndexOf(ViewModel.CurrentChapter);
+            if (index >= 0)
+            {
+                ViewModel.Chapters[index] = ViewModel.CurrentChapter;
+            }
         }
         RenameDialog.Visibility = Visibility.Collapsed;
     }
