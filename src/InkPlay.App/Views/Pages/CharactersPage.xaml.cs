@@ -1,3 +1,4 @@
+using InkPlay.App.Services;
 using InkPlay.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -8,10 +9,12 @@ namespace InkPlay.App.Views.Pages;
 public sealed partial class CharactersPage : Page, IParameterizedPage
 {
     public CharactersViewModel ViewModel { get; }
+    private readonly NavigationService _navigationService;
 
-    public CharactersPage(CharactersViewModel viewModel)
+    public CharactersPage(CharactersViewModel viewModel, NavigationService navigationService)
     {
         ViewModel = viewModel;
+        _navigationService = navigationService;
         InitializeComponent();
     }
 
@@ -22,7 +25,7 @@ public sealed partial class CharactersPage : Page, IParameterizedPage
 
     private void GoHome_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.GoBackCommand.Execute(null);
+        _navigationService.NavigateTo("Home");
     }
 
     private void AddCharacter_Click(object sender, RoutedEventArgs e)

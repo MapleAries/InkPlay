@@ -14,7 +14,7 @@
                     Visibility="{x:Bind ViewModel.HasProject, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
             <TextBlock Text="请先在书架选择一本小说" FontSize="18"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            <Button Content="前往首页" Margin="0,16,0,0"
+            <Button Content="前往书架" Margin="0,16,0,0"
                     Click="GoHome_Click" />
         </StackPanel>
 
