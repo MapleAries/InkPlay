@@ -51,20 +51,29 @@ public sealed partial class MarkdownViewer : UserControl
             }
 
             // Headers
-            if (line.StartsWith("### "))
+            if (line.StartsWith("###"))
             {
-                var para = CreateHeaderParagraph(line[4..], 17);
-                ContentBlock.Blocks.Add(para);
+                var text = line.TrimStart('#').TrimStart();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    ContentBlock.Blocks.Add(CreateHeaderParagraph(text, 17));
+                }
             }
-            else if (line.StartsWith("## "))
+            else if (line.StartsWith("##"))
             {
-                var para = CreateHeaderParagraph(line[3..], 20);
-                ContentBlock.Blocks.Add(para);
+                var text = line.TrimStart('#').TrimStart();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    ContentBlock.Blocks.Add(CreateHeaderParagraph(text, 20));
+                }
             }
-            else if (line.StartsWith("# "))
+            else if (line.StartsWith("#"))
             {
-                var para = CreateHeaderParagraph(line[2..], 24);
-                ContentBlock.Blocks.Add(para);
+                var text = line.TrimStart('#').TrimStart();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    ContentBlock.Blocks.Add(CreateHeaderParagraph(text, 24));
+                }
             }
             // Horizontal rule
             else if (line.Trim() == "---" || line.Trim() == "***")
