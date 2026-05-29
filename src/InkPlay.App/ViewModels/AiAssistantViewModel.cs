@@ -346,7 +346,6 @@ public partial class AiAssistantViewModel : ViewModelBase
             "polish" => "请润色以下内容，提升文笔质量",
             "expand" => "请扩写以下内容，增加更多细节描写",
             "summarize" => "请缩写以下内容，保留核心信息",
-            "format_dialogue" => "请识别并格式化以下文本中的对话，使用标准对话格式（角色名：\"对话内容\"），保持原文不变，只调整格式",
             _ => action
         };
 
