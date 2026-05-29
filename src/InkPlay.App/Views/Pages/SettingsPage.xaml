@@ -18,6 +18,19 @@
         <ScrollViewer Grid.Row="1">
             <StackPanel MaxWidth="700" Spacing="32">
 
+                <!-- Theme Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="外观" FontSize="18" FontWeight="SemiBold" />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <TextBlock Text="主题" VerticalAlignment="Center" />
+                        <ComboBox SelectedIndex="{x:Bind ViewModel.SelectedThemeIndex, Mode=TwoWay}">
+                            <ComboBoxItem Content="深色" />
+                            <ComboBoxItem Content="浅色" />
+                            <ComboBoxItem Content="跟随系统" />
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+
                 <!-- Text API Keys Section -->
                 <StackPanel Spacing="12">
                     <Grid>

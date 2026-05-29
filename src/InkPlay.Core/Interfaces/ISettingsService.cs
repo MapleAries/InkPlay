@@ -11,6 +11,10 @@ public interface ISettingsService
     void DeleteApiKey(Guid id);
     void SetDefaultApiKey(Guid id, ApiKeyCategory category);
 
+    // Theme
+    string GetTheme();
+    void SetTheme(string theme);
+
     // Legacy: keep for backward compatibility with AI providers
     AiProviderConfig GetAiProviderConfig(string providerId);
     void SaveAiProviderConfig(AiProviderConfig config);
