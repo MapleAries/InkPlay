@@ -40,6 +40,8 @@ public partial class AiAssistantViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isChapterSelected;
 
+    private bool _isSaving;
+
     [ObservableProperty]
     private string _chapterContent = string.Empty;
 
@@ -202,6 +204,9 @@ public partial class AiAssistantViewModel : ViewModelBase
     [RelayCommand]
     private void SelectChapter(Document? chapter)
     {
+        // Ignore selection changes during save
+        if (_isSaving) return;
+
         if (chapter is null)
         {
             CurrentChapter = null;
@@ -211,6 +216,9 @@ public partial class AiAssistantViewModel : ViewModelBase
             SaveStatus = "未保存";
             return;
         }
+
+        // Skip if same chapter
+        if (CurrentChapter?.Id == chapter.Id) return;
 
         CurrentChapter = chapter;
         IsChapterSelected = true;
@@ -227,6 +235,7 @@ public partial class AiAssistantViewModel : ViewModelBase
     {
         if (CurrentChapter is null) return;
 
+        _isSaving = true;
         SaveStatus = "保存中...";
         CurrentChapter.Content = ChapterContent;
         await _documentRepository.UpdateAsync(CurrentChapter);
@@ -239,12 +248,14 @@ public partial class AiAssistantViewModel : ViewModelBase
         {
             Chapters[index] = CurrentChapter;
         }
+        _isSaving = false;
     }
 
     private async Task SaveChapterSilentAsync()
     {
         if (CurrentChapter is null) return;
 
+        _isSaving = true;
         CurrentChapter.Content = ChapterContent;
         await _documentRepository.UpdateAsync(CurrentChapter);
         WordCount = CurrentChapter.WordCount;
@@ -256,6 +267,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         {
             Chapters[index] = CurrentChapter;
         }
+        _isSaving = false;
     }
 
     [RelayCommand]
