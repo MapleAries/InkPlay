@@ -12,6 +12,7 @@ public partial class HomeViewModel : ViewModelBase
 {
     private readonly IProjectRepository _projectRepository;
     private readonly IDocumentRepository _documentRepository;
+    private readonly ICharacterRepository _characterRepository;
     private readonly IProjectContext _projectContext;
     private readonly INavigationService _navigationService;
     private readonly IAiProviderFactory _aiProviderFactory;
@@ -63,6 +64,7 @@ public partial class HomeViewModel : ViewModelBase
     public HomeViewModel(
         IProjectRepository projectRepository,
         IDocumentRepository documentRepository,
+        ICharacterRepository characterRepository,
         IProjectContext projectContext,
         INavigationService navigationService,
         IAiProviderFactory aiProviderFactory,
@@ -71,6 +73,7 @@ public partial class HomeViewModel : ViewModelBase
     {
         _projectRepository = projectRepository;
         _documentRepository = documentRepository;
+        _characterRepository = characterRepository;
         _projectContext = projectContext;
         _navigationService = navigationService;
         _aiProviderFactory = aiProviderFactory;
@@ -178,6 +181,9 @@ public partial class HomeViewModel : ViewModelBase
                 };
                 await _documentRepository.CreateAsync(outline);
             }
+
+            // 从大纲中提取角色信息并保存
+            await ExtractCharactersAsync(project, generatedOutline);
         }
 
         IsCreating = false;
@@ -270,6 +276,89 @@ public partial class HomeViewModel : ViewModelBase
         }
 
         return sections;
+    }
+
+    private async Task ExtractCharactersAsync(Project project, string outline)
+    {
+        try
+        {
+            var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            if (apiKeyConfig is null) return;
+
+            var provider = _aiProviderFactory.GetProviderForApiKey(apiKeyConfig);
+            var messages = new List<AiChatMessage>
+            {
+                new()
+                {
+                    Role = "system",
+                    Content = "你是一个角色信息提取助手。请从用户提供的故事大纲中提取所有提到的角色信息。" +
+                              "请严格按以下JSON格式返回，不要添加其他内容：\n" +
+                              "[{\"Name\":\"角色名\",\"Alias\":\"别名\",\"Gender\":\"性别\",\"Role\":\"角色定位\",\"Appearance\":\"外貌\",\"Personality\":\"性格\",\"Motivation\":\"动机\",\"Weakness\":\"弱点\",\"Backstory\":\"背景\"}]\n" +
+                              "如果某个字段信息不足，留空字符串即可。只返回JSON数组，不要有其他文字。"
+                },
+                new()
+                {
+                    Role = "user",
+                    Content = outline
+                }
+            };
+
+            var response = new System.Text.StringBuilder();
+            await foreach (var chunk in provider.StreamCompletionAsync(apiKeyConfig, messages))
+            {
+                response.Append(chunk);
+            }
+
+            var json = response.ToString().Trim();
+            // 提取JSON部分（可能被```包裹）
+            var start = json.IndexOf('[');
+            var end = json.LastIndexOf(']');
+            if (start >= 0 && end > start)
+            {
+                json = json[start..(end + 1)];
+            }
+
+            var extracted = System.Text.Json.JsonSerializer.Deserialize<List<ExtractedCharacter>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (extracted is not null)
+            {
+                foreach (var c in extracted)
+                {
+                    var character = new Character
+                    {
+                        ProjectId = project.Id,
+                        Name = c.Name ?? "",
+                        Alias = c.Alias ?? "",
+                        Gender = c.Gender ?? "",
+                        Role = c.Role ?? "",
+                        Appearance = c.Appearance ?? "",
+                        Personality = c.Personality ?? "",
+                        Motivation = c.Motivation ?? "",
+                        Weakness = c.Weakness ?? "",
+                        Backstory = c.Backstory ?? ""
+                    };
+                    await _characterRepository.CreateAsync(character);
+                }
+            }
+        }
+        catch
+        {
+            // 提取失败不影响项目创建
+        }
+    }
+
+    private class ExtractedCharacter
+    {
+        public string? Name { get; set; }
+        public string? Alias { get; set; }
+        public string? Gender { get; set; }
+        public string? Role { get; set; }
+        public string? Appearance { get; set; }
+        public string? Personality { get; set; }
+        public string? Motivation { get; set; }
+        public string? Weakness { get; set; }
+        public string? Backstory { get; set; }
     }
 
     [RelayCommand]
