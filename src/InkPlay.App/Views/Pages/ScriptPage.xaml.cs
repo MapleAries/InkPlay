@@ -3,6 +3,7 @@ using InkPlay.App.ViewModels;
 using InkPlay.Core.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 
 namespace InkPlay.App.Views.Pages;
@@ -42,6 +43,7 @@ public sealed partial class ScriptPage : Page, IParameterizedPage
             ViewModel.SelectEpisodeCommand.Execute(listView.SelectedItem);
             _isEditMode = false;
             UpdateEditorVisibility();
+            RenderMarkdownPreview();
         }
     }
 
@@ -59,6 +61,140 @@ public sealed partial class ScriptPage : Page, IParameterizedPage
             EditPanel.Visibility = _isEditMode ? Visibility.Visible : Visibility.Collapsed;
         if (EditToggleBtn != null)
             EditToggleBtn.Content = _isEditMode ? "预览" : "编辑";
+
+        if (!_isEditMode)
+        {
+            RenderMarkdownPreview();
+        }
+    }
+
+    private void RenderMarkdownPreview()
+    {
+        if (PreviewContent == null) return;
+        PreviewContent.Blocks.Clear();
+
+        var markdown = ViewModel.EpisodeContent;
+        if (string.IsNullOrWhiteSpace(markdown)) return;
+
+        var lines = markdown.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
+
+        foreach (var rawLine in lines)
+        {
+            var line = rawLine.TrimEnd();
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            if (line.StartsWith("###"))
+            {
+                var text = line.TrimStart('#').TrimStart();
+                if (!string.IsNullOrEmpty(text))
+                    PreviewContent.Blocks.Add(CreateHeader(text, 17));
+            }
+            else if (line.StartsWith("##"))
+            {
+                var text = line.TrimStart('#').TrimStart();
+                if (!string.IsNullOrEmpty(text))
+                    PreviewContent.Blocks.Add(CreateHeader(text, 20));
+            }
+            else if (line.StartsWith("#"))
+            {
+                var text = line.TrimStart('#').TrimStart();
+                if (!string.IsNullOrEmpty(text))
+                    PreviewContent.Blocks.Add(CreateHeader(text, 24));
+            }
+            else if (line.Trim() == "---" || line.Trim() == "***")
+            {
+                var para = new Paragraph();
+                para.Inlines.Add(new Run { Text = "────────────────────" });
+                PreviewContent.Blocks.Add(para);
+            }
+            else if (line.StartsWith("> "))
+            {
+                var para = new Paragraph();
+                para.Inlines.Add(new Run { Text = "│ " + line[2..] });
+                PreviewContent.Blocks.Add(para);
+            }
+            else if (line.StartsWith("- ") || line.StartsWith("* "))
+            {
+                var para = new Paragraph();
+                para.Inlines.Add(new Run { Text = "•  " + line[2..] });
+                PreviewContent.Blocks.Add(para);
+            }
+            else
+            {
+                var para = new Paragraph();
+                AddFormattedText(para, line);
+                PreviewContent.Blocks.Add(para);
+            }
+        }
+    }
+
+    private static Paragraph CreateHeader(string text, double size)
+    {
+        var para = new Paragraph();
+        para.Margin = new Thickness(0, 8, 0, 4);
+        para.Inlines.Add(new Run
+        {
+            Text = text,
+            FontSize = size,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+        });
+        return para;
+    }
+
+    private static void AddFormattedText(Paragraph para, string text)
+    {
+        var i = 0;
+        while (i < text.Length)
+        {
+            // Bold **text**
+            if (i + 1 < text.Length && text[i] == '*' && text[i + 1] == '*')
+            {
+                var end = text.IndexOf("**", i + 2);
+                if (end > i)
+                {
+                    para.Inlines.Add(new Run { Text = text[(i + 2)..end], FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+                    i = end + 2;
+                    continue;
+                }
+            }
+            // Italic *text*
+            if (text[i] == '*')
+            {
+                var end = text.IndexOf('*', i + 1);
+                if (end > i)
+                {
+                    para.Inlines.Add(new Run { Text = text[(i + 1)..end], FontStyle = Windows.UI.Text.FontStyle.Italic });
+                    i = end + 1;
+                    continue;
+                }
+            }
+            // Strikethrough ~~text~~
+            if (i + 1 < text.Length && text[i] == '~' && text[i + 1] == '~')
+            {
+                var end = text.IndexOf("~~", i + 2);
+                if (end > i)
+                {
+                    para.Inlines.Add(new Run { Text = text[(i + 2)..end], TextDecorations = Windows.UI.Text.TextDecorations.Strikethrough });
+                    i = end + 2;
+                    continue;
+                }
+            }
+            // Inline code `text`
+            if (text[i] == '`')
+            {
+                var end = text.IndexOf('`', i + 1);
+                if (end > i)
+                {
+                    para.Inlines.Add(new Run { Text = text[(i + 1)..end], FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas") });
+                    i = end + 1;
+                    continue;
+                }
+            }
+            // Normal text
+            var start = i;
+            while (i < text.Length && text[i] != '*' && text[i] != '~' && text[i] != '`') i++;
+            if (i > start) para.Inlines.Add(new Run { Text = text[start..i] });
+        }
     }
 
     private void SaveOutline_Click(object sender, RoutedEventArgs e)

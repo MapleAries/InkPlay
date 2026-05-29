@@ -20,6 +20,7 @@ public sealed partial class MarkdownViewer : UserControl
     public MarkdownViewer()
     {
         InitializeComponent();
+        Loaded += (_, _) => RenderMarkdown(Markdown);
     }
 
     private static void OnMarkdownChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

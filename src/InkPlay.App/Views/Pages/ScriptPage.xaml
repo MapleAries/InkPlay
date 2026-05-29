@@ -84,8 +84,11 @@
                     </StackPanel>
 
                     <!-- Preview Mode -->
-                    <controls:MarkdownViewer x:Name="PreviewArea" Grid.Row="1"
-                                              Markdown="{x:Bind ViewModel.EpisodeContent, Mode=OneWay}" />
+                    <ScrollViewer x:Name="PreviewArea" Grid.Row="1">
+                        <RichTextBlock x:Name="PreviewContent"
+                                       TextWrapping="Wrap"
+                                       FontSize="15" LineHeight="28" />
+                    </ScrollViewer>
 
                     <!-- Edit Mode -->
                     <Grid x:Name="EditPanel" Grid.Row="1" Visibility="Collapsed">
