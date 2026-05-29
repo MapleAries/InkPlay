@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
-using Microsoft.UI.Xaml;
 
 namespace InkPlay.App.ViewModels;
 
@@ -51,13 +50,9 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private string _statusMessage = string.Empty;
 
-    [ObservableProperty]
-    private int _selectedThemeIndex;
-
     public SettingsViewModel(ISettingsService settingsService)
     {
         _settingsService = settingsService;
-        LoadTheme();
     }
 
     public override void NavigatedTo(object? parameter)
@@ -188,57 +183,5 @@ public partial class SettingsViewModel : ViewModelBase
         _settingsService.SetDefaultApiKey(config.Id, config.Category);
         StatusMessage = $"已设为默认: {config.Name}";
         LoadApiKeys();
-    }
-
-    private void LoadTheme()
-    {
-        var theme = _settingsService.GetTheme();
-        SelectedThemeIndex = theme switch
-        {
-            "Dark" => 0,
-            "Light" => 1,
-            _ => 2 // System
-        };
-    }
-
-    partial void OnSelectedThemeIndexChanged(int value)
-    {
-        var theme = value switch
-        {
-            0 => "Dark",
-            1 => "Light",
-            _ => "Default"
-        };
-        _settingsService.SetTheme(theme);
-        ApplyTheme(theme);
-    }
-
-    private static void ApplyTheme(string theme)
-    {
-        var elementTheme = theme switch
-        {
-            "Dark" => ElementTheme.Dark,
-            "Light" => ElementTheme.Light,
-            _ => ElementTheme.Default
-        };
-
-        // Apply to root element
-        if (App.MainWindow?.Content is FrameworkElement root)
-        {
-            root.RequestedTheme = elementTheme;
-        }
-
-        // Apply to window title bar
-        if (App.MainWindow is not null)
-        {
-            var titleBar = App.MainWindow.AppWindow?.TitleBar;
-            if (titleBar is not null)
-            {
-                var isDark = theme == "Dark" || (theme == "Default" && Application.Current.RequestedTheme == ApplicationTheme.Dark);
-                titleBar.ButtonForegroundColor = isDark ? Microsoft.UI.Colors.White : Microsoft.UI.Colors.Black;
-                titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
-                titleBar.BackgroundColor = Microsoft.UI.Colors.Transparent;
-            }
-        }
     }
 }

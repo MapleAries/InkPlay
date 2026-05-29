@@ -10,7 +10,6 @@ public class SettingsService : ISettingsService
     private List<ApiKeyConfig> _apiKeys;
     private Dictionary<string, AiProviderConfig> _providerConfigs;
     private string _defaultProviderId;
-    private string _theme = "Default";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -109,19 +108,6 @@ public class SettingsService : ISettingsService
         SaveSettings();
     }
 
-    // --- Theme ---
-
-    public string GetTheme()
-    {
-        return _theme;
-    }
-
-    public void SetTheme(string theme)
-    {
-        _theme = theme;
-        SaveSettings();
-    }
-
     // --- Persistence ---
 
     private void LoadSettings()
@@ -137,7 +123,6 @@ public class SettingsService : ISettingsService
                 _apiKeys = data.ApiKeys ?? new();
                 _providerConfigs = data.ProviderConfigs ?? new();
                 _defaultProviderId = data.DefaultProviderId ?? "claude";
-                _theme = data.Theme ?? "Default";
             }
         }
         catch
@@ -152,8 +137,7 @@ public class SettingsService : ISettingsService
         {
             ApiKeys = _apiKeys,
             ProviderConfigs = _providerConfigs,
-            DefaultProviderId = _defaultProviderId,
-            Theme = _theme
+            DefaultProviderId = _defaultProviderId
         };
         var json = JsonSerializer.Serialize(data, JsonOptions);
         File.WriteAllText(_settingsPath, json);
@@ -172,6 +156,5 @@ public class SettingsService : ISettingsService
         public List<ApiKeyConfig>? ApiKeys { get; set; }
         public Dictionary<string, AiProviderConfig>? ProviderConfigs { get; set; }
         public string? DefaultProviderId { get; set; }
-        public string? Theme { get; set; }
     }
 }
