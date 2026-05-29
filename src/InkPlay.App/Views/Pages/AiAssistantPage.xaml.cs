@@ -58,15 +58,6 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         ViewModel.OnContentChanged();
     }
 
-    // AI panel
-    private void QuickAction_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.Tag is string action)
-        {
-            ViewModel.QuickActionCommand.Execute(action);
-        }
-    }
-
     private void Send_Click(object sender, RoutedEventArgs e)
     {
         ViewModel.SendMessageCommand.Execute(null);

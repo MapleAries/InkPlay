@@ -184,17 +184,8 @@
                           SelectedItem="{x:Bind ViewModel.SelectedModel, Mode=TwoWay}"
                           DisplayMemberPath="Name" />
 
-                <!-- Quick Actions -->
-                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
-                    <Button Content="续写" Click="QuickAction_Click" Tag="continue" />
-                    <Button Content="重写" Click="QuickAction_Click" Tag="rewrite" />
-                    <Button Content="润色" Click="QuickAction_Click" Tag="polish" />
-                    <Button Content="扩写" Click="QuickAction_Click" Tag="expand" />
-                    <Button Content="缩写" Click="QuickAction_Click" Tag="summarize" />
-                </StackPanel>
-
                 <!-- Chat Messages -->
-                <ScrollViewer Grid.Row="3">
+                <ScrollViewer Grid.Row="2">
                     <StackPanel Spacing="8">
                         <ItemsControl ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}">
                             <ItemsControl.ItemTemplate>
@@ -227,7 +218,7 @@
                 </ScrollViewer>
 
                 <!-- Input -->
-                <Grid Grid.Row="4" Margin="0,8,0,0">
+                <Grid Grid.Row="3" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
