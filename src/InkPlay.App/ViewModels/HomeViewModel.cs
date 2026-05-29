@@ -644,11 +644,11 @@ public partial class HomeViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task DeleteSelectedProjectAsync()
+    private async Task DeleteSelectedProjectAsync(bool? moveToRecycleBin = true)
     {
         if (SelectedProject is null) return;
 
-        DeleteProjectFiles(SelectedProject);
+        DeleteProjectFiles(SelectedProject, moveToRecycleBin ?? true);
         await _projectRepository.DeleteAsync(SelectedProject.Id);
         Projects.Remove(SelectedProject);
         SelectedProject = null;
@@ -657,23 +657,33 @@ public partial class HomeViewModel : ViewModelBase
     [RelayCommand]
     private async Task DeleteProjectAsync(Project project)
     {
-        DeleteProjectFiles(project);
+        DeleteProjectFiles(project, true);
         await _projectRepository.DeleteAsync(project.Id);
         Projects.Remove(project);
     }
 
-    private static void DeleteProjectFiles(Project project)
+    private static void DeleteProjectFiles(Project project, bool moveToRecycleBin)
     {
-        if (!string.IsNullOrEmpty(project.ProjectPath) && Directory.Exists(project.ProjectPath))
+        if (string.IsNullOrEmpty(project.ProjectPath) || !Directory.Exists(project.ProjectPath))
+            return;
+
+        try
         {
-            try
+            if (moveToRecycleBin)
+            {
+                Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory(
+                    project.ProjectPath,
+                    Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs,
+                    Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
+            }
+            else
             {
                 Directory.Delete(project.ProjectPath, recursive: true);
             }
-            catch
-            {
-                // File deletion failure doesn't affect database deletion
-            }
+        }
+        catch
+        {
+            // File deletion failure doesn't affect database deletion
         }
     }
 }

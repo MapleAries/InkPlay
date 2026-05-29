@@ -280,24 +280,24 @@
         <Grid x:Name="DeleteDialog" Grid.RowSpan="2"
               Background="{ThemeResource SmokeFillColorDefaultBrush}"
               Visibility="Collapsed">
-            <Grid Width="360" Padding="24"
+            <Grid Width="400" Padding="24"
                   VerticalAlignment="Center" HorizontalAlignment="Center"
                   Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                   CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="确认删除" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="删除小说" FontSize="20" FontWeight="SemiBold" />
                     <TextBlock TextWrapping="Wrap"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                        <Run Text="确定要删除小说" />
+                        <Run Text="确定要删除小说「" />
                         <Run Text="{x:Bind ViewModel.EditProjectTitle, Mode=OneWay}" FontWeight="SemiBold" />
-                        <Run Text="吗？此操作不可撤销。" />
+                        <Run Text="」吗？" />
                     </TextBlock>
 
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="取消" Click="CancelDelete_Click" />
-                        <Button Content="删除" Style="{StaticResource AccentButtonStyle}"
-                                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                                Click="ConfirmDelete_Click" />
+                        <Button Content="移到回收站" Click="DeleteToRecycleBin_Click" />
+                        <Button Content="彻底删除" Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                Click="DeletePermanent_Click" />
                     </StackPanel>
                 </StackPanel>
             </Grid>

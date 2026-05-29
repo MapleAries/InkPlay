@@ -213,9 +213,15 @@ public sealed partial class HomePage : Page
         DeleteDialog.Visibility = Visibility.Collapsed;
     }
 
-    private async void ConfirmDelete_Click(object sender, RoutedEventArgs e)
+    private async void DeleteToRecycleBin_Click(object sender, RoutedEventArgs e)
     {
-        await ViewModel.DeleteSelectedProjectCommand.ExecuteAsync(null);
+        await ViewModel.DeleteSelectedProjectCommand.ExecuteAsync(true);
+        DeleteDialog.Visibility = Visibility.Collapsed;
+    }
+
+    private async void DeletePermanent_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.DeleteSelectedProjectCommand.ExecuteAsync(false);
         DeleteDialog.Visibility = Visibility.Collapsed;
     }
 }
