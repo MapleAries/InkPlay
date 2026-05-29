@@ -1,4 +1,3 @@
-using System.Text.Json;
 using InkPlay.App.Services;
 using InkPlay.App.ViewModels;
 using InkPlay.Core.Models;
@@ -12,53 +11,13 @@ public sealed partial class ScriptPage : Page, IParameterizedPage
 {
     public ScriptViewModel ViewModel { get; }
     private readonly NavigationService _navigationService;
+    private bool _isEditMode;
 
     public ScriptPage(ScriptViewModel viewModel, NavigationService navigationService)
     {
         ViewModel = viewModel;
         _navigationService = navigationService;
         InitializeComponent();
-        Loaded += OnPageLoaded;
-    }
-
-    private async void OnPageLoaded(object sender, RoutedEventArgs e)
-    {
-        // Load the Markdown editor HTML
-        var htmlPath = System.IO.Path.Combine(
-            AppContext.BaseDirectory, "Assets", "markdown-editor.html");
-        if (System.IO.File.Exists(htmlPath))
-        {
-            MarkdownEditor.CoreWebView2?.Navigate($"file:///{htmlPath.Replace('\\', '/')}");
-        }
-        else
-        {
-            // Fallback: load from package
-            MarkdownEditor.CoreWebView2?.NavigateToString(GetFallbackHtml());
-        }
-
-        MarkdownEditor.CoreWebView2Initialized += (_, _) =>
-        {
-            MarkdownEditor.CoreWebView2.WebMessageReceived += (s, args) =>
-            {
-                try
-                {
-                    var json = args.WebMessageAsJson;
-                    var doc = JsonDocument.Parse(json);
-                    var root = doc.RootElement;
-
-                    if (root.TryGetProperty("type", out var typeProp))
-                    {
-                        var type = typeProp.GetString();
-                        if (type == "contentChanged" && root.TryGetProperty("markdown", out var mdProp))
-                        {
-                            var markdown = mdProp.GetString() ?? "";
-                            ViewModel.EpisodeContent = markdown;
-                        }
-                    }
-                }
-                catch { }
-            };
-        };
     }
 
     public void SetParameter(object? parameter)
@@ -81,40 +40,106 @@ public sealed partial class ScriptPage : Page, IParameterizedPage
         if (sender is ListView listView)
         {
             ViewModel.SelectEpisodeCommand.Execute(listView.SelectedItem);
-            // Load content into WebView2
-            if (ViewModel.CurrentEpisode is not null)
-            {
-                LoadContentToEditor(ViewModel.EpisodeContent);
-            }
+            // Exit edit mode when switching items
+            _isEditMode = false;
+            UpdateEditorVisibility();
         }
     }
 
-    private async void LoadContentToEditor(string markdown)
+    private void EditToggle_Click(object sender, RoutedEventArgs e)
     {
-        if (MarkdownEditor.CoreWebView2 is null) return;
+        _isEditMode = !_isEditMode;
+        UpdateEditorVisibility();
 
-        var escaped = markdown.Replace("\\", "\\\\").Replace("'", "\\'").Replace("\n", "\\n").Replace("\r", "");
-        await MarkdownEditor.CoreWebView2.ExecuteScriptAsync($"loadMarkdown('{escaped}')");
+        if (!_isEditMode)
+        {
+            // Switching from edit to preview: update preview
+            LoadPreview();
+        }
+    }
+
+    private void UpdateEditorVisibility()
+    {
+        if (PreviewView != null)
+            PreviewView.Visibility = _isEditMode ? Visibility.Collapsed : Visibility.Visible;
+        if (EditPanel != null)
+            EditPanel.Visibility = _isEditMode ? Visibility.Visible : Visibility.Collapsed;
+        if (EditToggleBtn != null)
+            EditToggleBtn.Content = _isEditMode ? "预览" : "编辑";
+    }
+
+    private void PreviewView_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is WebView2 webView)
+        {
+            webView.CoreWebView2Initialized += (_, _) =>
+            {
+                LoadPreview();
+            };
+        }
+    }
+
+    private void LoadPreview()
+    {
+        if (PreviewView?.CoreWebView2 is null) return;
+        if (string.IsNullOrEmpty(ViewModel.EpisodeContent))
+        {
+            PreviewView.CoreWebView2.NavigateToString("<html><body style='background:#1e1e1e;color:#888;padding:16px;font-family:sans-serif;'>暂无内容</body></html>");
+            return;
+        }
+
+        var html = MarkdownToHtml(ViewModel.EpisodeContent);
+        PreviewView.CoreWebView2.NavigateToString(html);
+    }
+
+    private static string MarkdownToHtml(string md)
+    {
+        var html = md
+            .Replace("&", "&amp;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;")
+            // Headers
+            .Replace("### ", "<h3>")
+            .Replace("## ", "<h2>")
+            .Replace("# ", "<h1>")
+            // Bold/italic
+            .Replace("***", "<strong><em>")
+            .Replace("**", "<strong>")
+            .Replace("*", "<em>")
+            .Replace("~~", "<del>")
+            // Newlines
+            .Replace("\n\n", "</p><p>")
+            .Replace("\n", "<br>");
+
+        // Close tags (simple approach)
+        html = html
+            .Replace("<h1>", "</p><h1>")
+            .Replace("<h2>", "</p><h2>")
+            .Replace("<h3>", "</p><h3>");
+
+        return $@"<!DOCTYPE html><html><head><meta charset='utf-8'><style>
+body {{ background:#1e1e1e; color:#d4d4d4; font-family:'Microsoft YaHei',sans-serif; padding:20px; line-height:1.8; font-size:15px; }}
+h1 {{ font-size:24px; color:#fff; margin:20px 0 10px; }}
+h2 {{ font-size:20px; color:#fff; margin:18px 0 8px; }}
+h3 {{ font-size:17px; color:#fff; margin:14px 0 6px; }}
+p {{ margin:8px 0; }}
+strong {{ color:#fff; }}
+em {{ font-style:italic; }}
+del {{ color:#888; }}
+blockquote {{ border-left:3px solid #569cd6; padding-left:12px; color:#999; margin:8px 0; }}
+hr {{ border:none; border-top:1px solid #3c3c3c; margin:16px 0; }}
+code {{ background:#2d2d2d; padding:2px 6px; border-radius:3px; font-family:Consolas,monospace; }}
+pre {{ background:#2d2d2d; padding:12px; border-radius:4px; overflow-x:auto; }}
+</style></head><body><p>{html}</p></body></html>";
     }
 
     private void SaveOutline_Click(object sender, RoutedEventArgs e)
     {
-        // Get content from WebView2 before saving
-        _ = GetContentFromEditor();
-    }
-
-    private async Task GetContentFromEditor()
-    {
-        if (MarkdownEditor.CoreWebView2 is null) return;
-
-        var result = await MarkdownEditor.CoreWebView2.ExecuteScriptAsync("htmlToMd(editor.innerHTML)");
-        if (!string.IsNullOrEmpty(result) && result != "null")
-        {
-            // Remove JSON quotes
-            var markdown = System.Text.Json.JsonSerializer.Deserialize<string>(result) ?? "";
-            ViewModel.EpisodeContent = markdown;
-        }
         ViewModel.SaveEpisodeContentCommand.Execute(null);
+        // Switch back to preview after saving
+        _isEditMode = false;
+        UpdateEditorVisibility();
+        LoadPreview();
     }
 
     private void AddScene_Click(object sender, RoutedEventArgs e)
@@ -184,15 +209,5 @@ public sealed partial class ScriptPage : Page, IParameterizedPage
             ViewModel.SendAiMessageCommand.Execute(null);
             e.Handled = true;
         }
-    }
-
-    private static string GetFallbackHtml()
-    {
-        return @"<!DOCTYPE html><html><body style='background:#1e1e1e;color:#d4d4d4;font-family:monospace;padding:16px;'>
-<div contenteditable='true' id='editor' style='width:100%;height:100%;outline:none;white-space:pre-wrap;'></div>
-<script>
-function loadMarkdown(md){document.getElementById('editor').innerText=md;}
-function htmlToMd(h){return h;}
-</script></body></html>";
     }
 }

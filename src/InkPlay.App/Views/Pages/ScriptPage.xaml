@@ -70,17 +70,38 @@
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
 
-                <!-- Outline Editor (Markdown WYSIWYG) -->
+                <!-- Outline Content -->
                 <Grid Visibility="{x:Bind ViewModel.IsOutlineSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <WebView2 x:Name="MarkdownEditor" Grid.Row="0" />
+                    <!-- Toolbar -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                        <Button x:Name="EditToggleBtn" Content="编辑" Click="EditToggle_Click" Padding="12,4" />
+                    </StackPanel>
 
-                    <Button Grid.Row="1" Content="保存大纲" Margin="0,8,0,0"
-                            Click="SaveOutline_Click" Style="{ThemeResource AccentButtonStyle}" />
+                    <!-- Preview Mode -->
+                    <WebView2 x:Name="PreviewView" Grid.Row="1"
+                              Loaded="PreviewView_Loaded" />
+
+                    <!-- Edit Mode -->
+                    <Grid x:Name="EditPanel" Grid.Row="1" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBox Grid.Row="0"
+                                 Text="{x:Bind ViewModel.EpisodeContent, Mode=TwoWay}"
+                                 TextWrapping="Wrap" AcceptsReturn="True"
+                                 FontFamily="Consolas" FontSize="14"
+                                 Padding="12" />
+
+                        <Button Grid.Row="1" Content="保存" Margin="0,8,0,0"
+                                Click="SaveOutline_Click" Style="{ThemeResource AccentButtonStyle}" />
+                    </Grid>
                 </Grid>
 
                 <!-- Scene Editor -->
