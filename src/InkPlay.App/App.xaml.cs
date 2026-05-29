@@ -1,5 +1,6 @@
 using InkPlay.Core.Interfaces;
 using InkPlay.Services;
+using InkPlay.Services.Agents;
 using InkPlay.Services.Ai;
 using InkPlay.Services.Ai.Providers;
 using InkPlay.Services.Data;
@@ -51,6 +52,18 @@ public partial class App : Application
 
                 // Export
                 services.AddSingleton<IExportService, ExportService>();
+
+                // Agents
+                services.AddSingleton<IAgent, ContextAgent>();
+                services.AddSingleton<IAgent, DataAgent>();
+                services.AddSingleton<IAgent, PlannerAgent>();
+                services.AddSingleton<IAgent, ScreenwriterAgent>();
+                services.AddSingleton<IAgent, ArchitectAgent>();
+                services.AddSingleton<IAgent, WriterAgent>();
+                services.AddSingleton<IAgent, ProofreaderAgent>();
+                services.AddSingleton<IAgent, AuditorAgent>();
+                services.AddSingleton<IAgent, ReviserAgent>();
+                services.AddSingleton<IOrchestrator, Orchestrator>();
 
                 // File Service
                 services.AddSingleton<IFileProjectService, FileProjectService>();
