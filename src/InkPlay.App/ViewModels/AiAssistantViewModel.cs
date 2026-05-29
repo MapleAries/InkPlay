@@ -550,7 +550,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         if (chapters.Count == 0) return;
 
         var sb = new StringBuilder();
-        sb.AppendLine("## 目录");
+        sb.AppendLine("# 目录");
         sb.AppendLine();
         for (int i = 0; i < chapters.Count; i++)
         {
@@ -558,8 +558,40 @@ public partial class AiAssistantViewModel : ViewModelBase
             sb.AppendLine($"{i + 1}. {chapters[i].Title}{wc}");
         }
 
-        ChapterContent = sb.ToString() + "\n\n" + ChapterContent;
-        OnContentChanged();
+        var tocContent = sb.ToString().TrimEnd();
+
+        // Check if TOC already exists
+        var existingToc = Chapters.FirstOrDefault(c => c.Title == "目录");
+
+        if (existingToc is not null)
+        {
+            // Update existing TOC
+            existingToc.Content = tocContent;
+            existingToc.WordCount = CalculateWordCount(tocContent);
+            await _documentRepository.UpdateAsync(existingToc);
+
+            // Select it
+            SelectChapter(existingToc);
+        }
+        else
+        {
+            // Create new TOC at the beginning
+            var toc = new Document
+            {
+                ProjectId = _currentProject.Id,
+                Title = "目录",
+                Type = DocumentType.Chapter,
+                Content = tocContent,
+                WordCount = CalculateWordCount(tocContent),
+                SortOrder = -1
+            };
+
+            await _documentRepository.CreateAsync(toc);
+
+            // Reload chapters to get the TOC at the top
+            await LoadChaptersAsync();
+            SelectChapter(toc);
+        }
     }
 
     // --- Search & Replace ---
