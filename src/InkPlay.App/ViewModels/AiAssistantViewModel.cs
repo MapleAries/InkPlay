@@ -15,6 +15,7 @@ public partial class AiAssistantViewModel : ViewModelBase
     private readonly ISettingsService _settingsService;
     private readonly IDocumentRepository _documentRepository;
     private readonly IConversationRepository _conversationRepository;
+    private readonly IExportService _exportService;
     private readonly IProjectContext _projectContext;
     private readonly IProjectRepository _projectRepository;
     private CancellationTokenSource? _aiCts;
@@ -82,6 +83,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         ISettingsService settingsService,
         IDocumentRepository documentRepository,
         IConversationRepository conversationRepository,
+        IExportService exportService,
         IProjectContext projectContext,
         IProjectRepository projectRepository)
     {
@@ -89,6 +91,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         _settingsService = settingsService;
         _documentRepository = documentRepository;
         _conversationRepository = conversationRepository;
+        _exportService = exportService;
         _projectContext = projectContext;
         _projectRepository = projectRepository;
 
@@ -343,6 +346,7 @@ public partial class AiAssistantViewModel : ViewModelBase
             "polish" => "请润色以下内容，提升文笔质量",
             "expand" => "请扩写以下内容，增加更多细节描写",
             "summarize" => "请缩写以下内容，保留核心信息",
+            "format_dialogue" => "请识别并格式化以下文本中的对话，使用标准对话格式（角色名：\"对话内容\"），保持原文不变，只调整格式",
             _ => action
         };
 
@@ -497,5 +501,170 @@ public partial class AiAssistantViewModel : ViewModelBase
             AiResponse = string.Empty;
             OnContentChanged();
         }
+    }
+
+    // --- Export ---
+
+    [RelayCommand]
+    private async Task ExportToMarkdownAsync()
+    {
+        if (_currentProject is null) return;
+
+        try
+        {
+            var markdown = await _exportService.ExportProjectToMarkdownAsync(_currentProject);
+
+            if (!string.IsNullOrEmpty(_currentProject.ProjectPath))
+            {
+                var fileName = $"{SanitizeFileName(_currentProject.Title)}.md";
+                var filePath = Path.Combine(_currentProject.ProjectPath, fileName);
+                await File.WriteAllTextAsync(filePath, markdown);
+                ExportStatus = $"已导出: {fileName}";
+            }
+        }
+        catch (Exception ex)
+        {
+            ExportStatus = $"导出失败: {ex.Message}";
+        }
+    }
+
+    private static string SanitizeFileName(string name)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        return new string(name.Where(c => !invalidChars.Contains(c)).ToArray());
+    }
+
+    // --- Table of Contents ---
+
+    [RelayCommand]
+    private async Task GenerateTocAsync()
+    {
+        if (_currentProject is null) return;
+
+        var docs = await _documentRepository.GetByProjectIdAsync(_currentProject.Id);
+        var chapters = docs
+            .Where(d => d.Type == DocumentType.Chapter)
+            .OrderBy(d => d.SortOrder)
+            .ToList();
+
+        if (chapters.Count == 0) return;
+
+        var sb = new StringBuilder();
+        sb.AppendLine("## 目录");
+        sb.AppendLine();
+        for (int i = 0; i < chapters.Count; i++)
+        {
+            var wc = chapters[i].WordCount > 0 ? $" ({chapters[i].WordCount}字)" : "";
+            sb.AppendLine($"{i + 1}. {chapters[i].Title}{wc}");
+        }
+
+        ChapterContent = sb.ToString() + "\n\n" + ChapterContent;
+        OnContentChanged();
+    }
+
+    // --- Search & Replace ---
+
+    [ObservableProperty]
+    private bool _isSearchVisible;
+
+    [ObservableProperty]
+    private string _searchText = string.Empty;
+
+    [ObservableProperty]
+    private string _replaceText = string.Empty;
+
+    [ObservableProperty]
+    private int _matchCount;
+
+    [ObservableProperty]
+    private int _currentMatchIndex;
+
+    [ObservableProperty]
+    private bool _matchCase;
+
+    [ObservableProperty]
+    private string _exportStatus = string.Empty;
+
+    [RelayCommand]
+    private void ToggleSearch()
+    {
+        IsSearchVisible = !IsSearchVisible;
+        if (!IsSearchVisible)
+        {
+            SearchText = string.Empty;
+            ReplaceText = string.Empty;
+            MatchCount = 0;
+            CurrentMatchIndex = 0;
+        }
+    }
+
+    [RelayCommand]
+    private void SearchNext()
+    {
+        if (string.IsNullOrEmpty(SearchText) || string.IsNullOrEmpty(ChapterContent)) return;
+
+        var matches = FindMatches();
+        if (matches.Count == 0) return;
+
+        MatchCount = matches.Count;
+        CurrentMatchIndex = (CurrentMatchIndex + 1) % matches.Count;
+    }
+
+    [RelayCommand]
+    private void SearchPrevious()
+    {
+        if (string.IsNullOrEmpty(SearchText) || string.IsNullOrEmpty(ChapterContent)) return;
+
+        var matches = FindMatches();
+        if (matches.Count == 0) return;
+
+        MatchCount = matches.Count;
+        CurrentMatchIndex = (CurrentMatchIndex - 1 + matches.Count) % matches.Count;
+    }
+
+    [RelayCommand]
+    private void ReplaceCurrent()
+    {
+        if (string.IsNullOrEmpty(SearchText) || string.IsNullOrEmpty(ChapterContent)) return;
+
+        var comparison = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        var index = ChapterContent.IndexOf(SearchText, comparison);
+
+        if (index >= 0)
+        {
+            ChapterContent = ChapterContent.Remove(index, SearchText.Length).Insert(index, ReplaceText);
+            OnContentChanged();
+        }
+    }
+
+    [RelayCommand]
+    private void ReplaceAll()
+    {
+        if (string.IsNullOrEmpty(SearchText) || string.IsNullOrEmpty(ChapterContent)) return;
+
+        var comparison = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        var result = ChapterContent.Replace(SearchText, ReplaceText, comparison);
+
+        if (result != ChapterContent)
+        {
+            ChapterContent = result;
+            OnContentChanged();
+        }
+    }
+
+    private List<int> FindMatches()
+    {
+        var matches = new List<int>();
+        if (string.IsNullOrEmpty(SearchText) || string.IsNullOrEmpty(ChapterContent)) return matches;
+
+        var comparison = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        var index = 0;
+        while ((index = ChapterContent.IndexOf(SearchText, index, comparison)) >= 0)
+        {
+            matches.Add(index);
+            index += SearchText.Length;
+        }
+
+        return matches;
     }
 }

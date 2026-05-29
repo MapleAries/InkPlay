@@ -4,6 +4,7 @@ using InkPlay.Services.Ai;
 using InkPlay.Services.Ai.Providers;
 using InkPlay.Services.Data;
 using InkPlay.Services.Data.Repositories;
+using InkPlay.Services.Export;
 using InkPlay.Services.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -47,6 +48,9 @@ public partial class App : Application
 
                 // Context
                 services.AddSingleton<IProjectContext, ProjectContext>();
+
+                // Export
+                services.AddSingleton<IExportService, ExportService>();
 
                 // File Service
                 services.AddSingleton<IFileProjectService, FileProjectService>();

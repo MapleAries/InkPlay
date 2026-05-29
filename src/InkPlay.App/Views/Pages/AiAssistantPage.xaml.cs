@@ -81,6 +81,41 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         ViewModel.ApplyToEditorCommand.Execute(null);
     }
 
+    private void ToggleSearch_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ToggleSearchCommand.Execute(null);
+    }
+
+    private void SearchNext_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SearchNextCommand.Execute(null);
+    }
+
+    private void SearchPrevious_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.SearchPreviousCommand.Execute(null);
+    }
+
+    private void ReplaceCurrent_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ReplaceCurrentCommand.Execute(null);
+    }
+
+    private void ReplaceAll_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ReplaceAllCommand.Execute(null);
+    }
+
+    private void GenerateToc_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.GenerateTocCommand.Execute(null);
+    }
+
+    private void Export_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.ExportToMarkdownCommand.Execute(null);
+    }
+
     private void UserInput_KeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Enter)

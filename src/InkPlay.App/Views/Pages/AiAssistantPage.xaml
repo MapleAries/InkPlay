@@ -105,8 +105,49 @@
                             <Button Content="列表" Click="Format_Click" Tag="list" Padding="8,4" />
                             <Button Content="有序" Click="Format_Click" Tag="orderedlist" Padding="8,4" />
                             <Button Content="分隔" Click="Format_Click" Tag="hr" Padding="8,4" />
+                            <TextBlock Text="|" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <Button Content="搜索" Click="ToggleSearch_Click" Padding="8,4" />
+                            <Button Content="目录" Click="GenerateToc_Click" Padding="8,4" />
+                            <Button Content="导出" Click="Export_Click" Padding="8,4" />
                         </StackPanel>
                     </ScrollViewer>
+
+                    <!-- Search Bar -->
+                    <Grid x:Name="SearchBar" Visibility="{x:Bind ViewModel.IsSearchVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                          Margin="0,0,0,8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" PlaceholderText="搜索..."
+                                     Text="{x:Bind ViewModel.SearchText, Mode=TwoWay}" />
+                            <Button Grid.Column="1" Content="▲" Click="SearchPrevious_Click" Padding="8,4" />
+                            <Button Grid.Column="2" Content="▼" Click="SearchNext_Click" Padding="8,4" />
+                            <TextBlock Grid.Column="3" VerticalAlignment="Center" FontSize="12"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                                <Run Text="{x:Bind ViewModel.MatchCount, Mode=OneWay}" />
+                                <Run Text="个匹配" />
+                            </TextBlock>
+                        </Grid>
+                        <Grid Grid.Row="1" ColumnSpacing="8" Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" PlaceholderText="替换..."
+                                     Text="{x:Bind ViewModel.ReplaceText, Mode=TwoWay}" />
+                            <Button Grid.Column="1" Content="替换" Click="ReplaceCurrent_Click" Padding="8,4" />
+                            <Button Grid.Column="2" Content="全部替换" Click="ReplaceAll_Click" Padding="8,4" />
+                        </Grid>
+                    </Grid>
 
                     <!-- Text Editor -->
                     <TextBox Grid.Row="1"
@@ -131,6 +172,9 @@
                             <TextBlock Text="{x:Bind ViewModel.SaveStatus, Mode=OneWay}"
                                        FontSize="12"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.ExportStatus, Mode=OneWay}"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                             <Button Content="保存" Click="Save_Click" Padding="12,4"
@@ -166,6 +210,7 @@
                     <Button Content="润色" Click="QuickAction_Click" Tag="polish" />
                     <Button Content="扩写" Click="QuickAction_Click" Tag="expand" />
                     <Button Content="缩写" Click="QuickAction_Click" Tag="summarize" />
+                    <Button Content="对话" Click="QuickAction_Click" Tag="format_dialogue" />
                 </StackPanel>
 
                 <!-- Chat Messages -->
