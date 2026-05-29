@@ -36,12 +36,12 @@ public sealed partial class MarkdownViewer : UserControl
 
         if (string.IsNullOrWhiteSpace(markdown)) return;
 
-        var lines = markdown.Split('\n');
+        var lines = markdown.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
         var i = 0;
 
         while (i < lines.Length)
         {
-            var line = lines[i];
+            var line = lines[i].TrimEnd();
 
             // Empty line = paragraph break
             if (string.IsNullOrWhiteSpace(line))
