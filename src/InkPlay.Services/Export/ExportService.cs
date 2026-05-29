@@ -74,12 +74,13 @@ public class ExportService : IExportService
         // Chapters
         foreach (var chapter in chapters)
         {
-            sb.AppendLine($"## {chapter.Title}");
-            sb.AppendLine();
-
             if (!string.IsNullOrWhiteSpace(chapter.Content))
             {
                 sb.AppendLine(chapter.Content);
+            }
+            else
+            {
+                sb.AppendLine($"## {chapter.Title}");
             }
 
             sb.AppendLine();
