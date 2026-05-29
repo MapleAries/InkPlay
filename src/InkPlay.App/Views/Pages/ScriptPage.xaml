@@ -83,8 +83,13 @@
                     </StackPanel>
 
                     <!-- Preview Mode -->
-                    <WebView2 x:Name="PreviewView" Grid.Row="1"
-                              Loaded="PreviewView_Loaded" />
+                    <ScrollViewer x:Name="PreviewArea" Grid.Row="1">
+                        <TextBlock x:Name="PreviewText"
+                                   Text="{x:Bind ViewModel.EpisodeContent, Mode=OneWay}"
+                                   TextWrapping="Wrap"
+                                   FontSize="15" LineHeight="28"
+                                   FontFamily="Microsoft YaHei, Segoe UI" />
+                    </ScrollViewer>
 
                     <!-- Edit Mode -->
                     <Grid x:Name="EditPanel" Grid.Row="1" Visibility="Collapsed">
