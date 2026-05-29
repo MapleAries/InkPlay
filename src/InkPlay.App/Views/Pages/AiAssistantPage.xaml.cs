@@ -1,12 +1,13 @@
 using InkPlay.App.Services;
 using InkPlay.App.ViewModels;
+using InkPlay.Core.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 
 namespace InkPlay.App.Views.Pages;
 
-public sealed partial class AiAssistantPage : Page
+public sealed partial class AiAssistantPage : Page, IParameterizedPage
 {
     public AiAssistantViewModel ViewModel { get; }
     private readonly NavigationService _navigationService;
@@ -16,8 +17,11 @@ public sealed partial class AiAssistantPage : Page
         ViewModel = viewModel;
         _navigationService = navigationService;
         InitializeComponent();
-        DataContext = ViewModel;
-        Loaded += (_, _) => ViewModel.NavigatedTo(null);
+    }
+
+    public void SetParameter(object? parameter)
+    {
+        ViewModel.NavigatedTo(parameter);
     }
 
     private void GoHome_Click(object sender, RoutedEventArgs e)
@@ -25,34 +29,46 @@ public sealed partial class AiAssistantPage : Page
         _navigationService.NavigateTo("Home");
     }
 
-    private void Continue_Click(object sender, RoutedEventArgs e)
+    // Chapter management
+    private void AddChapter_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.QuickActionCommand.Execute("continue");
+        ViewModel.CreateChapterCommand.Execute(null);
     }
 
-    private void Rewrite_Click(object sender, RoutedEventArgs e)
+    private void ChapterList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        ViewModel.QuickActionCommand.Execute("rewrite");
+        if (sender is ListView listView)
+        {
+            ViewModel.SelectChapterCommand.Execute(listView.SelectedItem);
+        }
     }
 
-    private void Polish_Click(object sender, RoutedEventArgs e)
+    private void Save_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.QuickActionCommand.Execute("polish");
+        ViewModel.SaveChapterCommand.Execute(null);
     }
 
-    private void Expand_Click(object sender, RoutedEventArgs e)
+    // Format toolbar
+    private void Format_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.QuickActionCommand.Execute("expand");
+        if (sender is Button button && button.Tag is string format)
+        {
+            ViewModel.InsertMarkdownCommand.Execute(format);
+        }
     }
 
-    private void Summarize_Click(object sender, RoutedEventArgs e)
+    private void EditorBox_TextChanged(object sender, RoutedEventArgs e)
     {
-        ViewModel.QuickActionCommand.Execute("summarize");
+        ViewModel.OnContentChanged();
     }
 
-    private void Clear_Click(object sender, RoutedEventArgs e)
+    // AI panel
+    private void QuickAction_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.ClearChatCommand.Execute(null);
+        if (sender is Button button && button.Tag is string action)
+        {
+            ViewModel.QuickActionCommand.Execute(action);
+        }
     }
 
     private void Send_Click(object sender, RoutedEventArgs e)
@@ -60,9 +76,9 @@ public sealed partial class AiAssistantPage : Page
         ViewModel.SendMessageCommand.Execute(null);
     }
 
-    private void Copy_Click(object sender, RoutedEventArgs e)
+    private void ApplyToEditor_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.CopyResponseCommand.Execute(null);
+        ViewModel.ApplyToEditorCommand.Execute(null);
     }
 
     private void UserInput_KeyDown(object sender, KeyRoutedEventArgs e)

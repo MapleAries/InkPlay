@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InkPlay.App.Services;
 using InkPlay.Core.Enums;
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
@@ -12,12 +13,15 @@ public partial class AiAssistantViewModel : ViewModelBase
 {
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
+    private readonly IDocumentRepository _documentRepository;
     private readonly IConversationRepository _conversationRepository;
     private readonly IProjectContext _projectContext;
     private readonly IProjectRepository _projectRepository;
     private CancellationTokenSource? _aiCts;
     private AiConversation? _currentConversation;
     private Project? _currentProject;
+    private CancellationTokenSource? _autoSaveCts;
+    private ApiKeyConfig? _selectedApiKey;
 
     [ObservableProperty]
     private bool _hasProject;
@@ -25,6 +29,29 @@ public partial class AiAssistantViewModel : ViewModelBase
     [ObservableProperty]
     private string _currentProjectTitle = string.Empty;
 
+    // Chapter management
+    [ObservableProperty]
+    private ObservableCollection<Document> _chapters = new();
+
+    [ObservableProperty]
+    private Document? _currentChapter;
+
+    [ObservableProperty]
+    private bool _isChapterSelected;
+
+    [ObservableProperty]
+    private string _chapterContent = string.Empty;
+
+    [ObservableProperty]
+    private int _wordCount;
+
+    [ObservableProperty]
+    private int _wordCountTarget = 3000;
+
+    [ObservableProperty]
+    private string _saveStatus = "未保存";
+
+    // AI chat
     [ObservableProperty]
     private string _userInput = string.Empty;
 
@@ -43,27 +70,45 @@ public partial class AiAssistantViewModel : ViewModelBase
     [ObservableProperty]
     private string _contextText = string.Empty;
 
+    // Model switching
+    [ObservableProperty]
+    private ObservableCollection<ApiKeyConfig> _availableModels = new();
+
+    [ObservableProperty]
+    private ApiKeyConfig? _selectedModel;
+
     public AiAssistantViewModel(
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
+        IDocumentRepository documentRepository,
         IConversationRepository conversationRepository,
         IProjectContext projectContext,
         IProjectRepository projectRepository)
     {
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
+        _documentRepository = documentRepository;
         _conversationRepository = conversationRepository;
         _projectContext = projectContext;
         _projectRepository = projectRepository;
+
+        SetupAutoSave();
     }
 
     public override async void NavigatedTo(object? parameter)
     {
-        if (_projectContext.CurrentProjectId.HasValue)
+        var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
+        if (projectId.HasValue)
         {
-            _currentProject = await _projectRepository.GetByIdAsync(_projectContext.CurrentProjectId.Value);
+            _currentProject = await _projectRepository.GetByIdAsync(projectId.Value);
             HasProject = _currentProject is not null;
             CurrentProjectTitle = _currentProject?.Title ?? "";
+
+            if (_currentProject is not null)
+            {
+                await LoadChaptersAsync();
+                LoadAvailableModels();
+            }
         }
         else
         {
@@ -71,6 +116,208 @@ public partial class AiAssistantViewModel : ViewModelBase
             CurrentProjectTitle = "";
         }
     }
+
+    private void SetupAutoSave()
+    {
+        // Debounced auto-save via OnContentChanged
+    }
+
+    private async Task DebounceSaveAsync()
+    {
+        _autoSaveCts?.Cancel();
+        _autoSaveCts = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(2000, _autoSaveCts.Token);
+            await SaveChapterSilentAsync();
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void LoadAvailableModels()
+    {
+        var keys = _settingsService.GetApiKeys(ApiKeyCategory.Text);
+        AvailableModels = new ObservableCollection<ApiKeyConfig>(keys);
+
+        // Select default or project preferred
+        if (_currentProject?.PreferredAiProvider is { Length: > 0 })
+        {
+            SelectedModel = keys.FirstOrDefault(k =>
+                k.BaseUrl.Contains(_currentProject.PreferredAiProvider, StringComparison.OrdinalIgnoreCase))
+                ?? keys.FirstOrDefault(k => k.IsDefault)
+                ?? keys.FirstOrDefault();
+        }
+        else
+        {
+            SelectedModel = keys.FirstOrDefault(k => k.IsDefault) ?? keys.FirstOrDefault();
+        }
+
+        _selectedApiKey = SelectedModel;
+    }
+
+    partial void OnSelectedModelChanged(ApiKeyConfig? value)
+    {
+        _selectedApiKey = value;
+    }
+
+    // --- Chapter Management ---
+
+    [RelayCommand]
+    private async Task LoadChaptersAsync()
+    {
+        if (_currentProject is null) return;
+
+        var docs = await _documentRepository.GetByProjectIdAsync(_currentProject.Id);
+        var chapterDocs = docs.Where(d => d.Type == DocumentType.Chapter)
+                              .OrderBy(d => d.SortOrder)
+                              .ToList();
+        Chapters = new ObservableCollection<Document>(chapterDocs);
+        CurrentChapter = null;
+        IsChapterSelected = false;
+        ChapterContent = string.Empty;
+        WordCount = 0;
+    }
+
+    [RelayCommand]
+    private async Task CreateChapterAsync()
+    {
+        if (_currentProject is null) return;
+
+        var chapter = new Document
+        {
+            ProjectId = _currentProject.Id,
+            Title = $"第 {Chapters.Count + 1} 章",
+            Type = DocumentType.Chapter,
+            SortOrder = Chapters.Count
+        };
+
+        await _documentRepository.CreateAsync(chapter);
+        Chapters.Add(chapter);
+        SelectChapter(chapter);
+    }
+
+    [RelayCommand]
+    private void SelectChapter(Document? chapter)
+    {
+        if (chapter is null)
+        {
+            CurrentChapter = null;
+            IsChapterSelected = false;
+            ChapterContent = string.Empty;
+            WordCount = 0;
+            SaveStatus = "未保存";
+            return;
+        }
+
+        CurrentChapter = chapter;
+        IsChapterSelected = true;
+        ChapterContent = chapter.Content;
+        WordCount = chapter.WordCount;
+        SaveStatus = "已保存";
+
+        // Load context for AI
+        ContextText = chapter.Content;
+    }
+
+    [RelayCommand]
+    private async Task SaveChapterAsync()
+    {
+        if (CurrentChapter is null) return;
+
+        SaveStatus = "保存中...";
+        CurrentChapter.Content = ChapterContent;
+        await _documentRepository.UpdateAsync(CurrentChapter);
+        WordCount = CurrentChapter.WordCount;
+        SaveStatus = "已保存";
+    }
+
+    private async Task SaveChapterSilentAsync()
+    {
+        if (CurrentChapter is null) return;
+
+        CurrentChapter.Content = ChapterContent;
+        await _documentRepository.UpdateAsync(CurrentChapter);
+        WordCount = CurrentChapter.WordCount;
+        SaveStatus = "已保存";
+    }
+
+    [RelayCommand]
+    private async Task DeleteChapterAsync()
+    {
+        if (CurrentChapter is null) return;
+
+        await _documentRepository.DeleteAsync(CurrentChapter.Id);
+        Chapters.Remove(CurrentChapter);
+        CurrentChapter = null;
+        IsChapterSelected = false;
+        ChapterContent = string.Empty;
+        WordCount = 0;
+    }
+
+    public void OnContentChanged()
+    {
+        if (CurrentChapter is null) return;
+
+        SaveStatus = "未保存";
+        WordCount = CalculateWordCount(ChapterContent);
+        _ = DebounceSaveAsync();
+    }
+
+    private static int CalculateWordCount(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return 0;
+
+        var count = 0;
+        var inWord = false;
+        foreach (var c in content)
+        {
+            if (c >= 0x4E00 && c <= 0x9FFF)
+            {
+                count++;
+                inWord = false;
+            }
+            else if (char.IsLetterOrDigit(c))
+            {
+                if (!inWord)
+                {
+                    count++;
+                    inWord = true;
+                }
+            }
+            else
+            {
+                inWord = false;
+            }
+        }
+        return count;
+    }
+
+    // --- Markdown Formatting ---
+
+    [RelayCommand]
+    private void InsertMarkdown(string format)
+    {
+        var insertion = format switch
+        {
+            "bold" => "**",
+            "italic" => "*",
+            "strikethrough" => "~~",
+            "h1" => "# ",
+            "h2" => "## ",
+            "h3" => "### ",
+            "quote" => "> ",
+            "list" => "- ",
+            "orderedlist" => "1. ",
+            "hr" => "\n---\n",
+            _ => ""
+        };
+
+        ChapterContent += insertion;
+        OnContentChanged();
+    }
+
+    // --- AI Chat ---
 
     [RelayCommand]
     private async Task SendMessageAsync()
@@ -99,9 +346,11 @@ public partial class AiAssistantViewModel : ViewModelBase
             _ => action
         };
 
-        if (!string.IsNullOrWhiteSpace(ContextText))
+        // Use chapter content as context
+        var context = !string.IsNullOrWhiteSpace(ChapterContent) ? ChapterContent : ContextText;
+        if (!string.IsNullOrWhiteSpace(context))
         {
-            prompt = $"以下是参考内容：\n\n{ContextText}\n\n{prompt}";
+            prompt = $"以下是参考内容：\n\n{context}\n\n{prompt}";
         }
 
         Messages.Add(new AiChatMessage { Role = "user", Content = prompt });
@@ -123,9 +372,10 @@ public partial class AiAssistantViewModel : ViewModelBase
             _ => ""
         };
 
-        if (!string.IsNullOrWhiteSpace(ContextText))
+        var context = !string.IsNullOrWhiteSpace(ChapterContent) ? ChapterContent : ContextText;
+        if (!string.IsNullOrWhiteSpace(context))
         {
-            return $"以下是参考内容：\n\n{ContextText}\n\n{stylePrefix}\n{userMessage}";
+            return $"以下是参考内容：\n\n{context}\n\n{stylePrefix}\n{userMessage}";
         }
 
         return $"{stylePrefix}\n{userMessage}";
@@ -140,7 +390,7 @@ public partial class AiAssistantViewModel : ViewModelBase
 
         try
         {
-            var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            var apiKeyConfig = _selectedApiKey ?? _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
             if (apiKeyConfig is null)
             {
                 AiResponse = "请先在设置中配置文本生成 API Key";
@@ -192,13 +442,14 @@ public partial class AiAssistantViewModel : ViewModelBase
 
     private async Task SaveConversationAsync()
     {
-        if (Messages.Count == 0) return;
+        if (Messages.Count == 0 || _currentProject is null) return;
 
         if (_currentConversation is null)
         {
             _currentConversation = new AiConversation
             {
-                Title = $"AI助手对话 - {DateTime.Now:yyyy-MM-dd HH:mm}"
+                ProjectId = _currentProject.Id,
+                Title = $"写作对话 - {DateTime.Now:yyyy-MM-dd HH:mm}"
             };
             await _conversationRepository.CreateAsync(_currentConversation);
         }
@@ -231,10 +482,20 @@ public partial class AiAssistantViewModel : ViewModelBase
     {
         if (!string.IsNullOrEmpty(AiResponse))
         {
-            // WinUI 3 clipboard
             var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
             dataPackage.SetText(AiResponse);
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+        }
+    }
+
+    [RelayCommand]
+    private void ApplyToEditor()
+    {
+        if (!string.IsNullOrEmpty(AiResponse))
+        {
+            ChapterContent += "\n" + AiResponse;
+            AiResponse = string.Empty;
+            OnContentChanged();
         }
     }
 }
