@@ -32,34 +32,45 @@ public partial class HomeViewModel : ViewModelBase
     private bool _showCreateDialog;
 
     [ObservableProperty]
-    private string _newProjectTitle = string.Empty;
-
-    [ObservableProperty]
-    private string _newProjectDescription = string.Empty;
-
-    [ObservableProperty]
-    private string _inspirationText = string.Empty;
-
-    [ObservableProperty]
-    private bool _goToOutlineAfterCreate = true;
-
-    [ObservableProperty]
     private bool _isCreating;
 
     [ObservableProperty]
     private bool _createDialogOpen;
 
     [ObservableProperty]
+    private string _createStatusMessage = string.Empty;
+
+    // Step tracking
+    [ObservableProperty]
+    private int _creationStep = 1; // 1=选择方式, 2=输入内容, 3=选择目录
+
+    // Step 1: Creation mode
+    [ObservableProperty]
+    private string _creationMode = "inspiration"; // "inspiration" / "outline" / "none"
+
+    // Step 2: Content input
+    [ObservableProperty]
+    private string _inspirationText = string.Empty;
+
+    [ObservableProperty]
+    private string _outlineText = string.Empty;
+
+    [ObservableProperty]
+    private string _novelType = "玄幻";
+
+    [ObservableProperty]
+    private string _novelTags = string.Empty;
+
+    // Step 3: Directory
+    [ObservableProperty]
+    private string _selectedParentDirectory = string.Empty;
+
+    // Edit dialog
+    [ObservableProperty]
     private string _editProjectTitle = string.Empty;
 
     [ObservableProperty]
     private string _editProjectDescription = string.Empty;
-
-    [ObservableProperty]
-    private string _createStatusMessage = string.Empty;
-
-    [ObservableProperty]
-    private string _selectedParentDirectory = string.Empty;
 
     public HomeViewModel(
         IProjectRepository projectRepository,
@@ -113,21 +124,66 @@ public partial class HomeViewModel : ViewModelBase
         Projects.Remove(project);
     }
 
+    // --- Creation Flow ---
+
     [RelayCommand]
     private void ShowCreateProjectDialog()
     {
-        NewProjectTitle = string.Empty;
-        NewProjectDescription = string.Empty;
+        CreationStep = 1;
+        CreationMode = "inspiration";
         InspirationText = string.Empty;
+        OutlineText = string.Empty;
+        NovelType = "玄幻";
+        NovelTags = string.Empty;
+        SelectedParentDirectory = string.Empty;
         CreateStatusMessage = string.Empty;
-        GoToOutlineAfterCreate = true;
         CreateDialogOpen = true;
+    }
+
+    [RelayCommand]
+    private void NextStep()
+    {
+        CreateStatusMessage = string.Empty;
+
+        if (CreationStep == 1)
+        {
+            CreationStep = 2;
+        }
+        else if (CreationStep == 2)
+        {
+            // Validate step 2 input
+            if (CreationMode == "inspiration" && string.IsNullOrWhiteSpace(InspirationText))
+            {
+                CreateStatusMessage = "请输入创作灵感";
+                return;
+            }
+            if (CreationMode == "outline" && string.IsNullOrWhiteSpace(OutlineText))
+            {
+                CreateStatusMessage = "请粘贴大纲内容";
+                return;
+            }
+            if (CreationMode == "none" && string.IsNullOrWhiteSpace(NovelTags))
+            {
+                CreateStatusMessage = "请输入至少一个标签";
+                return;
+            }
+            CreationStep = 3;
+        }
+    }
+
+    [RelayCommand]
+    private void PreviousStep()
+    {
+        CreateStatusMessage = string.Empty;
+        if (CreationStep > 1)
+        {
+            CreationStep--;
+        }
     }
 
     [RelayCommand]
     private async Task CreateProjectAsync()
     {
-        if (string.IsNullOrWhiteSpace(NewProjectTitle)) return;
         if (string.IsNullOrWhiteSpace(SelectedParentDirectory))
         {
             CreateStatusMessage = "请选择小说保存目录";
@@ -135,84 +191,113 @@ public partial class HomeViewModel : ViewModelBase
         }
 
         CreateStatusMessage = string.Empty;
-
-        // 检查重名
-        var trimmedTitle = NewProjectTitle.Trim();
-        var duplicate = Projects.FirstOrDefault(p =>
-            p.Title.Equals(trimmedTitle, StringComparison.OrdinalIgnoreCase));
-        if (duplicate is not null)
-        {
-            CreateStatusMessage = $"小说 \"{trimmedTitle}\" 已存在，请使用其他名称";
-            return;
-        }
-
         IsCreating = true;
 
-        string? generatedOutline = null;
-
-        // 如果有灵感文本，先用 AI 生成大纲
-        if (!string.IsNullOrWhiteSpace(InspirationText))
+        try
         {
-            generatedOutline = await GenerateOutlineAsync(InspirationText, trimmedTitle);
-            if (generatedOutline is null)
+            string? outline = null;
+            string title = "";
+            string summary = "";
+
+            switch (CreationMode)
             {
-                CreateStatusMessage = "AI 生成大纲失败，请检查 API 设置或网络连接";
-                IsCreating = false;
-                return;
+                case "inspiration":
+                    outline = await GenerateOutlineFromInspirationAsync();
+                    if (outline is null)
+                    {
+                        CreateStatusMessage = "AI 生成大纲失败，请检查 API 设置或网络连接";
+                        return;
+                    }
+                    var extractedInsp = ExtractTitleAndSummary(outline);
+                    title = extractedInsp.Title;
+                    summary = extractedInsp.Summary;
+                    break;
+
+                case "outline":
+                    outline = OutlineText.Trim();
+                    var extractedOutline = ExtractTitleAndSummary(outline);
+                    title = extractedOutline.Title;
+                    summary = extractedOutline.Summary;
+                    // If local extraction failed, try AI
+                    if (string.IsNullOrEmpty(title))
+                    {
+                        var aiExtracted = await ExtractTitleAndSummaryViaAiAsync(outline);
+                        title = aiExtracted.Title;
+                        summary = aiExtracted.Summary;
+                    }
+                    break;
+
+                case "none":
+                    outline = await GenerateOutlineFromTagsAsync();
+                    if (outline is null)
+                    {
+                        CreateStatusMessage = "AI 生成大纲失败，请检查 API 设置或网络连接";
+                        return;
+                    }
+                    var extractedTags = ExtractTitleAndSummary(outline);
+                    title = extractedTags.Title;
+                    summary = extractedTags.Summary;
+                    break;
             }
-        }
 
-        // AI 成功或无灵感，创建项目文件和索引
-        var project = new Project
-        {
-            Title = trimmedTitle,
-            Description = NewProjectDescription.Trim(),
-            Genre = "网文"
-        };
+            if (string.IsNullOrEmpty(title)) title = "未命名小说";
+            if (string.IsNullOrEmpty(summary)) summary = "";
 
-        // 创建项目文件目录
-        project = await _fileProjectService.CreateProjectAsync(SelectedParentDirectory, project, generatedOutline);
-
-        // 保存到 LiteDB 索引
-        await _projectRepository.CreateAsync(project);
-
-        // 拆分大纲并保存为多个文档
-        if (generatedOutline is not null)
-        {
-            var sections = SplitOutlineBySections(generatedOutline);
-            for (int i = 0; i < sections.Count; i++)
+            // Check duplicate
+            var duplicate = Projects.FirstOrDefault(p =>
+                p.Title.Equals(title, StringComparison.OrdinalIgnoreCase));
+            if (duplicate is not null)
             {
-                var (title, content) = sections[i];
-                var outline = new Document
+                title = $"{title} {DateTime.Now:yyyyMMddHHmm}";
+            }
+
+            // Create project
+            var project = new Project
+            {
+                Title = title,
+                Description = summary,
+                Genre = "网文"
+            };
+
+            project = await _fileProjectService.CreateProjectAsync(SelectedParentDirectory, project, outline);
+            await _projectRepository.CreateAsync(project);
+
+            // Split outline into documents
+            if (!string.IsNullOrWhiteSpace(outline))
+            {
+                var sections = SplitOutlineBySections(outline);
+                for (int i = 0; i < sections.Count; i++)
                 {
-                    ProjectId = project.Id,
-                    Title = title,
-                    Type = DocumentType.Outline,
-                    Content = content,
-                    SortOrder = i
-                };
-                await _documentRepository.CreateAsync(outline);
+                    var (sectionTitle, content) = sections[i];
+                    var doc = new Document
+                    {
+                        ProjectId = project.Id,
+                        Title = sectionTitle,
+                        Type = DocumentType.Outline,
+                        Content = content,
+                        SortOrder = i
+                    };
+                    await _documentRepository.CreateAsync(doc);
+                }
+
+                await ExtractCharactersAsync(project, outline);
             }
 
-            // 从大纲中提取角色信息并保存
-            await ExtractCharactersAsync(project, generatedOutline);
-        }
-
-        IsCreating = false;
-        CreateDialogOpen = false;
-
-        if (GoToOutlineAfterCreate)
-        {
+            CreateDialogOpen = false;
             _projectContext.SetCurrentProject(project.Id);
             _navigationService.NavigateTo("Script", project.Id);
         }
-        else
+        catch (Exception ex)
         {
-            await LoadProjectsAsync();
+            CreateStatusMessage = $"创建失败: {ex.Message}";
+        }
+        finally
+        {
+            IsCreating = false;
         }
     }
 
-    private async Task<string?> GenerateOutlineAsync(string inspiration, string projectTitle)
+    private async Task<string?> GenerateOutlineFromInspirationAsync()
     {
         try
         {
@@ -225,14 +310,23 @@ public partial class HomeViewModel : ViewModelBase
                 new()
                 {
                     Role = "system",
-                    Content = "你是一个专业的网文大纲规划助手。用户会给你一些创作灵感或初步想法，你需要将其扩展为一个完整的故事大纲。" +
-                              "大纲应包含：故事简介、主要角色设定、世界观设定、分卷/分章大纲（至少3-5章的标题和简要内容）。" +
+                    Content = "你是一个专业的网文大纲规划助手。请将用户的创作灵感扩展为完整的故事大纲。\n" +
+                              "大纲格式要求：\n" +
+                              "# 书名\n" +
+                              "> 一句话简介（20字以内）\n" +
+                              "## 故事简介\n" +
+                              "...\n" +
+                              "## 主要角色\n" +
+                              "...\n" +
+                              "## 分章大纲\n" +
+                              "### 第一章：标题\n" +
+                              "...\n\n" +
                               "请用中文回复，使用 Markdown 格式。"
                 },
                 new()
                 {
                     Role = "user",
-                    Content = $"项目标题：{projectTitle}\n\n我的创作灵感：\n{inspiration}\n\n请帮我扩展为完整的故事大纲。"
+                    Content = $"我的创作灵感：\n{InspirationText}\n\n请帮我扩展为完整的故事大纲。"
                 }
             };
 
@@ -250,24 +344,170 @@ public partial class HomeViewModel : ViewModelBase
         }
     }
 
+    private async Task<string?> GenerateOutlineFromTagsAsync()
+    {
+        try
+        {
+            var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            if (apiKeyConfig is null) return null;
+
+            var provider = _aiProviderFactory.GetProviderForApiKey(apiKeyConfig);
+            var messages = new List<AiChatMessage>
+            {
+                new()
+                {
+                    Role = "system",
+                    Content = "你是一个专业的网文大纲规划助手。请根据用户提供的小说类型和标签，生成一个完整的故事大纲。\n" +
+                              "大纲格式要求：\n" +
+                              "# 书名\n" +
+                              "> 一句话简介（20字以内）\n" +
+                              "## 故事简介\n" +
+                              "...\n" +
+                              "## 主要角色\n" +
+                              "...\n" +
+                              "## 分章大纲\n" +
+                              "### 第一章：标题\n" +
+                              "...\n\n" +
+                              "请用中文回复，使用 Markdown 格式。"
+                },
+                new()
+                {
+                    Role = "user",
+                    Content = $"类型：{NovelType}\n标签：{NovelTags}\n\n请生成一个完整的故事大纲。"
+                }
+            };
+
+            var response = new System.Text.StringBuilder();
+            await foreach (var chunk in provider.StreamCompletionAsync(apiKeyConfig, messages))
+            {
+                response.Append(chunk);
+            }
+
+            return response.Length > 0 ? response.ToString() : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static (string Title, string Summary) ExtractTitleAndSummary(string outline)
+    {
+        var title = "";
+        var summary = "";
+
+        var lines = outline.Split('\n');
+
+        foreach (var line in lines)
+        {
+            var trimmed = line.Trim();
+
+            // Extract title from # heading
+            if (string.IsNullOrEmpty(title) && trimmed.StartsWith("# ") && !trimmed.StartsWith("## "))
+            {
+                title = trimmed[2..].Trim();
+                continue;
+            }
+
+            // Extract summary from > quote
+            if (string.IsNullOrEmpty(summary) && trimmed.StartsWith("> ") && !trimmed.StartsWith(">> "))
+            {
+                summary = trimmed[2..].Trim();
+                continue;
+            }
+
+            // Extract summary from first paragraph after title
+            if (!string.IsNullOrEmpty(title) && string.IsNullOrEmpty(summary)
+                && !string.IsNullOrWhiteSpace(trimmed)
+                && !trimmed.StartsWith("#") && !trimmed.StartsWith(">") && !trimmed.StartsWith("-")
+                && !trimmed.StartsWith("*") && trimmed != "---")
+            {
+                summary = trimmed.Length > 50 ? trimmed[..50] + "..." : trimmed;
+                break;
+            }
+        }
+
+        return (title, summary);
+    }
+
+    private async Task<(string Title, string Summary)> ExtractTitleAndSummaryViaAiAsync(string outline)
+    {
+        try
+        {
+            var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            if (apiKeyConfig is null) return ("", "");
+
+            var provider = _aiProviderFactory.GetProviderForApiKey(apiKeyConfig);
+            var messages = new List<AiChatMessage>
+            {
+                new()
+                {
+                    Role = "system",
+                    Content = "请从以下大纲中提取书名和简介，返回JSON格式：\n" +
+                              "{\"title\": \"书名\", \"summary\": \"一句话简介\"}\n" +
+                              "只返回JSON，不要有其他内容。"
+                },
+                new()
+                {
+                    Role = "user",
+                    Content = outline
+                }
+            };
+
+            var response = new System.Text.StringBuilder();
+            await foreach (var chunk in provider.StreamCompletionAsync(apiKeyConfig, messages))
+            {
+                response.Append(chunk);
+            }
+
+            var json = response.ToString().Trim();
+            var start = json.IndexOf('{');
+            var end = json.LastIndexOf('}');
+            if (start >= 0 && end > start)
+            {
+                json = json[start..(end + 1)];
+            }
+
+            var result = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            return (result?.GetValueOrDefault("title") ?? "", result?.GetValueOrDefault("summary") ?? "");
+        }
+        catch
+        {
+            return ("", "");
+        }
+    }
+
     private static List<(string Title, string Content)> SplitOutlineBySections(string outline)
     {
         var sections = new List<(string Title, string Content)>();
         var lines = outline.Split('\n');
         var currentTitle = "故事大纲";
         var currentContent = new System.Text.StringBuilder();
+        var firstSection = true;
 
         foreach (var line in lines)
         {
             if (line.StartsWith("## "))
             {
-                // 保存上一个 section
                 if (currentContent.Length > 0)
                 {
                     sections.Add((currentTitle, currentContent.ToString().Trim()));
                     currentContent.Clear();
                 }
                 currentTitle = line[3..].Trim();
+                firstSection = false;
+            }
+            else if (line.StartsWith("# ") && firstSection)
+            {
+                // Skip the title line (already extracted)
+                continue;
+            }
+            else if (line.StartsWith("> ") && firstSection && currentContent.Length == 0)
+            {
+                // Skip the summary line (already extracted)
+                continue;
             }
             else
             {
@@ -275,13 +515,11 @@ public partial class HomeViewModel : ViewModelBase
             }
         }
 
-        // 保存最后一个 section
         if (currentContent.Length > 0)
         {
             sections.Add((currentTitle, currentContent.ToString().Trim()));
         }
 
-        // 如果没有拆分出多个 section，返回整体
         if (sections.Count == 0)
         {
             sections.Add(("故事大纲", outline));
@@ -322,7 +560,6 @@ public partial class HomeViewModel : ViewModelBase
             }
 
             var json = response.ToString().Trim();
-            // 提取JSON部分（可能被```包裹）
             var start = json.IndexOf('[');
             var end = json.LastIndexOf(']');
             if (start >= 0 && end > start)
@@ -356,7 +593,7 @@ public partial class HomeViewModel : ViewModelBase
         }
         catch
         {
-            // 提取失败不影响项目创建
+            // Extraction failure doesn't affect project creation
         }
     }
 
@@ -397,7 +634,6 @@ public partial class HomeViewModel : ViewModelBase
         SelectedProject.Description = EditProjectDescription.Trim();
         await _projectRepository.UpdateAsync(SelectedProject);
 
-        // Refresh the list
         var index = Projects.IndexOf(SelectedProject);
         if (index >= 0)
         {
@@ -434,7 +670,7 @@ public partial class HomeViewModel : ViewModelBase
             }
             catch
             {
-                // 文件删除失败不影响数据库删除
+                // File deletion failure doesn't affect database deletion
             }
         }
     }

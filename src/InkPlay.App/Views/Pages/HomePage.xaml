@@ -73,46 +73,99 @@
         <Grid x:Name="CreateDialog" Grid.RowSpan="2"
               Background="{ThemeResource SmokeFillColorDefaultBrush}"
               Visibility="Collapsed">
-            <Grid Width="480" Padding="24"
+            <Grid Width="500" Padding="24"
                   VerticalAlignment="Center" HorizontalAlignment="Center"
                   Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                   CornerRadius="8">
 
-                <!-- Normal Form -->
-                <StackPanel x:Name="CreateForm" Spacing="12">
-                    <TextBlock Text="新建小说" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
+                <!-- Step 1: Choose Creation Mode -->
+                <StackPanel x:Name="Step1Panel" Spacing="16">
+                    <TextBlock Text="新建小说" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="你有创作灵感或现成的大纲吗？" FontSize="14"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
-                    <TextBox Header="小说标题"
-                             Text="{x:Bind ViewModel.NewProjectTitle, Mode=TwoWay}" PlaceholderText="输入小说标题..." />
+                    <StackPanel Spacing="8">
+                        <RadioButton Content="我有创作灵感" GroupName="CreationMode"
+                                     IsChecked="True" Checked="CreationMode_Checked" Tag="inspiration" />
+                        <RadioButton Content="我有现成大纲" GroupName="CreationMode"
+                                     Checked="CreationMode_Checked" Tag="outline" />
+                        <RadioButton Content="我还没有想法" GroupName="CreationMode"
+                                     Checked="CreationMode_Checked" Tag="none" />
+                    </StackPanel>
 
-                    <TextBox Header="小说简介（可选）"
-                             Text="{x:Bind ViewModel.NewProjectDescription, Mode=TwoWay}"
-                             PlaceholderText="简要描述你的故事..."
-                             TextWrapping="Wrap" AcceptsReturn="True" Height="60" />
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Content="取消" Click="CancelCreate_Click" />
+                        <Button Content="下一步" Style="{StaticResource AccentButtonStyle}" Click="NextStep_Click" />
+                    </StackPanel>
+                </StackPanel>
 
-                    <TextBox Header="你有创作灵感或大纲吗？（可选）"
-                             Text="{x:Bind ViewModel.InspirationText, Mode=TwoWay}"
-                             PlaceholderText="随便写点想法，AI会帮你扩展为完整大纲..."
-                             TextWrapping="Wrap" AcceptsReturn="True" Height="120" />
+                <!-- Step 2: Input Content -->
+                <StackPanel x:Name="Step2Panel" Spacing="12" Visibility="Collapsed">
+                    <TextBlock x:Name="Step2Title" Text="输入创作灵感" FontSize="20" FontWeight="SemiBold" />
 
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="保存位置" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <!-- Inspiration Input -->
+                    <StackPanel x:Name="InspirationPanel" Spacing="8">
+                        <TextBox Text="{x:Bind ViewModel.InspirationText, Mode=TwoWay}"
+                                 PlaceholderText="随便写点想法，AI会帮你扩展为完整大纲..."
+                                 TextWrapping="Wrap" AcceptsReturn="True" Height="200" />
+                    </StackPanel>
+
+                    <!-- Outline Input -->
+                    <StackPanel x:Name="OutlinePanel" Spacing="8" Visibility="Collapsed">
+                        <TextBox Text="{x:Bind ViewModel.OutlineText, Mode=TwoWay}"
+                                 PlaceholderText="粘贴你的大纲内容..."
+                                 TextWrapping="Wrap" AcceptsReturn="True" Height="200" />
+                    </StackPanel>
+
+                    <!-- Type & Tags Input -->
+                    <StackPanel x:Name="TagsPanel" Spacing="8" Visibility="Collapsed">
+                        <ComboBox Header="小说类型" SelectedIndex="0" x:Name="TypeComboBox">
+                            <ComboBoxItem Content="玄幻" IsSelected="True" />
+                            <ComboBoxItem Content="都市" />
+                            <ComboBoxItem Content="科幻" />
+                            <ComboBoxItem Content="仙侠" />
+                            <ComboBoxItem Content="历史" />
+                            <ComboBoxItem Content="悬疑" />
+                            <ComboBoxItem Content="言情" />
+                            <ComboBoxItem Content="其他" />
+                        </ComboBox>
+                        <TextBox Header="标签（用逗号分隔）"
+                                 Text="{x:Bind ViewModel.NovelTags, Mode=TwoWay}"
+                                 PlaceholderText="例如：系统流、重生、逆袭..." />
+                    </StackPanel>
+
+                    <TextBlock Text="{x:Bind ViewModel.CreateStatusMessage, Mode=OneWay}"
+                               Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                               TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Content="上一步" Click="PrevStep_Click" />
+                        <Button Content="下一步" Style="{StaticResource AccentButtonStyle}" Click="NextStep_Click" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Step 3: Choose Directory -->
+                <StackPanel x:Name="Step3Panel" Spacing="16" Visibility="Collapsed">
+                    <TextBlock Text="选择保存位置" FontSize="20" FontWeight="SemiBold" />
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="选择小说保存目录" FontSize="14"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Text="{x:Bind ViewModel.SelectedParentDirectory, Mode=OneWay}"
-                                       VerticalAlignment="Center" MaxWidth="300"
+                                       VerticalAlignment="Center" MaxWidth="350"
                                        TextTrimming="CharacterEllipsis"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             <Button Content="选择目录" Click="SelectDirectory_Click" />
                         </StackPanel>
                     </StackPanel>
 
-                    <TextBlock x:Name="StatusText"
-                               Text="{x:Bind ViewModel.CreateStatusMessage, Mode=OneWay}"
+                    <TextBlock Text="{x:Bind ViewModel.CreateStatusMessage, Mode=OneWay}"
                                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                                TextWrapping="Wrap" />
 
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
-                        <Button Content="取消" Click="CancelCreate_Click" />
+                        <Button Content="上一步" Click="PrevStep_Click" />
                         <Button Content="创建" Style="{StaticResource AccentButtonStyle}" Click="ConfirmCreate_Click" />
                     </StackPanel>
                 </StackPanel>

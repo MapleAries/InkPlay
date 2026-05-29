@@ -25,6 +25,43 @@ public sealed partial class HomePage : Page
         if (e.PropertyName == nameof(ViewModel.CreateDialogOpen))
         {
             CreateDialog.Visibility = ViewModel.CreateDialogOpen ? Visibility.Visible : Visibility.Collapsed;
+            if (ViewModel.CreateDialogOpen)
+            {
+                ShowStep(1);
+            }
+        }
+        else if (e.PropertyName == nameof(ViewModel.CreationStep))
+        {
+            ShowStep(ViewModel.CreationStep);
+        }
+    }
+
+    private void ShowStep(int step)
+    {
+        Step1Panel.Visibility = step == 1 ? Visibility.Visible : Visibility.Collapsed;
+        Step2Panel.Visibility = step == 2 ? Visibility.Visible : Visibility.Collapsed;
+        Step3Panel.Visibility = step == 3 ? Visibility.Visible : Visibility.Collapsed;
+        CreateLoading.Visibility = Visibility.Collapsed;
+    }
+
+    private void CreationMode_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is RadioButton rb && rb.Tag is string mode)
+        {
+            ViewModel.CreationMode = mode;
+
+            // Update Step 2 UI based on mode
+            InspirationPanel.Visibility = mode == "inspiration" ? Visibility.Visible : Visibility.Collapsed;
+            OutlinePanel.Visibility = mode == "outline" ? Visibility.Visible : Visibility.Collapsed;
+            TagsPanel.Visibility = mode == "none" ? Visibility.Visible : Visibility.Collapsed;
+
+            Step2Title.Text = mode switch
+            {
+                "inspiration" => "输入创作灵感",
+                "outline" => "粘贴大纲内容",
+                "none" => "选择小说类型和标签",
+                _ => "输入内容"
+            };
         }
     }
 
@@ -53,22 +90,39 @@ public sealed partial class HomePage : Page
         ViewModel.CancelCreateProjectCommand.Execute(null);
     }
 
+    private void NextStep_Click(object sender, RoutedEventArgs e)
+    {
+        // Update novel type from ComboBox before moving to next step
+        if (ViewModel.CreationMode == "none" && TypeComboBox.SelectedItem is ComboBoxItem item)
+        {
+            ViewModel.NovelType = item.Content?.ToString() ?? "玄幻";
+        }
+        ViewModel.NextStepCommand.Execute(null);
+    }
+
+    private void PrevStep_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.PreviousStepCommand.Execute(null);
+    }
+
     private async void ConfirmCreate_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(ViewModel.NewProjectTitle)) return;
-
-        // 如果有灵感，显示加载状态
-        if (!string.IsNullOrWhiteSpace(ViewModel.InspirationText))
-        {
-            CreateForm.Visibility = Visibility.Collapsed;
-            CreateLoading.Visibility = Visibility.Visible;
-        }
+        // Show loading
+        Step3Panel.Visibility = Visibility.Collapsed;
+        CreateLoading.Visibility = Visibility.Visible;
 
         await ViewModel.CreateProjectCommand.ExecuteAsync(null);
 
-        // 恢复表单状态（无论成功或失败）
-        CreateForm.Visibility = Visibility.Visible;
-        CreateLoading.Visibility = Visibility.Collapsed;
+        // If still creating (error occurred), restore step 3
+        if (!ViewModel.CreateDialogOpen)
+        {
+            CreateLoading.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            CreateLoading.Visibility = Visibility.Collapsed;
+            Step3Panel.Visibility = Visibility.Visible;
+        }
     }
 
     private void ProjectItem_Click(object sender, ItemClickEventArgs e)
@@ -77,7 +131,6 @@ public sealed partial class HomePage : Page
         {
             if (!ViewModel.IsProjectDirectoryExists(project))
             {
-                // 目录不存在，提示用户
                 ViewModel.SelectedProject = project;
                 ViewModel.EditProjectTitle = project.Title;
                 DirectoryNotFoundDialog.Visibility = Visibility.Visible;
