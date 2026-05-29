@@ -23,6 +23,7 @@ public sealed partial class MainWindow : Window
         _navigationService.RegisterPage("Script", typeof(Pages.ScriptPage));
         _navigationService.RegisterPage("VideoGeneration", typeof(Pages.VideoGenerationPage));
         _navigationService.RegisterPage("Voices", typeof(Pages.VoicesPage));
+        _navigationService.RegisterPage("ScriptManagement", typeof(Pages.ScriptManagementPage));
         _navigationService.RegisterPage("AiAssistant", typeof(Pages.AiAssistantPage));
         _navigationService.RegisterPage("Settings", typeof(Pages.SettingsPage));
 

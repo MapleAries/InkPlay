@@ -81,6 +81,7 @@ public partial class App : Application
                 services.AddTransient<Views.Pages.CharactersPage>();
                 services.AddTransient<Views.Pages.ScriptPage>();
                 services.AddTransient<Views.Pages.VideoGenerationPage>();
+                services.AddTransient<Views.Pages.ScriptManagementPage>();
                 services.AddTransient<Views.Pages.VoicesPage>();
             })
             .Build();
