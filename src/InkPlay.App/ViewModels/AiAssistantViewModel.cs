@@ -457,7 +457,7 @@ public partial class AiAssistantViewModel : ViewModelBase
     {
         if (!string.IsNullOrEmpty(AiResponse))
         {
-            ChapterContent += "\n" + AiResponse;
+            ChapterContent = AiResponse;
             AiResponse = string.Empty;
             OnContentChanged();
         }
