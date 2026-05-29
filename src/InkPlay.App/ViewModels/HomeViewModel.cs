@@ -401,11 +401,19 @@ public partial class HomeViewModel : ViewModelBase
         foreach (var line in lines)
         {
             var trimmed = line.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed)) continue;
 
-            // Extract title from # heading
+            // Extract title from # heading (H1)
             if (string.IsNullOrEmpty(title) && trimmed.StartsWith("# ") && !trimmed.StartsWith("## "))
             {
                 title = trimmed[2..].Trim();
+                continue;
+            }
+
+            // Fallback: extract title from first ## heading
+            if (string.IsNullOrEmpty(title) && trimmed.StartsWith("## "))
+            {
+                title = trimmed[3..].Trim();
                 continue;
             }
 
@@ -416,11 +424,10 @@ public partial class HomeViewModel : ViewModelBase
                 continue;
             }
 
-            // Extract summary from first paragraph after title
+            // Extract summary from first non-heading paragraph
             if (!string.IsNullOrEmpty(title) && string.IsNullOrEmpty(summary)
-                && !string.IsNullOrWhiteSpace(trimmed)
                 && !trimmed.StartsWith("#") && !trimmed.StartsWith(">") && !trimmed.StartsWith("-")
-                && !trimmed.StartsWith("*") && trimmed != "---")
+                && !trimmed.StartsWith("*") && !trimmed.StartsWith("|") && trimmed != "---")
             {
                 summary = trimmed.Length > 50 ? trimmed[..50] + "..." : trimmed;
                 break;
