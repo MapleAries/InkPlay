@@ -118,7 +118,7 @@ public partial class HomeViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(NewProjectTitle)) return;
         if (string.IsNullOrWhiteSpace(SelectedParentDirectory))
         {
-            CreateStatusMessage = "请选择项目保存目录";
+            CreateStatusMessage = "请选择小说保存目录";
             return;
         }
 
@@ -130,7 +130,7 @@ public partial class HomeViewModel : ViewModelBase
             p.Title.Equals(trimmedTitle, StringComparison.OrdinalIgnoreCase));
         if (duplicate is not null)
         {
-            CreateStatusMessage = $"项目 \"{trimmedTitle}\" 已存在，请使用其他名称";
+            CreateStatusMessage = $"小说 \"{trimmedTitle}\" 已存在，请使用其他名称";
             return;
         }
 

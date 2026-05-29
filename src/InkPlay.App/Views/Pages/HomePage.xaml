@@ -15,8 +15,8 @@
 
         <!-- Header -->
         <Grid Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="我的项目" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center" />
-            <Button Content="新建项目"
+            <TextBlock Text="我的小说" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center" />
+            <Button Content="新建小说"
                     HorizontalAlignment="Right"
                     Click="CreateProject_Click" />
         </Grid>
@@ -81,12 +81,12 @@
 
                 <!-- Normal Form -->
                 <StackPanel x:Name="CreateForm" Spacing="12">
-                    <TextBlock Text="新建项目" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="新建小说" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
 
-                    <TextBox Header="项目标题"
-                             Text="{x:Bind ViewModel.NewProjectTitle, Mode=TwoWay}" PlaceholderText="输入项目标题..." />
+                    <TextBox Header="小说标题"
+                             Text="{x:Bind ViewModel.NewProjectTitle, Mode=TwoWay}" PlaceholderText="输入小说标题..." />
 
-                    <TextBox Header="项目描述（可选）"
+                    <TextBox Header="小说简介（可选）"
                              Text="{x:Bind ViewModel.NewProjectDescription, Mode=TwoWay}"
                              PlaceholderText="简要描述你的故事..."
                              TextWrapping="Wrap" AcceptsReturn="True" Height="60" />
@@ -123,7 +123,7 @@
                             HorizontalAlignment="Center" VerticalAlignment="Center"
                             Visibility="Collapsed">
                     <ProgressRing IsActive="True" Width="48" Height="48" />
-                    <TextBlock Text="正在创建项目并生成大纲..." FontSize="16"
+                    <TextBlock Text="正在创建小说并生成大纲..." FontSize="16"
                                HorizontalAlignment="Center"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </StackPanel>
@@ -195,12 +195,12 @@
                   Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                   CornerRadius="8">
                 <StackPanel Spacing="12">
-                    <TextBlock Text="编辑项目" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Text="编辑小说" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,4" />
 
-                    <TextBox Header="项目标题"
+                    <TextBox Header="小说标题"
                              Text="{x:Bind ViewModel.EditProjectTitle, Mode=TwoWay}" />
 
-                    <TextBox Header="项目描述"
+                    <TextBox Header="小说简介"
                              Text="{x:Bind ViewModel.EditProjectDescription, Mode=TwoWay}"
                              TextWrapping="Wrap" AcceptsReturn="True" Height="80" />
 
@@ -224,7 +224,7 @@
                     <TextBlock Text="确认删除" FontSize="20" FontWeight="SemiBold" />
                     <TextBlock TextWrapping="Wrap"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                        <Run Text="确定要删除项目" />
+                        <Run Text="确定要删除小说" />
                         <Run Text="{x:Bind ViewModel.EditProjectTitle, Mode=OneWay}" FontWeight="SemiBold" />
                         <Run Text="吗？此操作不可撤销。" />
                     </TextBlock>

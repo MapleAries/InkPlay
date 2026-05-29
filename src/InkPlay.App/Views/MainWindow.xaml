@@ -14,7 +14,7 @@
         SelectionChanged="NavView_SelectionChanged">
 
         <NavigationView.MenuItems>
-            <NavigationViewItem Content="首页" Icon="Home" Tag="Home" />
+            <NavigationViewItem Content="书架" Icon="Home" Tag="Home" />
             <NavigationViewItem Content="大纲规划" Icon="Map" Tag="Script" />
             <NavigationViewItem Content="角色设计" Icon="People" Tag="Characters" />
             <NavigationViewItem Content="章节写作" Icon="Edit" Tag="AiAssistant" />
