@@ -73,6 +73,12 @@ public partial class CharactersViewModel : ViewModelBase
     private string _aiUserInput = string.Empty;
 
     [ObservableProperty]
+    private ObservableCollection<ApiKeyConfig> _availableModels = new();
+
+    [ObservableProperty]
+    private ApiKeyConfig? _selectedModel;
+
+    [ObservableProperty]
     private ObservableCollection<AiChatMessage> _aiMessages = new();
 
     public CharactersViewModel(
@@ -101,12 +107,20 @@ public partial class CharactersViewModel : ViewModelBase
             if (CurrentProject is not null)
             {
                 await LoadCharactersAsync();
+                LoadAvailableModels();
             }
         }
         else
         {
             HasProject = false;
         }
+    }
+
+    private void LoadAvailableModels()
+    {
+        var keys = _settingsService.GetApiKeys(ApiKeyCategory.Text);
+        AvailableModels = new ObservableCollection<ApiKeyConfig>(keys);
+        SelectedModel = keys.FirstOrDefault(k => k.IsDefault) ?? keys.FirstOrDefault();
     }
 
     [RelayCommand]
@@ -268,7 +282,7 @@ public partial class CharactersViewModel : ViewModelBase
 
         try
         {
-            var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            var apiKeyConfig = SelectedModel ?? _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
             if (apiKeyConfig is null)
             {
                 AiResponse = "请先在设置中配置文本生成 API Key";

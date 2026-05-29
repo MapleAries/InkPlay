@@ -157,21 +157,28 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Text="AI 助手" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8" />
 
+                <!-- Model Selector -->
+                <ComboBox Grid.Row="1" Margin="0,0,0,8"
+                          ItemsSource="{x:Bind ViewModel.AvailableModels, Mode=OneWay}"
+                          SelectedItem="{x:Bind ViewModel.SelectedModel, Mode=TwoWay}"
+                          DisplayMemberPath="Name" />
+
                 <!-- Quick Actions -->
-                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
                     <Button Content="生成大纲" Click="QuickAction_Click" Tag="outline" />
                     <Button Content="扩展情节" Click="QuickAction_Click" Tag="expand" />
                     <Button Content="生成内容" Click="QuickAction_Click" Tag="scene" />
                 </StackPanel>
 
                 <!-- Chat Messages -->
-                <ScrollViewer Grid.Row="2">
+                <ScrollViewer Grid.Row="3">
                     <StackPanel Spacing="8">
                         <ItemsControl ItemsSource="{x:Bind ViewModel.AiMessages, Mode=OneWay}">
                             <ItemsControl.ItemTemplate>
@@ -204,7 +211,7 @@
                 </ScrollViewer>
 
                 <!-- Input -->
-                <Grid Grid.Row="3" Margin="0,8,0,0">
+                <Grid Grid.Row="4" Margin="0,8,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
