@@ -213,7 +213,6 @@
                     <Button Content="润色" Click="QuickAction_Click" Tag="polish" />
                     <Button Content="扩写" Click="QuickAction_Click" Tag="expand" />
                     <Button Content="缩写" Click="QuickAction_Click" Tag="summarize" />
-                    <Button Content="对话" Click="QuickAction_Click" Tag="format_dialogue" />
                 </StackPanel>
 
                 <!-- Chat Messages -->
