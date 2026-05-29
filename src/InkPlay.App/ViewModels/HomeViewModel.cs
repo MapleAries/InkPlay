@@ -208,23 +208,10 @@ public partial class HomeViewModel : ViewModelBase
                         CreateStatusMessage = "AI 生成大纲失败，请检查 API 设置或网络连接";
                         return;
                     }
-                    var extractedInsp = ExtractTitleAndSummary(outline);
-                    title = extractedInsp.Title;
-                    summary = extractedInsp.Summary;
                     break;
 
                 case "outline":
                     outline = OutlineText.Trim();
-                    var extractedOutline = ExtractTitleAndSummary(outline);
-                    title = extractedOutline.Title;
-                    summary = extractedOutline.Summary;
-                    // If local extraction failed, try AI
-                    if (string.IsNullOrEmpty(title))
-                    {
-                        var aiExtracted = await ExtractTitleAndSummaryViaAiAsync(outline);
-                        title = aiExtracted.Title;
-                        summary = aiExtracted.Summary;
-                    }
                     break;
 
                 case "none":
@@ -234,11 +221,19 @@ public partial class HomeViewModel : ViewModelBase
                         CreateStatusMessage = "AI 生成大纲失败，请检查 API 设置或网络连接";
                         return;
                     }
-                    var extractedTags = ExtractTitleAndSummary(outline);
-                    title = extractedTags.Title;
-                    summary = extractedTags.Summary;
                     break;
             }
+
+            if (string.IsNullOrWhiteSpace(outline))
+            {
+                CreateStatusMessage = "大纲内容为空";
+                return;
+            }
+
+            // Always use AI to extract title and summary
+            var extracted = await ExtractTitleAndSummaryViaAiAsync(outline);
+            title = extracted.Title;
+            summary = extracted.Summary;
 
             if (string.IsNullOrEmpty(title)) title = "未命名小说";
             if (string.IsNullOrEmpty(summary)) summary = "";
