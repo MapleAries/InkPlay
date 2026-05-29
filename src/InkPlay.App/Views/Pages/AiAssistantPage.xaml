@@ -97,12 +97,22 @@
                 <!-- Editor -->
                 <Grid Visibility="{x:Bind ViewModel.IsChapterSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!-- Text Editor -->
+                    <!-- Title -->
                     <TextBox Grid.Row="0"
+                             x:Name="TitleBox"
+                             Text="{x:Bind ViewModel.ChapterTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             TextChanged="TitleBox_TextChanged"
+                             PlaceholderText="章节标题"
+                             FontSize="20" FontWeight="SemiBold"
+                             Padding="12,8" />
+
+                    <!-- Text Editor -->
+                    <TextBox Grid.Row="1"
                              x:Name="EditorBox"
                              Text="{x:Bind ViewModel.ChapterContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              TextChanged="EditorBox_TextChanged"
@@ -111,7 +121,7 @@
                              Padding="12" />
 
                     <!-- Status Bar -->
-                    <Grid Grid.Row="1" Margin="0,8,0,0">
+                    <Grid Grid.Row="2" Margin="0,8,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                             <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}">
                                 <Run Text="字数：" />

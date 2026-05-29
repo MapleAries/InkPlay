@@ -41,6 +41,9 @@ public partial class AiAssistantViewModel : ViewModelBase
     private bool _isChapterSelected;
 
     [ObservableProperty]
+    private string _chapterTitle = string.Empty;
+
+    [ObservableProperty]
     private string _chapterContent = string.Empty;
 
     [ObservableProperty]
@@ -208,6 +211,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         {
             CurrentChapter = null;
             IsChapterSelected = false;
+            ChapterTitle = string.Empty;
             ChapterContent = string.Empty;
             WordCount = 0;
             SaveStatus = "未保存";
@@ -216,12 +220,32 @@ public partial class AiAssistantViewModel : ViewModelBase
 
         CurrentChapter = chapter;
         IsChapterSelected = true;
-        ChapterContent = chapter.Content;
+        ChapterTitle = chapter.Title;
+        ChapterContent = ExtractContent(chapter.Content);
         WordCount = chapter.WordCount;
         SaveStatus = "已保存";
 
         // Load context for AI
         ContextText = chapter.Content;
+    }
+
+    private static string ExtractContent(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return string.Empty;
+
+        // Remove leading # title if present
+        var lines = content.Split('\n');
+        if (lines.Length > 0 && lines[0].StartsWith("# "))
+        {
+            return string.Join('\n', lines.Skip(1)).TrimStart('\n', '\r');
+        }
+        return content;
+    }
+
+    private static string CombineTitleAndContent(string title, string content)
+    {
+        if (string.IsNullOrWhiteSpace(title)) return content;
+        return $"# {title}\n\n{content}";
     }
 
     [RelayCommand]
@@ -230,7 +254,8 @@ public partial class AiAssistantViewModel : ViewModelBase
         if (CurrentChapter is null) return;
 
         SaveStatus = "保存中...";
-        CurrentChapter.Content = ChapterContent;
+        CurrentChapter.Title = ChapterTitle;
+        CurrentChapter.Content = CombineTitleAndContent(ChapterTitle, ChapterContent);
         await _documentRepository.UpdateAsync(CurrentChapter);
         WordCount = CurrentChapter.WordCount;
         SaveStatus = "已保存";
@@ -240,7 +265,8 @@ public partial class AiAssistantViewModel : ViewModelBase
     {
         if (CurrentChapter is null) return;
 
-        CurrentChapter.Content = ChapterContent;
+        CurrentChapter.Title = ChapterTitle;
+        CurrentChapter.Content = CombineTitleAndContent(ChapterTitle, ChapterContent);
         await _documentRepository.UpdateAsync(CurrentChapter);
         WordCount = CurrentChapter.WordCount;
         SaveStatus = "已保存";

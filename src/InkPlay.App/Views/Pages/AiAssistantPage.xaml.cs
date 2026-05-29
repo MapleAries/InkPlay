@@ -48,6 +48,11 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         ViewModel.SaveChapterCommand.Execute(null);
     }
 
+    private void TitleBox_TextChanged(object sender, RoutedEventArgs e)
+    {
+        ViewModel.OnContentChanged();
+    }
+
     private void EditorBox_TextChanged(object sender, RoutedEventArgs e)
     {
         ViewModel.OnContentChanged();
