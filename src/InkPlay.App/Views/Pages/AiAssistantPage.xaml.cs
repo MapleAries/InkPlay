@@ -78,6 +78,11 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         ViewModel.ExportToMarkdownCommand.Execute(null);
     }
 
+    private void CloseExportDialog_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.CloseExportDialogCommand.Execute(null);
+    }
+
     private void RenameChapter_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem item && item.Tag is Guid chapterId)

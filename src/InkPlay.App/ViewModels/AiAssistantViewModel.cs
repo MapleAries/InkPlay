@@ -465,6 +465,15 @@ public partial class AiAssistantViewModel : ViewModelBase
 
     // --- Export ---
 
+    [ObservableProperty]
+    private bool _showExportDialog;
+
+    [ObservableProperty]
+    private string _exportDialogTitle = string.Empty;
+
+    [ObservableProperty]
+    private string _exportDialogMessage = string.Empty;
+
     [RelayCommand]
     private async Task ExportToMarkdownAsync()
     {
@@ -479,13 +488,23 @@ public partial class AiAssistantViewModel : ViewModelBase
                 var fileName = $"{SanitizeFileName(_currentProject.Title)}.md";
                 var filePath = Path.Combine(_currentProject.ProjectPath, fileName);
                 await File.WriteAllTextAsync(filePath, markdown);
-                ExportStatus = $"已导出: {fileName}";
+                ExportDialogTitle = "导出成功";
+                ExportDialogMessage = $"已导出到:\n{filePath}";
+                ShowExportDialog = true;
             }
         }
         catch (Exception ex)
         {
-            ExportStatus = $"导出失败: {ex.Message}";
+            ExportDialogTitle = "导出失败";
+            ExportDialogMessage = ex.Message;
+            ShowExportDialog = true;
         }
+    }
+
+    [RelayCommand]
+    private void CloseExportDialog()
+    {
+        ShowExportDialog = false;
     }
 
     private static string SanitizeFileName(string name)
