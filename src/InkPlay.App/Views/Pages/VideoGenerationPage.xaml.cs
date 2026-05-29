@@ -1,18 +1,30 @@
+using InkPlay.App.Services;
 using InkPlay.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace InkPlay.App.Views.Pages;
 
-public sealed partial class VideoGenerationPage : Page
+public sealed partial class VideoGenerationPage : Page, IParameterizedPage
 {
     public VideoGenerationViewModel ViewModel { get; }
+    private readonly NavigationService _navigationService;
 
-    public VideoGenerationPage(VideoGenerationViewModel viewModel)
+    public VideoGenerationPage(VideoGenerationViewModel viewModel, NavigationService navigationService)
     {
         ViewModel = viewModel;
+        _navigationService = navigationService;
         InitializeComponent();
-        Loaded += (_, _) => ViewModel.NavigatedTo(null);
+    }
+
+    public void SetParameter(object? parameter)
+    {
+        ViewModel.NavigatedTo(parameter);
+    }
+
+    private void GoHome_Click(object sender, RoutedEventArgs e)
+    {
+        _navigationService.NavigateTo("Home");
     }
 
     private void Generate_Click(object sender, RoutedEventArgs e)

@@ -12,11 +12,13 @@ public partial class VideoGenerationViewModel : ViewModelBase
 {
     private readonly IVideoProvider _videoProvider;
     private readonly ISettingsService _settingsService;
+    private readonly IProjectContext _projectContext;
+    private readonly IProjectRepository _projectRepository;
     private readonly NavigationService _navigationService;
     private CancellationTokenSource? _pollingCts;
 
     [ObservableProperty]
-    private bool _hasProject = true; // 视频生成不需要项目上下文，默认true
+    private bool _hasProject;
 
     [ObservableProperty]
     private string _prompt = string.Empty;
@@ -45,16 +47,29 @@ public partial class VideoGenerationViewModel : ViewModelBase
     public VideoGenerationViewModel(
         IVideoProvider videoProvider,
         ISettingsService settingsService,
+        IProjectContext projectContext,
+        IProjectRepository projectRepository,
         NavigationService navigationService)
     {
         _videoProvider = videoProvider;
         _settingsService = settingsService;
+        _projectContext = projectContext;
+        _projectRepository = projectRepository;
         _navigationService = navigationService;
     }
 
-    public override void NavigatedTo(object? parameter)
+    public override async void NavigatedTo(object? parameter)
     {
-        // No project context needed for video generation
+        var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
+        if (projectId.HasValue)
+        {
+            var project = await _projectRepository.GetByIdAsync(projectId.Value);
+            HasProject = project is not null;
+        }
+        else
+        {
+            HasProject = false;
+        }
     }
 
     [RelayCommand]
