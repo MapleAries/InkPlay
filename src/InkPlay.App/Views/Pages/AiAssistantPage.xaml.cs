@@ -91,6 +91,49 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         ViewModel.ExportToMarkdownCommand.Execute(null);
     }
 
+    private void RenameChapter_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Guid chapterId)
+        {
+            var chapter = ViewModel.Chapters.FirstOrDefault(c => c.Id == chapterId);
+            if (chapter is not null)
+            {
+                ViewModel.SelectChapterCommand.Execute(chapter);
+                RenameInput.Text = chapter.Title;
+                RenameDialog.Visibility = Visibility.Visible;
+            }
+        }
+    }
+
+    private void CancelRename_Click(object sender, RoutedEventArgs e)
+    {
+        RenameDialog.Visibility = Visibility.Collapsed;
+    }
+
+    private async void ConfirmRename_Click(object sender, RoutedEventArgs e)
+    {
+        var newTitle = RenameInput.Text?.Trim();
+        if (!string.IsNullOrEmpty(newTitle) && ViewModel.CurrentChapter is not null)
+        {
+            ViewModel.CurrentChapter.Title = newTitle;
+            await ViewModel.SaveChapterCommand.ExecuteAsync(null);
+        }
+        RenameDialog.Visibility = Visibility.Collapsed;
+    }
+
+    private void DeleteChapterMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Guid chapterId)
+        {
+            var chapter = ViewModel.Chapters.FirstOrDefault(c => c.Id == chapterId);
+            if (chapter is not null)
+            {
+                ViewModel.SelectChapterCommand.Execute(chapter);
+                ViewModel.DeleteChapterCommand.Execute(null);
+            }
+        }
+    }
+
     private void UserInput_KeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Enter)
