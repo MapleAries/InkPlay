@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:InkPlay.Core.Models"
+    xmlns:controls="using:InkPlay.App.Controls"
     mc:Ignorable="d">
 
     <Grid>
@@ -83,13 +84,8 @@
                     </StackPanel>
 
                     <!-- Preview Mode -->
-                    <ScrollViewer x:Name="PreviewArea" Grid.Row="1">
-                        <TextBlock x:Name="PreviewText"
-                                   Text="{x:Bind ViewModel.EpisodeContent, Mode=OneWay}"
-                                   TextWrapping="Wrap"
-                                   FontSize="15" LineHeight="28"
-                                   FontFamily="Microsoft YaHei, Segoe UI" />
-                    </ScrollViewer>
+                    <controls:MarkdownViewer x:Name="PreviewArea" Grid.Row="1"
+                                              Markdown="{x:Bind ViewModel.EpisodeContent, Mode=OneWay}" />
 
                     <!-- Edit Mode -->
                     <Grid x:Name="EditPanel" Grid.Row="1" Visibility="Collapsed">
