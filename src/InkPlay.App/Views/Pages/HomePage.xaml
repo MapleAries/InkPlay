@@ -31,16 +31,23 @@
             <GridView.ItemTemplate>
                 <DataTemplate x:DataType="models:Project"
                               xmlns:models="using:InkPlay.Core.Models">
-                    <Grid Width="280" Height="180" Padding="16"
+                    <Grid Width="280" Height="160" Padding="16"
                           Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                           CornerRadius="8"
                           BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                          BorderThickness="1">
+                          BorderThickness="1"
+                          Tag="{x:Bind Id}">
+                        <Grid.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="编辑" Click="EditProject_Click" Tag="{x:Bind Id}" />
+                                <MenuFlyoutItem Text="删除" Click="DeleteProject_Click" Tag="{x:Bind Id}"
+                                                Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                            </MenuFlyout>
+                        </Grid.ContextFlyout>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
@@ -53,18 +60,10 @@
                         <TextBlock Text="{x:Bind Description}" FontSize="14"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    Grid.Row="2" Margin="0,8,0,0"
-                                   TextTrimming="CharacterEllipsis" MaxLines="2" />
+                                   TextTrimming="CharacterEllipsis" MaxLines="3" />
                         <TextBlock Grid.Row="3" Text="{x:Bind UpdatedAt}" FontSize="12"
                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                    Margin="0,8,0,0" />
-                        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="4"
-                                    Margin="0,8,0,0" HorizontalAlignment="Right">
-                            <Button Content="编辑" Tag="{x:Bind Id}"
-                                    Click="EditProject_Click" Padding="8,4" FontSize="12" />
-                            <Button Content="删除" Tag="{x:Bind Id}"
-                                    Click="DeleteProject_Click" Padding="8,4" FontSize="12"
-                                    Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
-                        </StackPanel>
                     </Grid>
                 </DataTemplate>
             </GridView.ItemTemplate>

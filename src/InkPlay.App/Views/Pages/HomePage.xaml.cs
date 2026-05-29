@@ -96,7 +96,7 @@ public sealed partial class HomePage : Page
 
     private void EditProject_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is Guid projectId)
+        if (sender is FrameworkElement element && element.Tag is Guid projectId)
         {
             var project = ViewModel.Projects.FirstOrDefault(p => p.Id == projectId);
             if (project is null) return;
@@ -121,7 +121,7 @@ public sealed partial class HomePage : Page
 
     private void DeleteProject_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is Guid projectId)
+        if (sender is FrameworkElement element && element.Tag is Guid projectId)
         {
             var project = ViewModel.Projects.FirstOrDefault(p => p.Id == projectId);
             if (project is null) return;
