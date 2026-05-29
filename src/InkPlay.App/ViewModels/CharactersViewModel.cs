@@ -358,22 +358,92 @@ public partial class CharactersViewModel : ViewModelBase
     {
         if (character is null || CurrentProject is null) return;
 
-        // Create voice from character info
-        var voice = new Voice
+        try
         {
-            ProjectId = CurrentProject.Id,
-            Name = $"{character.Name}的音色",
-            Gender = character.Gender,
-            Tone = character.Personality,
-            Description = $"{character.Gender}，{character.Personality}",
-            SampleText = $"我叫{character.Name}，{character.Role}。{character.Personality}"
-        };
+            var apiKeyConfig = _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            if (apiKeyConfig is null) return;
 
-        await _voiceRepository.CreateAsync(voice);
+            var provider = _aiProviderFactory.GetProviderForApiKey(apiKeyConfig);
 
-        // Navigate to voices page
-        _projectContext.SetCurrentProject(CurrentProject.Id);
-        _navigationService.NavigateTo("Voices", CurrentProject.Id);
+            var prompt = $@"请根据以下角色信息，设计一个详细的音色描述。
+
+角色姓名：{character.Name}
+性别：{character.Gender}
+年龄：{character.Age?.ToString() ?? "未知"}
+角色定位：{character.Role}
+性格特点：{character.Personality}
+外貌描述：{character.Appearance}
+
+请用以下JSON格式返回（只返回JSON，不要有其他内容）：
+{{
+  ""description"": ""音色的整体描述"",
+  ""tone"": ""语调特征（如温柔、冷酷、活泼等）"",
+  ""speed"": ""语速（如缓慢、适中、快速）"",
+  ""pitch"": ""音调（如低沉、中等、高亢）"",
+  ""ageRange"": ""年龄段（如少年、青年、中年、老年）"",
+  ""sampleText"": ""一段能体现该音色特点的示例文本，30-50字""
+}}";
+
+            var messages = new List<AiChatMessage>
+            {
+                new() { Role = "system", Content = "你是一个专业的音色设计助手。请根据角色信息设计合适的音色参数。只返回JSON格式，不要有其他内容。" },
+                new() { Role = "user", Content = prompt }
+            };
+
+            var response = new System.Text.StringBuilder();
+            await foreach (var chunk in provider.StreamCompletionAsync(apiKeyConfig, messages))
+            {
+                response.Append(chunk);
+            }
+
+            var json = response.ToString().Trim();
+            // Extract JSON
+            var start = json.IndexOf('{');
+            var end = json.LastIndexOf('}');
+            if (start >= 0 && end > start)
+            {
+                json = json[start..(end + 1)];
+            }
+
+            var result = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            var voice = new Voice
+            {
+                ProjectId = CurrentProject.Id,
+                Name = $"{character.Name}的音色",
+                Gender = character.Gender,
+                AgeRange = result?.GetValueOrDefault("ageRange") ?? "",
+                Tone = result?.GetValueOrDefault("tone") ?? character.Personality,
+                Speed = result?.GetValueOrDefault("speed") ?? "适中",
+                Pitch = result?.GetValueOrDefault("pitch") ?? "中等",
+                Description = result?.GetValueOrDefault("description") ?? $"{character.Gender}，{character.Personality}",
+                SampleText = result?.GetValueOrDefault("sampleText") ?? $"我叫{character.Name}，{character.Role}。"
+            };
+
+            await _voiceRepository.CreateAsync(voice);
+
+            // Navigate to voices page
+            _projectContext.SetCurrentProject(CurrentProject.Id);
+            _navigationService.NavigateTo("Voices", CurrentProject.Id);
+        }
+        catch
+        {
+            // Fallback: create voice with basic info
+            var voice = new Voice
+            {
+                ProjectId = CurrentProject.Id,
+                Name = $"{character.Name}的音色",
+                Gender = character.Gender,
+                Tone = character.Personality,
+                Description = $"{character.Gender}，{character.Personality}",
+                SampleText = $"我叫{character.Name}，{character.Role}。{character.Personality}"
+            };
+
+            await _voiceRepository.CreateAsync(voice);
+            _projectContext.SetCurrentProject(CurrentProject.Id);
+            _navigationService.NavigateTo("Voices", CurrentProject.Id);
+        }
     }
 
     [RelayCommand]
