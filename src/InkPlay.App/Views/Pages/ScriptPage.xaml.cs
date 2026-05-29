@@ -272,4 +272,52 @@ public sealed partial class ScriptPage : Page, IParameterizedPage
             e.Handled = true;
         }
     }
+
+    private void RenameEpisode_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Guid episodeId)
+        {
+            var episode = ViewModel.Episodes.FirstOrDefault(ep => ep.Id == episodeId);
+            if (episode is not null)
+            {
+                ViewModel.SelectEpisodeCommand.Execute(episode);
+                RenameInput.Text = episode.Title;
+                RenameDialog.Visibility = Visibility.Visible;
+            }
+        }
+    }
+
+    private void CancelRename_Click(object sender, RoutedEventArgs e)
+    {
+        RenameDialog.Visibility = Visibility.Collapsed;
+    }
+
+    private async void ConfirmRename_Click(object sender, RoutedEventArgs e)
+    {
+        var newTitle = RenameInput.Text?.Trim();
+        if (!string.IsNullOrEmpty(newTitle) && ViewModel.CurrentEpisode is not null)
+        {
+            ViewModel.CurrentEpisode.Title = newTitle;
+            await ViewModel.SaveEpisodeContentCommand.ExecuteAsync(null);
+            var index = ViewModel.Episodes.IndexOf(ViewModel.CurrentEpisode);
+            if (index >= 0)
+            {
+                ViewModel.Episodes[index] = ViewModel.CurrentEpisode;
+            }
+        }
+        RenameDialog.Visibility = Visibility.Collapsed;
+    }
+
+    private void DeleteEpisodeMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem item && item.Tag is Guid episodeId)
+        {
+            var episode = ViewModel.Episodes.FirstOrDefault(ep => ep.Id == episodeId);
+            if (episode is not null)
+            {
+                ViewModel.SelectEpisodeCommand.Execute(episode);
+                ViewModel.DeleteEpisodeCommand.Execute(null);
+            }
+        }
+    }
 }

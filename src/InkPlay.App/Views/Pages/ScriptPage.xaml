@@ -54,6 +54,13 @@
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="models:Document">
                             <Grid Padding="8,6">
+                                <Grid.ContextFlyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Text="重命名" Click="RenameEpisode_Click" Tag="{x:Bind Id}" />
+                                        <MenuFlyoutItem Text="删除" Click="DeleteEpisodeMenu_Click" Tag="{x:Bind Id}"
+                                                        Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                    </MenuFlyout>
+                                </Grid.ContextFlyout>
                                 <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold" />
                             </Grid>
                         </DataTemplate>
@@ -167,6 +174,25 @@
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
+            </Grid>
+
+            <!-- Rename Dialog -->
+            <Grid x:Name="RenameDialog" Grid.RowSpan="2" Grid.ColumnSpan="3"
+                  Background="{ThemeResource SmokeFillColorDefaultBrush}"
+                  Visibility="Collapsed">
+                <Grid Width="360" Padding="24"
+                      VerticalAlignment="Center" HorizontalAlignment="Center"
+                      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                      CornerRadius="8">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="重命名大纲" FontSize="20" FontWeight="SemiBold" />
+                        <TextBox x:Name="RenameInput" Header="标题" />
+                        <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                            <Button Content="取消" Click="CancelRename_Click" />
+                            <Button Content="确定" Style="{ThemeResource AccentButtonStyle}" Click="ConfirmRename_Click" />
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
             </Grid>
 
             <!-- Right: AI Panel -->

@@ -174,6 +174,18 @@ public partial class ScriptViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task DeleteEpisodeAsync()
+    {
+        if (CurrentEpisode is null) return;
+
+        await _documentRepository.DeleteAsync(CurrentEpisode.Id);
+        Episodes.Remove(CurrentEpisode);
+        CurrentEpisode = null;
+        IsEpisodeSelected = false;
+        EpisodeContent = string.Empty;
+    }
+
+    [RelayCommand]
     private void SelectEpisode(Document? episode)
     {
         if (episode is null)
