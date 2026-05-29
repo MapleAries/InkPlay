@@ -53,5 +53,9 @@ launchSettings.json
 publish/
 
 ## LiteDB
+*.db
 *.db-shm
 *.db-wal
+
+## Settings (may contain API keys)
+settings.json
