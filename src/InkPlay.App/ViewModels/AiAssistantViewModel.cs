@@ -298,30 +298,6 @@ public partial class AiAssistantViewModel : ViewModelBase
         return count;
     }
 
-    // --- Markdown Formatting ---
-
-    [RelayCommand]
-    private void InsertMarkdown(string format)
-    {
-        var insertion = format switch
-        {
-            "bold" => "**",
-            "italic" => "*",
-            "strikethrough" => "~~",
-            "h1" => "# ",
-            "h2" => "## ",
-            "h3" => "### ",
-            "quote" => "> ",
-            "list" => "- ",
-            "orderedlist" => "1. ",
-            "hr" => "\n---\n",
-            _ => ""
-        };
-
-        ChapterContent += insertion;
-        OnContentChanged();
-    }
-
     // --- AI Chat ---
 
     [RelayCommand]

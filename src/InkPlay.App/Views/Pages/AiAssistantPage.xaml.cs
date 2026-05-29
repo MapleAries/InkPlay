@@ -48,15 +48,6 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         ViewModel.SaveChapterCommand.Execute(null);
     }
 
-    // Format toolbar
-    private void Format_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && button.Tag is string format)
-        {
-            ViewModel.InsertMarkdownCommand.Execute(format);
-        }
-    }
-
     private void EditorBox_TextChanged(object sender, RoutedEventArgs e)
     {
         ViewModel.OnContentChanged();

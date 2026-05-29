@@ -97,31 +97,12 @@
                 <!-- Editor -->
                 <Grid Visibility="{x:Bind ViewModel.IsChapterSelected, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <!-- Format Toolbar -->
-                    <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,8">
-                            <Button Content="B" Click="Format_Click" Tag="bold" FontWeight="Bold" Padding="8,4" />
-                            <Button Content="I" Click="Format_Click" Tag="italic" FontStyle="Italic" Padding="8,4" />
-                            <Button Content="S" Click="Format_Click" Tag="strikethrough" Padding="8,4" />
-                            <TextBlock Text="|" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            <Button Content="H1" Click="Format_Click" Tag="h1" Padding="8,4" />
-                            <Button Content="H2" Click="Format_Click" Tag="h2" Padding="8,4" />
-                            <Button Content="H3" Click="Format_Click" Tag="h3" Padding="8,4" />
-                            <TextBlock Text="|" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            <Button Content="引用" Click="Format_Click" Tag="quote" Padding="8,4" />
-                            <Button Content="列表" Click="Format_Click" Tag="list" Padding="8,4" />
-                            <Button Content="有序" Click="Format_Click" Tag="orderedlist" Padding="8,4" />
-                            <Button Content="分隔" Click="Format_Click" Tag="hr" Padding="8,4" />
-                        </StackPanel>
-                    </ScrollViewer>
-
                     <!-- Text Editor -->
-                    <TextBox Grid.Row="1"
+                    <TextBox Grid.Row="0"
                              x:Name="EditorBox"
                              Text="{x:Bind ViewModel.ChapterContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              TextChanged="EditorBox_TextChanged"
@@ -130,7 +111,7 @@
                              Padding="12" />
 
                     <!-- Status Bar -->
-                    <Grid Grid.Row="2" Margin="0,8,0,0">
+                    <Grid Grid.Row="1" Margin="0,8,0,0">
                         <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
                             <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}">
                                 <Run Text="字数：" />
