@@ -21,6 +21,9 @@ public partial class VideoGenerationViewModel : ViewModelBase
     private bool _hasProject;
 
     [ObservableProperty]
+    private string _currentProjectTitle = string.Empty;
+
+    [ObservableProperty]
     private string _prompt = string.Empty;
 
     [ObservableProperty]
@@ -65,10 +68,12 @@ public partial class VideoGenerationViewModel : ViewModelBase
         {
             var project = await _projectRepository.GetByIdAsync(projectId.Value);
             HasProject = project is not null;
+            CurrentProjectTitle = project?.Title ?? "";
         }
         else
         {
             HasProject = false;
+            CurrentProjectTitle = "";
         }
     }
 

@@ -20,13 +20,23 @@
 
         <!-- Main Content -->
         <Grid Visibility="{x:Bind ViewModel.HasProject, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="400" />
             </Grid.ColumnDefinitions>
 
-        <!-- Left: Config Panel -->
-        <ScrollViewer Grid.Column="0" Padding="24">
+            <!-- Project Title -->
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
+                       Text="{x:Bind ViewModel.CurrentProjectTitle, Mode=OneWay}"
+                       FontSize="14" FontWeight="SemiBold" Padding="12,8"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+            <!-- Left: Config Panel -->
+            <ScrollViewer Grid.Row="1" Grid.Column="0" Padding="24">
             <StackPanel Spacing="16" MaxWidth="600">
                 <TextBlock Text="视频生成" FontSize="20" FontWeight="SemiBold" />
 
@@ -78,7 +88,7 @@
         </ScrollViewer>
 
         <!-- Right: Preview/Results -->
-        <Grid Grid.Column="1" Padding="16"
+        <Grid Grid.Row="1" Grid.Column="1" Padding="16"
               Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
