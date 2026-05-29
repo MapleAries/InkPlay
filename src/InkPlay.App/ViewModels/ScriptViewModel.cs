@@ -23,6 +23,9 @@ public partial class ScriptViewModel : ViewModelBase
     private Project? _currentProject;
 
     [ObservableProperty]
+    private bool _hasProject;
+
+    [ObservableProperty]
     private ObservableCollection<Document> _episodes = new();
 
     [ObservableProperty]
@@ -97,11 +100,16 @@ public partial class ScriptViewModel : ViewModelBase
         if (projectId.HasValue)
         {
             CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
+            HasProject = CurrentProject is not null;
             if (CurrentProject is not null)
             {
                 await LoadEpisodesAsync();
                 await LoadCharactersAsync();
             }
+        }
+        else
+        {
+            HasProject = false;
         }
     }
 

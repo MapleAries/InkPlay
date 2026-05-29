@@ -16,6 +16,9 @@ public partial class VideoGenerationViewModel : ViewModelBase
     private CancellationTokenSource? _pollingCts;
 
     [ObservableProperty]
+    private bool _hasProject = true; // 视频生成不需要项目上下文，默认true
+
+    [ObservableProperty]
     private string _prompt = string.Empty;
 
     [ObservableProperty]

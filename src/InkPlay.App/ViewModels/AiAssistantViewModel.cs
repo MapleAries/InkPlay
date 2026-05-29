@@ -20,6 +20,9 @@ public partial class AiAssistantViewModel : ViewModelBase
     private Project? _currentProject;
 
     [ObservableProperty]
+    private bool _hasProject;
+
+    [ObservableProperty]
     private string _userInput = string.Empty;
 
     [ObservableProperty]
@@ -56,6 +59,11 @@ public partial class AiAssistantViewModel : ViewModelBase
         if (_projectContext.CurrentProjectId.HasValue)
         {
             _currentProject = await _projectRepository.GetByIdAsync(_projectContext.CurrentProjectId.Value);
+            HasProject = _currentProject is not null;
+        }
+        else
+        {
+            HasProject = false;
         }
     }
 

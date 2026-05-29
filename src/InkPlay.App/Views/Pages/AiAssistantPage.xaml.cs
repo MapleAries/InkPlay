@@ -1,3 +1,4 @@
+using InkPlay.App.Services;
 using InkPlay.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -8,13 +9,20 @@ namespace InkPlay.App.Views.Pages;
 public sealed partial class AiAssistantPage : Page
 {
     public AiAssistantViewModel ViewModel { get; }
+    private readonly NavigationService _navigationService;
 
-    public AiAssistantPage(AiAssistantViewModel viewModel)
+    public AiAssistantPage(AiAssistantViewModel viewModel, NavigationService navigationService)
     {
         ViewModel = viewModel;
+        _navigationService = navigationService;
         InitializeComponent();
         DataContext = ViewModel;
         Loaded += (_, _) => ViewModel.NavigatedTo(null);
+    }
+
+    private void GoHome_Click(object sender, RoutedEventArgs e)
+    {
+        _navigationService.NavigateTo("Home");
     }
 
     private void Continue_Click(object sender, RoutedEventArgs e)

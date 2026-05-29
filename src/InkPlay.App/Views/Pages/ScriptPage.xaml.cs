@@ -1,3 +1,4 @@
+using InkPlay.App.Services;
 using InkPlay.App.ViewModels;
 using InkPlay.Core.Models;
 using Microsoft.UI.Xaml;
@@ -9,16 +10,23 @@ namespace InkPlay.App.Views.Pages;
 public sealed partial class ScriptPage : Page, IParameterizedPage
 {
     public ScriptViewModel ViewModel { get; }
+    private readonly NavigationService _navigationService;
 
-    public ScriptPage(ScriptViewModel viewModel)
+    public ScriptPage(ScriptViewModel viewModel, NavigationService navigationService)
     {
         ViewModel = viewModel;
+        _navigationService = navigationService;
         InitializeComponent();
     }
 
     public void SetParameter(object? parameter)
     {
         ViewModel.NavigatedTo(parameter);
+    }
+
+    private void GoHome_Click(object sender, RoutedEventArgs e)
+    {
+        _navigationService.NavigateTo("Home");
     }
 
     private void AddEpisode_Click(object sender, RoutedEventArgs e)

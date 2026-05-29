@@ -8,10 +8,21 @@
     mc:Ignorable="d">
 
     <Grid Padding="24">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="360" />
-        </Grid.ColumnDefinitions>
+        <!-- No Project State -->
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{x:Bind ViewModel.HasProject, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+            <TextBlock Text="请先在书架选择一本小说" FontSize="18"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            <Button Content="前往书架" Margin="0,16,0,0"
+                    Click="GoHome_Click" />
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Visibility="{x:Bind ViewModel.HasProject, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="360" />
+            </Grid.ColumnDefinitions>
 
         <!-- Left: Context & Quick Actions -->
         <Grid Grid.Column="0" Margin="0,0,24,0">
@@ -108,6 +119,7 @@
                 <Button Grid.Column="2" Content="复制" Margin="8,0,0,0"
                         Click="Copy_Click" />
             </Grid>
+        </Grid>
         </Grid>
     </Grid>
 </Page>
