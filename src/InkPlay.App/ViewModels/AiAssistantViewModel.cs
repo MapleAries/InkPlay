@@ -232,6 +232,13 @@ public partial class AiAssistantViewModel : ViewModelBase
         await _documentRepository.UpdateAsync(CurrentChapter);
         WordCount = CurrentChapter.WordCount;
         SaveStatus = "已保存";
+
+        // Update the chapter in the list to reflect new word count
+        var index = Chapters.IndexOf(CurrentChapter);
+        if (index >= 0)
+        {
+            Chapters[index] = CurrentChapter;
+        }
     }
 
     private async Task SaveChapterSilentAsync()
@@ -242,6 +249,13 @@ public partial class AiAssistantViewModel : ViewModelBase
         await _documentRepository.UpdateAsync(CurrentChapter);
         WordCount = CurrentChapter.WordCount;
         SaveStatus = "已保存";
+
+        // Update the chapter in the list to reflect new word count
+        var index = Chapters.IndexOf(CurrentChapter);
+        if (index >= 0)
+        {
+            Chapters[index] = CurrentChapter;
+        }
     }
 
     [RelayCommand]
