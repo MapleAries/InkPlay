@@ -19,6 +19,7 @@
             <NavigationViewItem Content="角色设计" Icon="People" Tag="Characters" />
             <NavigationViewItem Content="章节写作" Icon="Edit" Tag="AiAssistant" />
             <NavigationViewItem Content="视频生成" Icon="Play" Tag="VideoGeneration" />
+            <NavigationViewItem Content="音色管理" Icon="Audio" Tag="Voices" />
         </NavigationView.MenuItems>
 
         <NavigationView.FooterMenuItems>

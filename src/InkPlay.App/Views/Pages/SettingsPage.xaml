@@ -148,6 +148,69 @@
                     </ItemsControl>
                 </StackPanel>
 
+                <!-- Voice API Keys Section -->
+                <StackPanel Spacing="12">
+                    <Grid>
+                        <TextBlock Text="语音合成 API" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        <Button Content="添加" HorizontalAlignment="Right"
+                                Click="AddVoiceKey_Click" />
+                    </Grid>
+                    <TextBlock Text="用于角色音色管理和语音合成功能"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" FontSize="13" />
+
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.VoiceApiKeys, Mode=OneWay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:ApiKeyConfig"
+                                          xmlns:models="using:InkPlay.Core.Models">
+                                <Grid Padding="12,10"
+                                      Margin="0,0,0,8"
+                                      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                      CornerRadius="8"
+                                      BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                      BorderThickness="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <SymbolIcon Grid.Column="0" Grid.RowSpan="2"
+                                                Symbol="Accept"
+                                                VerticalAlignment="Center" Margin="0,0,12,0"
+                                                Visibility="{x:Bind IsDefault, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{x:Bind Name}" FontSize="15" FontWeight="SemiBold" />
+                                        <TextBlock Text="{x:Bind ModelId}" FontSize="13"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="1" Grid.Row="1"
+                                               Text="{x:Bind BaseUrl}" FontSize="12"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                               Margin="0,4,0,0" />
+
+                                    <StackPanel Grid.Column="2" Grid.RowSpan="2"
+                                                Orientation="Horizontal" Spacing="4"
+                                                VerticalAlignment="Center">
+                                        <Button Content="默认" Click="SetDefault_Click"
+                                                Tag="{x:Bind Id}" />
+                                        <Button Content="编辑" Click="EditKey_Click"
+                                                Tag="{x:Bind Id}" />
+                                        <Button Content="删除" Click="DeleteKey_Click"
+                                                Tag="{x:Bind Id}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
                 <!-- Edit Panel (overlay) -->
                 <Grid Visibility="{x:Bind ViewModel.IsEditing, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                       Padding="16"

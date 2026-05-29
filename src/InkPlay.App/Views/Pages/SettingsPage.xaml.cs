@@ -27,6 +27,11 @@ public sealed partial class SettingsPage : Page
         ViewModel.AddVideoKeyCommand.Execute(null);
     }
 
+    private void AddVoiceKey_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.AddVoiceKeyCommand.Execute(null);
+    }
+
     private void EditKey_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is Guid id)
@@ -67,6 +72,7 @@ public sealed partial class SettingsPage : Page
     private ApiKeyConfig? FindKeyById(Guid id)
     {
         return ViewModel.TextApiKeys.FirstOrDefault(k => k.Id == id)
-            ?? ViewModel.VideoApiKeys.FirstOrDefault(k => k.Id == id);
+            ?? ViewModel.VideoApiKeys.FirstOrDefault(k => k.Id == id)
+            ?? ViewModel.VoiceApiKeys.FirstOrDefault(k => k.Id == id);
     }
 }

@@ -24,6 +24,7 @@ public class InkPlayDbContext : IDisposable
         => _db.GetCollection<CharacterRelationship>("relationships");
     public ILiteCollection<WorldSetting> WorldSettings => _db.GetCollection<WorldSetting>("world_settings");
     public ILiteCollection<AiConversation> Conversations => _db.GetCollection<AiConversation>("conversations");
+    public ILiteCollection<Voice> Voices => _db.GetCollection<Voice>("voices");
 
     public void Dispose() => _db.Dispose();
 }

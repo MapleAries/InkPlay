@@ -17,6 +17,9 @@ public partial class SettingsViewModel : ViewModelBase
     private ObservableCollection<ApiKeyConfig> _videoApiKeys = new();
 
     [ObservableProperty]
+    private ObservableCollection<ApiKeyConfig> _voiceApiKeys = new();
+
+    [ObservableProperty]
     private ApiKeyConfig? _editingKey;
 
     [ObservableProperty]
@@ -64,6 +67,9 @@ public partial class SettingsViewModel : ViewModelBase
 
         var videoKeys = _settingsService.GetApiKeys(ApiKeyCategory.Video);
         VideoApiKeys = new ObservableCollection<ApiKeyConfig>(videoKeys);
+
+        var voiceKeys = _settingsService.GetApiKeys(ApiKeyCategory.Voice);
+        VoiceApiKeys = new ObservableCollection<ApiKeyConfig>(voiceKeys);
     }
 
     [RelayCommand]
@@ -76,6 +82,12 @@ public partial class SettingsViewModel : ViewModelBase
     private void AddVideoKey()
     {
         StartEdit(new ApiKeyConfig { Category = ApiKeyCategory.Video }, isNew: true);
+    }
+
+    [RelayCommand]
+    private void AddVoiceKey()
+    {
+        StartEdit(new ApiKeyConfig { Category = ApiKeyCategory.Voice }, isNew: true);
     }
 
     [RelayCommand]

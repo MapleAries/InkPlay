@@ -14,5 +14,6 @@ public class ApiKeyConfig
 public enum ApiKeyCategory
 {
     Text,
-    Video
+    Video,
+    Voice
 }

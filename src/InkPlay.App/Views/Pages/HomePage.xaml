@@ -176,6 +176,12 @@
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Left"
                             Padding="16,12" FontSize="16" />
+
+                    <Button Content="音色管理" Tag="Voices"
+                            Click="NavigateToFeature_Click"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="16,12" FontSize="16" />
                 </StackPanel>
 
                 <Button Grid.Row="4" Content="取消"
