@@ -72,7 +72,7 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <Button Grid.Row="2" Content="导出 Markdown" Click="Export_Click"
+                <Button Grid.Row="2" Content="导出全文" Click="Export_Click"
                         HorizontalAlignment="Stretch" Margin="0,8,0,0" />
             </Grid>
 
