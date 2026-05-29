@@ -237,5 +237,32 @@
                 </StackPanel>
             </Grid>
         </Grid>
+
+        <!-- Directory Not Found Dialog -->
+        <Grid x:Name="DirectoryNotFoundDialog" Grid.RowSpan="2"
+              Background="{ThemeResource SmokeFillColorDefaultBrush}"
+              Visibility="Collapsed">
+            <Grid Width="360" Padding="24"
+                  VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  CornerRadius="8">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="目录不存在" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock TextWrapping="Wrap"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}">
+                        <Run Text="小说" />
+                        <Run Text="{x:Bind ViewModel.EditProjectTitle, Mode=OneWay}" FontWeight="SemiBold" />
+                        <Run Text="的本地目录已被删除或移动。是否从书架中移除？" />
+                    </TextBlock>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Content="取消" Click="CancelRemove_Click" />
+                        <Button Content="从书架移除" Style="{StaticResource AccentButtonStyle}"
+                                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                Click="RemoveFromIndex_Click" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>

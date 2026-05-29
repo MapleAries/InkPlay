@@ -75,9 +75,32 @@ public sealed partial class HomePage : Page
     {
         if (e.ClickedItem is Project project)
         {
+            if (!ViewModel.IsProjectDirectoryExists(project))
+            {
+                // 目录不存在，提示用户
+                ViewModel.SelectedProject = project;
+                ViewModel.EditProjectTitle = project.Title;
+                DirectoryNotFoundDialog.Visibility = Visibility.Visible;
+                return;
+            }
+
             ViewModel.SelectedProject = project;
             ActionsDialog.Visibility = Visibility.Visible;
         }
+    }
+
+    private async void RemoveFromIndex_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedProject is not null)
+        {
+            await ViewModel.RemoveProjectFromIndexCommand.ExecuteAsync(ViewModel.SelectedProject);
+        }
+        DirectoryNotFoundDialog.Visibility = Visibility.Collapsed;
+    }
+
+    private void CancelRemove_Click(object sender, RoutedEventArgs e)
+    {
+        DirectoryNotFoundDialog.Visibility = Visibility.Collapsed;
     }
 
     private void NavigateToFeature_Click(object sender, RoutedEventArgs e)
