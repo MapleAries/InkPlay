@@ -593,18 +593,25 @@ public partial class AiAssistantViewModel : ViewModelBase
                 PipelineTotalSteps = p.TotalSteps;
                 CurrentAgentName = p.AgentName;
 
-                // Agent status line
-                PipelineStatus = p.Status switch
+                // Priority: revision status > StatusMessage > status-based message
+                if (p.Status == "revision")
                 {
-                    "running" => $"{p.AgentName} 正在工作...",
-                    "completed" => $"{p.AgentName} 完成",
-                    "failed" => $"{p.AgentName} 失败",
-                    "revision" => $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）",
-                    _ => p.Status
-                };
-
-                // Detail message below
-                PipelineDetailMessage = !string.IsNullOrEmpty(p.StatusMessage) ? p.StatusMessage : "";
+                    PipelineStatus = $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）";
+                }
+                else if (!string.IsNullOrEmpty(p.StatusMessage))
+                {
+                    PipelineStatus = p.StatusMessage;
+                }
+                else
+                {
+                    PipelineStatus = p.Status switch
+                    {
+                        "running" => $"{p.AgentName} 正在工作...",
+                        "completed" => $"{p.AgentName} 完成",
+                        "failed" => $"{p.AgentName} 失败",
+                        _ => p.Status
+                    };
+                }
             });
 
             var result = await _orchestrator.AutoWriteChapterAsync(agentContext, progress, _aiCts.Token);
@@ -710,18 +717,25 @@ public partial class AiAssistantViewModel : ViewModelBase
                     CompletedChapters = p.CompletedChapters;
                 }
 
-                // Agent status line
-                PipelineStatus = p.Status switch
+                // Priority: revision status > StatusMessage > status-based message
+                if (p.Status == "revision")
                 {
-                    "running" => $"{p.AgentName} 正在工作...",
-                    "completed" => $"{p.AgentName} 完成",
-                    "failed" => $"{p.AgentName} 失败",
-                    "revision" => $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）",
-                    _ => p.Status
-                };
-
-                // Detail message below
-                PipelineDetailMessage = !string.IsNullOrEmpty(p.StatusMessage) ? p.StatusMessage : "";
+                    PipelineStatus = $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）";
+                }
+                else if (!string.IsNullOrEmpty(p.StatusMessage))
+                {
+                    PipelineStatus = p.StatusMessage;
+                }
+                else
+                {
+                    PipelineStatus = p.Status switch
+                    {
+                        "running" => $"{p.AgentName} 正在工作...",
+                        "completed" => $"{p.AgentName} 完成",
+                        "failed" => $"{p.AgentName} 失败",
+                        _ => p.Status
+                    };
+                }
             });
 
             int completed = 0;
