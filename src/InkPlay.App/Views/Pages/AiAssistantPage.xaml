@@ -249,6 +249,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
@@ -274,14 +275,20 @@
                            Text="{x:Bind ViewModel.AgentProgressText, Mode=OneWay}"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
+                <!-- Chapter Progress (batch writing) -->
+                <TextBlock Grid.Row="4" Margin="0,0,0,4"
+                           Visibility="{x:Bind ViewModel.ChapterProgressText, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"
+                           Text="{x:Bind ViewModel.ChapterProgressText, Mode=OneWay}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
                 <!-- Revision Progress -->
-                <TextBlock Grid.Row="4" Margin="0,0,0,8"
+                <TextBlock Grid.Row="5" Margin="0,0,0,8"
                            Visibility="{x:Bind ViewModel.IsRevising, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                            Text="{x:Bind ViewModel.RevisionProgressText, Mode=OneWay}"
                            Foreground="{ThemeResource SystemFillColorCautionBrush}" />
 
                 <!-- Chat Messages (hidden when auto-writing) -->
-                <ScrollViewer Grid.Row="5"
+                <ScrollViewer Grid.Row="6"
                               Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
                     <StackPanel Spacing="8">
                         <ItemsControl ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}">
@@ -315,7 +322,7 @@
                 </ScrollViewer>
 
                 <!-- Input / Cancel Button -->
-                <Grid Grid.Row="6" Margin="0,8,0,0">
+                <Grid Grid.Row="7" Margin="0,8,0,0">
                     <!-- Normal Input (hidden when auto-writing) -->
                     <Grid Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
                         <Grid.ColumnDefinitions>

@@ -94,6 +94,9 @@ public partial class AiAssistantViewModel : ViewModelBase
     private string _agentProgressText = string.Empty;
 
     [ObservableProperty]
+    private string _chapterProgressText = string.Empty;
+
+    [ObservableProperty]
     private string _revisionProgressText = string.Empty;
 
     [ObservableProperty]
@@ -116,6 +119,9 @@ public partial class AiAssistantViewModel : ViewModelBase
 
     [ObservableProperty]
     private int _completedChapters;
+
+    [ObservableProperty]
+    private string _currentWritingChapter = string.Empty;
 
     // Cost estimation
     [ObservableProperty]
@@ -746,11 +752,22 @@ public partial class AiAssistantViewModel : ViewModelBase
                 PipelineTotalSteps = p.TotalSteps;
                 CurrentAgentName = p.AgentName;
 
-                // Update chapter progress
-                if (p.TotalChapters > 0)
+                // Update chapter progress - only when chapter changes
+                if (p.TotalChapters > 0 && p.StreamingContent != null)
                 {
                     TotalChapters = p.TotalChapters;
                     CompletedChapters = p.CompletedChapters;
+                    CurrentWritingChapter = p.StreamingContent.Replace("正在写作: ", "");
+                    ChapterProgressText = $"正在创作「{CurrentWritingChapter}」，已完成 {p.CompletedChapters}/{p.TotalChapters} 章";
+                }
+                else if (p.TotalChapters > 0)
+                {
+                    // Update completion count without changing chapter name
+                    CompletedChapters = p.CompletedChapters;
+                    if (!string.IsNullOrEmpty(CurrentWritingChapter))
+                    {
+                        ChapterProgressText = $"正在创作「{CurrentWritingChapter}」，已完成 {p.CompletedChapters}/{p.TotalChapters} 章";
+                    }
                 }
 
                 // Agent progress
@@ -800,6 +817,7 @@ public partial class AiAssistantViewModel : ViewModelBase
             // Reload chapters
             await LoadChaptersAsync();
             AgentProgressText = $"批量写作完成！共完成 {completed} 个章节";
+            ChapterProgressText = "";
             RevisionProgressText = "";
         }
         catch (OperationCanceledException)
