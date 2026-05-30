@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using InkPlay.Core.Enums;
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
 
@@ -113,7 +114,7 @@ public partial class AssetsViewModel : ObservableObject
 
         var sampleChapters = await _documentRepository.GetByProjectIdAsync(CurrentProject.Id);
         SampleChapters = new ObservableCollection<Document>(
-            sampleChapters.Where(d => d.Type == "Note" || d.Type == "Sample"));
+            sampleChapters.Where(d => d.Type == DocumentType.Note || d.Type == DocumentType.Script));
     }
 
     // 世界观 CRUD
