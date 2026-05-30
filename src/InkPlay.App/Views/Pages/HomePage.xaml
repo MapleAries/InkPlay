@@ -224,6 +224,12 @@
                             HorizontalContentAlignment="Left"
                             Padding="16,12" FontSize="16" />
 
+                    <Button Content="资料库" Tag="Assets"
+                            Click="NavigateToFeature_Click"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Left"
+                            Padding="16,12" FontSize="16" />
+
                     <Button Content="剧本管理" Tag="ScriptManagement"
                             Click="NavigateToFeature_Click"
                             HorizontalAlignment="Stretch"

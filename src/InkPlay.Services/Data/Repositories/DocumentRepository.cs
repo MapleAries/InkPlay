@@ -9,12 +9,14 @@ public class DocumentRepository : IDocumentRepository
     private readonly InkPlayDbContext _db;
     private readonly IProjectRepository _projectRepository;
     private readonly IFileProjectService _fileProjectService;
+    private readonly IDocumentVersionRepository _versionRepository;
 
-    public DocumentRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService)
+    public DocumentRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService, IDocumentVersionRepository versionRepository)
     {
         _db = db;
         _projectRepository = projectRepository;
         _fileProjectService = fileProjectService;
+        _versionRepository = versionRepository;
     }
 
     public Task<Document?> GetByIdAsync(Guid id)
@@ -45,8 +47,26 @@ public class DocumentRepository : IDocumentRepository
         return document;
     }
 
-    public async Task UpdateAsync(Document document)
+    public async Task UpdateAsync(Document document, string changeSource = "ManualEdit", string changeSummary = "")
     {
+        // 获取旧版本用于快照
+        var existing = _db.Documents.FindById(document.Id);
+        if (existing != null && existing.Content != document.Content)
+        {
+            // 创建版本快照（保存旧内容）
+            var version = new DocumentVersion
+            {
+                DocumentId = document.Id,
+                ProjectId = document.ProjectId,
+                Content = existing.Content,
+                Title = existing.Title,
+                WordCount = existing.WordCount,
+                ChangeSource = changeSource,
+                ChangeSummary = changeSummary
+            };
+            await _versionRepository.CreateAsync(version);
+        }
+
         document.UpdatedAt = DateTime.UtcNow;
         document.WordCount = CalculateWordCount(document.Content);
         _db.Documents.Update(document);

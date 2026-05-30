@@ -132,6 +132,33 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         }
     }
 
+    private async void VersionHistory_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.LoadVersionHistoryCommand.ExecuteAsync(null);
+    }
+
+    private void CloseVersionHistory_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.CloseVersionHistoryCommand.Execute(null);
+    }
+
+    private void VersionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // Version selection handled by restore button
+    }
+
+    private async void RestoreVersion_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && button.Tag is Guid versionId)
+        {
+            var version = ViewModel.VersionHistory.FirstOrDefault(v => v.Id == versionId);
+            if (version is not null)
+            {
+                await ViewModel.RestoreVersionCommand.ExecuteAsync(version);
+            }
+        }
+    }
+
     private void UserInput_KeyDown(object sender, KeyRoutedEventArgs e)
     {
         if (e.Key == Windows.System.VirtualKey.Enter)

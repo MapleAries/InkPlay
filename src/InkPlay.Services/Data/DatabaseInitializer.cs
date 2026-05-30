@@ -11,5 +11,8 @@ public static class DatabaseInitializer
         db.Relationships.EnsureIndex(x => x.ProjectId);
         db.WorldSettings.EnsureIndex(x => x.ProjectId);
         db.Conversations.EnsureIndex(x => x.ProjectId);
+        db.GlossaryEntries.EnsureIndex(x => x.ProjectId);
+        db.DocumentVersions.EnsureIndex(x => x.DocumentId);
+        db.DocumentVersions.EnsureIndex(x => x.SnapshotAt);
     }
 }

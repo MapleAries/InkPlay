@@ -18,6 +18,7 @@ public partial class AiAssistantViewModel : ViewModelBase
     private readonly IExportService _exportService;
     private readonly IProjectContext _projectContext;
     private readonly IProjectRepository _projectRepository;
+    private readonly IDocumentVersionRepository _versionRepository;
     private CancellationTokenSource? _aiCts;
     private AiConversation? _currentConversation;
     private Project? _currentProject;
@@ -81,6 +82,13 @@ public partial class AiAssistantViewModel : ViewModelBase
     [ObservableProperty]
     private ApiKeyConfig? _selectedModel;
 
+    // Version history
+    [ObservableProperty]
+    private ObservableCollection<DocumentVersion> _versionHistory = new();
+
+    [ObservableProperty]
+    private bool _isVersionHistoryVisible;
+
     public AiAssistantViewModel(
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
@@ -88,7 +96,8 @@ public partial class AiAssistantViewModel : ViewModelBase
         IConversationRepository conversationRepository,
         IExportService exportService,
         IProjectContext projectContext,
-        IProjectRepository projectRepository)
+        IProjectRepository projectRepository,
+        IDocumentVersionRepository versionRepository)
     {
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
@@ -97,6 +106,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         _exportService = exportService;
         _projectContext = projectContext;
         _projectRepository = projectRepository;
+        _versionRepository = versionRepository;
 
         SetupAutoSave();
     }
@@ -256,7 +266,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         SaveStatus = "保存中...";
         CurrentChapter.Title = ChapterTitle;
         CurrentChapter.Content = CombineTitleAndContent(ChapterTitle, ChapterContent);
-        await _documentRepository.UpdateAsync(CurrentChapter);
+        await _documentRepository.UpdateAsync(CurrentChapter, "ManualEdit", "手动保存");
         WordCount = CurrentChapter.WordCount;
         SaveStatus = "已保存";
     }
@@ -267,9 +277,46 @@ public partial class AiAssistantViewModel : ViewModelBase
 
         CurrentChapter.Title = ChapterTitle;
         CurrentChapter.Content = CombineTitleAndContent(ChapterTitle, ChapterContent);
-        await _documentRepository.UpdateAsync(CurrentChapter);
+        await _documentRepository.UpdateAsync(CurrentChapter, "AutoSave", "自动保存");
         WordCount = CurrentChapter.WordCount;
         SaveStatus = "已保存";
+    }
+
+    // 版本历史
+    [RelayCommand]
+    private async Task LoadVersionHistoryAsync()
+    {
+        if (CurrentChapter is null) return;
+
+        var versions = await _versionRepository.GetByDocumentIdAsync(CurrentChapter.Id);
+        VersionHistory = new ObservableCollection<DocumentVersion>(versions);
+        IsVersionHistoryVisible = true;
+    }
+
+    [RelayCommand]
+    private void CloseVersionHistory()
+    {
+        IsVersionHistoryVisible = false;
+    }
+
+    [RelayCommand]
+    private async Task RestoreVersionAsync(DocumentVersion? version)
+    {
+        if (version == null || CurrentChapter is null) return;
+
+        // 保存当前版本
+        await SaveChapterAsync();
+
+        // 恢复到选中版本
+        ChapterContent = ExtractContent(version.Content);
+        ChapterTitle = version.Title;
+        WordCount = version.WordCount;
+
+        // 保存恢复后的内容
+        await _documentRepository.UpdateAsync(CurrentChapter, "ManualEdit", $"恢复到版本 {version.SnapshotAt:HH:mm:ss}");
+
+        IsVersionHistoryVisible = false;
+        await LoadVersionHistoryAsync();
     }
 
     [RelayCommand]

@@ -33,6 +33,9 @@ public partial class App : Application
                 services.AddSingleton<ICharacterRelationshipRepository, CharacterRelationshipRepository>();
                 services.AddSingleton<IConversationRepository, ConversationRepository>();
                 services.AddSingleton<IVoiceRepository, VoiceRepository>();
+                services.AddSingleton<IGlossaryRepository, GlossaryRepository>();
+                services.AddSingleton<IWorldSettingRepository, WorldSettingRepository>();
+                services.AddSingleton<IDocumentVersionRepository, DocumentVersionRepository>();
 
                 // AI
                 services.AddHttpClient<ClaudeProvider>();
@@ -86,6 +89,7 @@ public partial class App : Application
                 services.AddTransient<ViewModels.VideoGenerationViewModel>();
                 services.AddTransient<ViewModels.ScriptManagementViewModel>();
                 services.AddTransient<ViewModels.VoicesViewModel>();
+                services.AddTransient<ViewModels.AssetsViewModel>();
 
                 // Views
                 services.AddTransient<Views.MainWindow>();
@@ -97,6 +101,7 @@ public partial class App : Application
                 services.AddTransient<Views.Pages.VideoGenerationPage>();
                 services.AddTransient<Views.Pages.ScriptManagementPage>();
                 services.AddTransient<Views.Pages.VoicesPage>();
+                services.AddTransient<Views.Pages.AssetsPage>();
             })
             .Build();
 
