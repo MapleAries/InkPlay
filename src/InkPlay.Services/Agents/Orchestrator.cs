@@ -185,6 +185,7 @@ public class Orchestrator : IOrchestrator
         CancellationToken ct)
     {
         var agentName = _agents.TryGetValue(type, out var agent) ? agent.Name : type.ToString();
+        var actionVerb = GetAgentActionVerb(type);
 
         progress?.Report(new PipelineProgress
         {
@@ -192,7 +193,8 @@ public class Orchestrator : IOrchestrator
             AgentName = agentName,
             StepNumber = stepNumber,
             TotalSteps = totalSteps,
-            Status = "running"
+            Status = "running",
+            StatusMessage = $"{agentName} 正在{actionVerb}..."
         });
 
         var result = await ExecuteStepAsync(type, context, ct);
@@ -203,10 +205,28 @@ public class Orchestrator : IOrchestrator
             AgentName = agentName,
             StepNumber = stepNumber,
             TotalSteps = totalSteps,
-            Status = result.Success ? "completed" : "failed"
+            Status = result.Success ? "completed" : "failed",
+            StatusMessage = result.Success ? $"{agentName} {actionVerb}完成" : $"{agentName} {actionVerb}失败"
         });
 
         return result;
+    }
+
+    private static string GetAgentActionVerb(AgentType type)
+    {
+        return type switch
+        {
+            AgentType.Context => "分析上下文",
+            AgentType.Screenwriter => "编译规则",
+            AgentType.Architect => "设计骨架",
+            AgentType.Writer => "写作",
+            AgentType.Proofreader => "校对润色",
+            AgentType.Auditor => "审计质检",
+            AgentType.Reviser => "修订修正",
+            AgentType.Data => "提取数据",
+            AgentType.Planner => "规划大纲",
+            _ => "处理"
+        };
     }
 
     public CostEstimate EstimateCost(AgentContext context)

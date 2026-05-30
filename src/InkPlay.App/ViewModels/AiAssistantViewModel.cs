@@ -617,13 +617,15 @@ public partial class AiAssistantViewModel : ViewModelBase
                 PipelineStep = p.StepNumber;
                 PipelineTotalSteps = p.TotalSteps;
                 CurrentAgentName = p.AgentName;
-                PipelineStatus = p.Status switch
-                {
-                    "running" => $"{p.AgentName} 正在工作...",
-                    "completed" => $"{p.AgentName} 完成",
-                    "failed" => $"{p.AgentName} 失败",
-                    _ => p.Status
-                };
+                PipelineStatus = !string.IsNullOrEmpty(p.StatusMessage)
+                    ? p.StatusMessage
+                    : p.Status switch
+                    {
+                        "running" => $"{p.AgentName} 正在工作...",
+                        "completed" => $"{p.AgentName} 完成",
+                        "failed" => $"{p.AgentName} 失败",
+                        _ => p.Status
+                    };
             });
 
             var result = await _orchestrator.AutoWriteChapterAsync(agentContext, progress, _aiCts.Token);
@@ -694,7 +696,9 @@ public partial class AiAssistantViewModel : ViewModelBase
                 PipelineStep = p.StepNumber;
                 PipelineTotalSteps = p.TotalSteps;
                 CurrentAgentName = p.AgentName;
-                PipelineStatus = p.StreamingContent ?? $"{p.AgentName} - {p.Status}";
+                PipelineStatus = !string.IsNullOrEmpty(p.StatusMessage)
+                    ? p.StatusMessage
+                    : p.StreamingContent ?? $"{p.AgentName} - {p.Status}";
             });
 
             int completed = 0;

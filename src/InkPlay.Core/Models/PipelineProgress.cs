@@ -9,6 +9,7 @@ public class PipelineProgress
     public int StepNumber { get; set; }
     public int TotalSteps { get; set; }
     public string Status { get; set; } = string.Empty; // running/completed/failed/retrying
+    public string StatusMessage { get; set; } = string.Empty;
     public string? StreamingContent { get; set; }
     public int RetryAttempt { get; set; }
     public int MaxRetries { get; set; }
