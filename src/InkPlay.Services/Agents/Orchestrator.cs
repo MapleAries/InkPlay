@@ -162,6 +162,18 @@ public class Orchestrator : IOrchestrator
             }
 
             // Step 7: Reviser Agent - fix issues
+            progress?.Report(new PipelineProgress
+            {
+                CurrentAgent = AgentType.Reviser,
+                AgentName = "修订员",
+                StepNumber = 7,
+                TotalSteps = totalSteps,
+                Status = "revision",
+                StatusMessage = $"审计未通过，正在返工（第 {round + 1}/{MaxRevisionRounds} 轮）...",
+                RevisionRound = round + 1,
+                MaxRevisionRounds = MaxRevisionRounds
+            });
+
             var reviserResult = await ExecuteStepWithProgressAsync(AgentType.Reviser, context, 7, totalSteps, progress, ct);
             if (reviserResult.Success)
             {
@@ -284,6 +296,7 @@ public class Orchestrator : IOrchestrator
     {
         var completedChapters = new List<Document>(baseContext.Chapters);
         var totalChapters = chapters.Count;
+        var completedCount = 0;
 
         for (int i = 0; i < totalChapters; i++)
         {
@@ -292,11 +305,14 @@ public class Orchestrator : IOrchestrator
             progress?.Report(new PipelineProgress
             {
                 CurrentAgent = AgentType.Writer,
-                AgentName = $"章节 {i + 1}/{totalChapters}",
+                AgentName = $"第 {i + 1}/{totalChapters} 章",
                 StepNumber = 0,
                 TotalSteps = 7,
                 Status = "running",
-                StreamingContent = $"正在写作: {chapter.Title}"
+                StatusMessage = $"正在写作「{chapter.Title}」（已完成 {completedCount}/{totalChapters} 章）",
+                ChapterIndex = i + 1,
+                TotalChapters = totalChapters,
+                CompletedChapters = completedCount
             });
 
             // Build context for this chapter
@@ -318,6 +334,20 @@ public class Orchestrator : IOrchestrator
             {
                 chapter.Content = result.Content;
                 completedChapters.Add(chapter);
+                completedCount++;
+
+                progress?.Report(new PipelineProgress
+                {
+                    CurrentAgent = AgentType.Writer,
+                    AgentName = $"第 {i + 1}/{totalChapters} 章",
+                    StepNumber = 7,
+                    TotalSteps = 7,
+                    Status = "completed",
+                    StatusMessage = $"「{chapter.Title}」写作完成（已完成 {completedCount}/{totalChapters} 章）",
+                    ChapterIndex = i + 1,
+                    TotalChapters = totalChapters,
+                    CompletedChapters = completedCount
+                });
             }
 
             yield return result;
