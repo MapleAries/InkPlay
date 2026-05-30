@@ -165,6 +165,7 @@ public class Orchestrator : IOrchestrator
             progress?.Report(new PipelineProgress
             {
                 CurrentAgent = AgentType.Reviser,
+                AgentType = AgentType.Reviser,
                 AgentName = "修订员",
                 StepNumber = 7,
                 TotalSteps = totalSteps,
@@ -219,6 +220,7 @@ public class Orchestrator : IOrchestrator
         progress?.Report(new PipelineProgress
         {
             CurrentAgent = type,
+            AgentType = type,
             AgentName = agentName,
             StepNumber = stepNumber,
             TotalSteps = totalSteps,
@@ -231,6 +233,7 @@ public class Orchestrator : IOrchestrator
         progress?.Report(new PipelineProgress
         {
             CurrentAgent = type,
+            AgentType = type,
             AgentName = agentName,
             StepNumber = stepNumber,
             TotalSteps = totalSteps,
