@@ -19,6 +19,7 @@ public class DataAgent : BaseAgent
 4. 新埋设的伏笔
 5. 已回收的伏笔
 6. 角色关系变化
+7. 大纲更新建议（如有重大剧情转折）
 
 请严格按以下JSON格式返回：
 {
@@ -27,9 +28,10 @@ public class DataAgent : BaseAgent
   ""newLocations"": [""地点""],
   ""newForeshadowing"": [""伏笔描述""],
   ""resolvedForeshadowing"": [""已回收伏笔""],
-  ""relationshipChanges"": [{""From"":""角色A"",""To"":""角色B"",""Change"":""关系变化""}]
+  ""relationshipChanges"": [{""From"":""角色A"",""To"":""角色B"",""Change"":""关系变化""}],
+  ""outlineUpdate"": ""如果有重大剧情转折需要更新大纲，在此简要描述；否则留空""
 }
-只返回JSON，不要有其他文字。如果某个类别没有内容，返回空数组。";
+只返回JSON，不要有其他文字。如果某个类别没有内容，返回空数组或空字符串。";
 
     public DataAgent(IAiProviderFactory aiProviderFactory, ISettingsService settingsService)
         : base(aiProviderFactory, settingsService) { }

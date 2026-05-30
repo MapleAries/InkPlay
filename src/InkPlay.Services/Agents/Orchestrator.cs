@@ -10,12 +10,26 @@ public class Orchestrator : IOrchestrator
 {
     private readonly Dictionary<AgentType, IAgent> _agents;
     private readonly ICharacterRepository _characterRepository;
+    private readonly ICharacterRelationshipRepository _relationshipRepository;
+    private readonly IWorldSettingRepository _worldSettingRepository;
+    private readonly IDocumentRepository _documentRepository;
+    private readonly IGlossaryRepository _glossaryRepository;
     private const int MaxRevisionRounds = 3;
 
-    public Orchestrator(IEnumerable<IAgent> agents, ICharacterRepository characterRepository)
+    public Orchestrator(
+        IEnumerable<IAgent> agents,
+        ICharacterRepository characterRepository,
+        ICharacterRelationshipRepository relationshipRepository,
+        IWorldSettingRepository worldSettingRepository,
+        IDocumentRepository documentRepository,
+        IGlossaryRepository glossaryRepository)
     {
         _agents = agents.ToDictionary(a => a.Type);
         _characterRepository = characterRepository;
+        _relationshipRepository = relationshipRepository;
+        _worldSettingRepository = worldSettingRepository;
+        _documentRepository = documentRepository;
+        _glossaryRepository = glossaryRepository;
     }
 
     public async Task<AgentResult> ExecuteStepAsync(AgentType type, AgentContext context, CancellationToken ct = default)
@@ -121,6 +135,9 @@ public class Orchestrator : IOrchestrator
                 {
                     await PersistExtractedDataAsync(dataResult.Content, context);
                 }
+
+                // Update outline with chapter summary
+                await UpdateOutlineAsync(context, dataResult.Success ? dataResult.Content : null);
 
                 progress?.Report(new PipelineProgress
                 {
@@ -311,28 +328,133 @@ public class Orchestrator : IOrchestrator
     {
         try
         {
-            // Parse JSON output from DataAgent
             using var doc = JsonDocument.Parse(dataAgentOutput);
             var root = doc.RootElement;
 
-            // Extract new characters
+            // 1. New characters
             if (root.TryGetProperty("newCharacters", out var newChars) && newChars.ValueKind == JsonValueKind.Array)
             {
-                foreach (var charElement in newChars.EnumerateArray())
+                foreach (var el in newChars.EnumerateArray())
                 {
+                    var name = el.TryGetProperty("Name", out var n) ? n.GetString() ?? "" : "";
+                    if (string.IsNullOrWhiteSpace(name)) continue;
+
                     var character = new Character
                     {
                         ProjectId = context.Project.Id,
-                        Name = charElement.TryGetProperty("name", out var name) ? name.GetString() ?? "" : "",
-                        Role = charElement.TryGetProperty("role", out var role) ? role.GetString() ?? "" : "",
-                        Personality = charElement.TryGetProperty("personality", out var personality) ? personality.GetString() ?? "" : "",
-                        Backstory = charElement.TryGetProperty("backstory", out var backstory) ? backstory.GetString() ?? "" : ""
+                        Name = name,
+                        Gender = el.TryGetProperty("Gender", out var g) ? g.GetString() ?? "" : "",
+                        Role = el.TryGetProperty("Role", out var r) ? r.GetString() ?? "" : "",
+                        Appearance = el.TryGetProperty("Appearance", out var a) ? a.GetString() ?? "" : "",
+                        Personality = el.TryGetProperty("Personality", out var p) ? p.GetString() ?? "" : ""
                     };
+                    await _characterRepository.CreateAsync(character);
+                }
+            }
 
-                    if (!string.IsNullOrWhiteSpace(character.Name))
+            // 2. Character updates
+            if (root.TryGetProperty("characterUpdates", out var updates) && updates.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var el in updates.EnumerateArray())
+                {
+                    var charName = el.TryGetProperty("Name", out var n) ? n.GetString() ?? "" : "";
+                    var changes = el.TryGetProperty("Changes", out var c) ? c.GetString() ?? "" : "";
+                    if (string.IsNullOrWhiteSpace(charName) || string.IsNullOrWhiteSpace(changes)) continue;
+
+                    var existing = context.Characters.FirstOrDefault(x =>
+                        x.Name.Equals(charName, StringComparison.OrdinalIgnoreCase));
+                    if (existing != null)
                     {
-                        await _characterRepository.CreateAsync(character);
+                        existing.Backstory = string.IsNullOrWhiteSpace(existing.Backstory)
+                            ? changes
+                            : $"{existing.Backstory}\n[{DateTime.Now:yyyy-MM-dd}] {changes}";
+                        await _characterRepository.UpdateAsync(existing);
                     }
+                }
+            }
+
+            // 3. New locations → WorldSetting
+            if (root.TryGetProperty("newLocations", out var locations) && locations.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var el in locations.EnumerateArray())
+                {
+                    var locName = el.GetString();
+                    if (string.IsNullOrWhiteSpace(locName)) continue;
+
+                    await _worldSettingRepository.CreateAsync(new WorldSetting
+                    {
+                        ProjectId = context.Project.Id,
+                        Title = locName,
+                        Category = "地点",
+                        Content = $"在第「{context.CurrentDocument?.Title}」中首次出现"
+                    });
+                }
+            }
+
+            // 4. New foreshadowing → GlossaryEntry
+            if (root.TryGetProperty("newForeshadowing", out var newF) && newF.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var el in newF.EnumerateArray())
+                {
+                    var desc = el.GetString();
+                    if (string.IsNullOrWhiteSpace(desc)) continue;
+
+                    await _glossaryRepository.CreateAsync(new GlossaryEntry
+                    {
+                        ProjectId = context.Project.Id,
+                        Term = desc.Length > 20 ? desc[..20] + "..." : desc,
+                        Definition = desc,
+                        Category = "伏笔"
+                    });
+                }
+            }
+
+            // 5. Resolved foreshadowing → mark existing glossary entry
+            if (root.TryGetProperty("resolvedForeshadowing", out var resolved) && resolved.ValueKind == JsonValueKind.Array)
+            {
+                var allGlossary = await _glossaryRepository.GetByProjectIdAsync(context.Project.Id);
+                var foreshadowingEntries = allGlossary.Where(g => g.Category == "伏笔").ToList();
+
+                foreach (var el in resolved.EnumerateArray())
+                {
+                    var desc = el.GetString();
+                    if (string.IsNullOrWhiteSpace(desc)) continue;
+
+                    var match = foreshadowingEntries.FirstOrDefault(g =>
+                        g.Definition.Contains(desc, StringComparison.OrdinalIgnoreCase) ||
+                        desc.Contains(g.Definition, StringComparison.OrdinalIgnoreCase));
+                    if (match != null)
+                    {
+                        match.Definition = $"[已回收] {match.Definition}";
+                        await _glossaryRepository.UpdateAsync(match);
+                    }
+                }
+            }
+
+            // 6. Relationship changes
+            if (root.TryGetProperty("relationshipChanges", out var relChanges) && relChanges.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var el in relChanges.EnumerateArray())
+                {
+                    var fromName = el.TryGetProperty("From", out var f) ? f.GetString() ?? "" : "";
+                    var toName = el.TryGetProperty("To", out var t) ? t.GetString() ?? "" : "";
+                    var change = el.TryGetProperty("Change", out var c) ? c.GetString() ?? "" : "";
+                    if (string.IsNullOrWhiteSpace(fromName) || string.IsNullOrWhiteSpace(toName)) continue;
+
+                    var fromChar = context.Characters.FirstOrDefault(x =>
+                        x.Name.Equals(fromName, StringComparison.OrdinalIgnoreCase));
+                    var toChar = context.Characters.FirstOrDefault(x =>
+                        x.Name.Equals(toName, StringComparison.OrdinalIgnoreCase));
+                    if (fromChar == null || toChar == null) continue;
+
+                    await _relationshipRepository.CreateAsync(new CharacterRelationship
+                    {
+                        ProjectId = context.Project.Id,
+                        FromCharacterId = fromChar.Id,
+                        ToCharacterId = toChar.Id,
+                        Type = CharacterRelationType.Complex,
+                        Description = change
+                    });
                 }
             }
         }
@@ -343,6 +465,50 @@ public class Orchestrator : IOrchestrator
         catch (Exception)
         {
             // Log but don't fail the pipeline
+        }
+    }
+
+    private async Task UpdateOutlineAsync(AgentContext context, string? dataAgentOutput)
+    {
+        try
+        {
+            if (context.Outlines.Count == 0 || context.CurrentDocument == null) return;
+
+            // Build update summary from DataAgent output and draft
+            var updateNote = $"\n\n---\n### {context.CurrentDocument.Title}（自动更新）\n";
+
+            // Extract outlineUpdate from DataAgent if available
+            if (!string.IsNullOrEmpty(dataAgentOutput))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(dataAgentOutput);
+                    if (doc.RootElement.TryGetProperty("outlineUpdate", out var outlineUpdate))
+                    {
+                        var updateText = outlineUpdate.GetString();
+                        if (!string.IsNullOrWhiteSpace(updateText))
+                        {
+                            updateNote += $"剧情进展：{updateText}\n";
+                        }
+                    }
+                }
+                catch (JsonException) { }
+            }
+
+            // Extract chapter summary from draft (first 200 chars)
+            var draftPreview = context.DraftContent.Length > 200
+                ? context.DraftContent[..200] + "..."
+                : context.DraftContent;
+            updateNote += $"章节概要：{draftPreview}\n";
+
+            // Append to the first outline document
+            var outline = context.Outlines[0];
+            outline.Content += updateNote;
+            await _documentRepository.UpdateAsync(outline, "DataAgent", $"自动更新：{context.CurrentDocument.Title}完成后同步");
+        }
+        catch (Exception)
+        {
+            // Don't fail the pipeline on outline update errors
         }
     }
 }
