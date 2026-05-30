@@ -615,14 +615,15 @@ public partial class AiAssistantViewModel : ViewModelBase
                     };
                 }
 
-                // Revision progress
+                // Revision progress - set when revision starts, clear when audit passes
                 if (p.Status == "revision")
                 {
                     IsRevising = true;
-                    RevisionProgressText = $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）";
+                    RevisionProgressText = $"审计未通过，正在返工（第 {p.RevisionRound} 轮）";
                 }
-                else if (p.Status == "running" && p.AgentType != AgentType.Reviser)
+                else if (p.Status == "completed" && p.AgentType == AgentType.Data)
                 {
+                    // Data agent runs after audit passes - revision loop is done
                     IsRevising = false;
                     RevisionProgressText = "";
                 }
@@ -750,14 +751,15 @@ public partial class AiAssistantViewModel : ViewModelBase
                     };
                 }
 
-                // Revision progress
+                // Revision progress - set when revision starts, clear when audit passes
                 if (p.Status == "revision")
                 {
                     IsRevising = true;
-                    RevisionProgressText = $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）";
+                    RevisionProgressText = $"审计未通过，正在返工（第 {p.RevisionRound} 轮）";
                 }
-                else if (p.Status == "running" && p.AgentType != AgentType.Reviser)
+                else if (p.Status == "completed" && p.AgentType == AgentType.Data)
                 {
+                    // Data agent runs after audit passes - revision loop is done
                     IsRevising = false;
                     RevisionProgressText = "";
                 }
