@@ -83,8 +83,6 @@
                 <StackPanel Grid.Row="2" Spacing="4" Margin="0,8,0,0">
                     <Button Content="批量写作" Click="OpenBatchDialog_Click"
                             HorizontalAlignment="Stretch" />
-                    <Button Content="版本历史" Click="VersionHistory_Click"
-                            HorizontalAlignment="Stretch" />
                     <Button Content="导出全文" Click="Export_Click"
                             HorizontalAlignment="Stretch" />
                 </StackPanel>
@@ -243,56 +241,6 @@
                                     Click="ConfirmBatchWrite_Click" />
                         </StackPanel>
                     </StackPanel>
-                </Grid>
-            </Grid>
-
-            <!-- Version History Dialog -->
-            <Grid x:Name="VersionHistoryDialog" Grid.RowSpan="2" Grid.ColumnSpan="2"
-                  Background="{ThemeResource SmokeFillColorDefaultBrush}"
-                  Visibility="{x:Bind ViewModel.IsVersionHistoryVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <Grid Width="500" Height="400" Padding="24"
-                      VerticalAlignment="Center" HorizontalAlignment="Center"
-                      Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                      CornerRadius="8">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock Text="版本历史" FontSize="20" FontWeight="SemiBold" Grid.Row="0" Margin="0,0,0,12"/>
-
-                    <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.VersionHistory, Mode=OneWay}"
-                              SelectionChanged="VersionList_SelectionChanged">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="models:DocumentVersion">
-                                <Grid Padding="12,8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock FontWeight="SemiBold">
-                                            <Run Text="{Binding ChangeSource}"/>
-                                            <Run Text=" - "/>
-                                            <Run Text="{Binding ChangeSummary}"/>
-                                        </TextBlock>
-                                        <TextBlock FontSize="12" Opacity="0.6">
-                                            <Run Text="{Binding SnapshotAt, Mode=OneWay}"/>
-                                            <Run Text=" | "/>
-                                            <Run Text="{Binding WordCount}"/>
-                                            <Run Text="字"/>
-                                        </TextBlock>
-                                    </StackPanel>
-                                    <Button Grid.Column="1" Content="恢复" Tag="{Binding Id}"
-                                            Click="RestoreVersion_Click" VerticalAlignment="Center"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-
-                    <Button Grid.Row="2" Content="关闭" HorizontalAlignment="Right" Margin="0,8,0,0"
-                            Click="CloseVersionHistory_Click"/>
                 </Grid>
             </Grid>
 
