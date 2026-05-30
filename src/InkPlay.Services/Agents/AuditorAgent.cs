@@ -43,9 +43,22 @@ public class AuditorAgent : BaseAgent
 
     protected override List<AiChatMessage> BuildMessages(AgentContext context)
     {
+        var systemPrompt = SystemPrompt;
+
+        // Add genre-specific audit criteria
+        var genre = context.Project.Genre;
+        if (!string.IsNullOrWhiteSpace(genre))
+        {
+            var genreAudit = PromptTemplates.GetAuditorGenrePrompt(genre);
+            if (!string.IsNullOrEmpty(genreAudit))
+            {
+                systemPrompt += "\n\n" + genreAudit;
+            }
+        }
+
         var messages = new List<AiChatMessage>
         {
-            new() { Role = "system", Content = SystemPrompt }
+            new() { Role = "system", Content = systemPrompt }
         };
 
         // Add character profiles for OOC check
@@ -75,7 +88,7 @@ public class AuditorAgent : BaseAgent
         messages.Add(new AiChatMessage
         {
             Role = "user",
-            Content = $"请审计以下章节内容：\n\n{context.DraftContent}"
+            Content = $"请审计以下章节内容：\n\n{context.DraftContent}\n\n请在报告第一行注明 RESULT: PASS 或 RESULT: FAIL。"
         });
 
         return messages;

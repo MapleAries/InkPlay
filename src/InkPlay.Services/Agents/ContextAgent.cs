@@ -66,16 +66,39 @@ public class ContextAgent : BaseAgent
             messages.Add(new AiChatMessage { Role = "system", Content = outlineInfo.ToString() });
         }
 
-        // Add recent chapters
+        // Add chapters with tiered detail
         if (context.Chapters.Count > 0)
         {
             var chapterInfo = new StringBuilder();
             chapterInfo.AppendLine("## 已完成章节");
-            var recentChapters = context.Chapters.TakeLast(3);
-            foreach (var ch in recentChapters)
+
+            var orderedChapters = context.Chapters.OrderBy(c => c.SortOrder).ToList();
+            var totalCount = orderedChapters.Count;
+
+            for (int i = 0; i < totalCount; i++)
             {
-                var preview = ch.Content.Length > 500 ? ch.Content[..500] + "..." : ch.Content;
-                chapterInfo.AppendLine($"### {ch.Title}\n{preview}\n");
+                var ch = orderedChapters[i];
+                var distanceFromEnd = totalCount - i; // 1 = most recent
+
+                if (distanceFromEnd <= 3)
+                {
+                    // Last 3 chapters: full content (up to 2000 chars)
+                    var content = ch.Content.Length > 2000 ? ch.Content[..2000] + "..." : ch.Content;
+                    chapterInfo.AppendLine($"### {ch.Title}（完整内容）\n{content}\n");
+                }
+                else if (distanceFromEnd <= 10)
+                {
+                    // Chapters 4-10 back: summary
+                    var summary = !string.IsNullOrWhiteSpace(ch.Summary)
+                        ? ch.Summary
+                        : (ch.Content.Length > 300 ? ch.Content[..300] + "..." : ch.Content);
+                    chapterInfo.AppendLine($"### {ch.Title}（摘要）\n{summary}\n");
+                }
+                else
+                {
+                    // Older chapters: title only
+                    chapterInfo.AppendLine($"### {ch.Title}");
+                }
             }
             messages.Add(new AiChatMessage { Role = "system", Content = chapterInfo.ToString() });
         }

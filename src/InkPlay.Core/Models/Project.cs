@@ -18,4 +18,5 @@ public class Project
     public string PreferredAiProvider { get; set; } = "claude";
     public string PreferredModelId { get; set; } = string.Empty;
     public string SystemPrompt { get; set; } = string.Empty;
+    public string WritingStyleNotes { get; set; } = string.Empty;
 }

@@ -34,6 +34,27 @@ public class WriterAgent : BaseAgent
     {
         var messages = base.BuildMessages(context);
 
+        // Add genre-specific writing guidelines
+        var genre = context.Project.Genre;
+        if (!string.IsNullOrWhiteSpace(genre))
+        {
+            var genrePrompt = PromptTemplates.GetWriterGenrePrompt(genre);
+            if (!string.IsNullOrEmpty(genrePrompt))
+            {
+                messages.Insert(messages.Count - 1, new AiChatMessage { Role = "system", Content = genrePrompt });
+            }
+        }
+
+        // Add user-defined style notes
+        if (!string.IsNullOrWhiteSpace(context.Project.WritingStyleNotes))
+        {
+            messages.Insert(messages.Count - 1, new AiChatMessage
+            {
+                Role = "system",
+                Content = $"用户自定义风格要求：\n{context.Project.WritingStyleNotes}"
+            });
+        }
+
         // Add chapter skeleton
         if (!string.IsNullOrEmpty(context.ChapterSkeleton))
         {

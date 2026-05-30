@@ -60,16 +60,39 @@ public class ScreenwriterAgent : BaseAgent
             messages.Add(new AiChatMessage { Role = "system", Content = charText.ToString() });
         }
 
-        // Add recent chapters for continuity
+        // Add chapters with tiered detail for continuity
         if (context.Chapters.Count > 0)
         {
-            var recent = context.Chapters.TakeLast(2);
             var chapterText = new StringBuilder();
             chapterText.AppendLine("## 前序章节");
-            foreach (var ch in recent)
+
+            var orderedChapters = context.Chapters.OrderBy(c => c.SortOrder).ToList();
+            var totalCount = orderedChapters.Count;
+
+            for (int i = 0; i < totalCount; i++)
             {
-                var preview = ch.Content.Length > 800 ? ch.Content[..800] + "..." : ch.Content;
-                chapterText.AppendLine($"### {ch.Title}\n{preview}\n");
+                var ch = orderedChapters[i];
+                var distanceFromEnd = totalCount - i;
+
+                if (distanceFromEnd <= 2)
+                {
+                    // Last 2 chapters: full content (up to 1500 chars)
+                    var content = ch.Content.Length > 1500 ? ch.Content[..1500] + "..." : ch.Content;
+                    chapterText.AppendLine($"### {ch.Title}（完整内容）\n{content}\n");
+                }
+                else if (distanceFromEnd <= 8)
+                {
+                    // Chapters 3-8 back: summary
+                    var summary = !string.IsNullOrWhiteSpace(ch.Summary)
+                        ? ch.Summary
+                        : (ch.Content.Length > 300 ? ch.Content[..300] + "..." : ch.Content);
+                    chapterText.AppendLine($"### {ch.Title}（摘要）\n{summary}\n");
+                }
+                else
+                {
+                    // Older: title only
+                    chapterText.AppendLine($"### {ch.Title}");
+                }
             }
             messages.Add(new AiChatMessage { Role = "system", Content = chapterText.ToString() });
         }
