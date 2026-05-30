@@ -91,6 +91,9 @@ public partial class AiAssistantViewModel : ViewModelBase
     private string _pipelineStatus = string.Empty;
 
     [ObservableProperty]
+    private string _pipelineDetailMessage = string.Empty;
+
+    [ObservableProperty]
     private string _currentAgentName = string.Empty;
 
     [ObservableProperty]
@@ -101,6 +104,15 @@ public partial class AiAssistantViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _pipelineStreamingContent = string.Empty;
+
+    [ObservableProperty]
+    private int _currentChapterIndex;
+
+    [ObservableProperty]
+    private int _totalChapters;
+
+    [ObservableProperty]
+    private int _completedChapters;
 
     // Cost estimation
     [ObservableProperty]
@@ -580,15 +592,19 @@ public partial class AiAssistantViewModel : ViewModelBase
                 PipelineStep = p.StepNumber;
                 PipelineTotalSteps = p.TotalSteps;
                 CurrentAgentName = p.AgentName;
-                PipelineStatus = !string.IsNullOrEmpty(p.StatusMessage)
-                    ? p.StatusMessage
-                    : p.Status switch
-                    {
-                        "running" => $"{p.AgentName} 正在工作...",
-                        "completed" => $"{p.AgentName} 完成",
-                        "failed" => $"{p.AgentName} 失败",
-                        _ => p.Status
-                    };
+
+                // Agent status line
+                PipelineStatus = p.Status switch
+                {
+                    "running" => $"{p.AgentName} 正在工作...",
+                    "completed" => $"{p.AgentName} 完成",
+                    "failed" => $"{p.AgentName} 失败",
+                    "revision" => $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）",
+                    _ => p.Status
+                };
+
+                // Detail message below
+                PipelineDetailMessage = !string.IsNullOrEmpty(p.StatusMessage) ? p.StatusMessage : "";
             });
 
             var result = await _orchestrator.AutoWriteChapterAsync(agentContext, progress, _aiCts.Token);
@@ -598,6 +614,7 @@ public partial class AiAssistantViewModel : ViewModelBase
                 ChapterContent = ExtractContent(result.Content);
                 OnContentChanged();
                 PipelineStatus = "写作完成！";
+                PipelineDetailMessage = "";
             }
             else
             {
@@ -684,9 +701,27 @@ public partial class AiAssistantViewModel : ViewModelBase
                 PipelineStep = p.StepNumber;
                 PipelineTotalSteps = p.TotalSteps;
                 CurrentAgentName = p.AgentName;
-                PipelineStatus = !string.IsNullOrEmpty(p.StatusMessage)
-                    ? p.StatusMessage
-                    : p.StreamingContent ?? $"{p.AgentName} - {p.Status}";
+
+                // Update chapter progress
+                if (p.TotalChapters > 0)
+                {
+                    CurrentChapterIndex = p.ChapterIndex;
+                    TotalChapters = p.TotalChapters;
+                    CompletedChapters = p.CompletedChapters;
+                }
+
+                // Agent status line
+                PipelineStatus = p.Status switch
+                {
+                    "running" => $"{p.AgentName} 正在工作...",
+                    "completed" => $"{p.AgentName} 完成",
+                    "failed" => $"{p.AgentName} 失败",
+                    "revision" => $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）",
+                    _ => p.Status
+                };
+
+                // Detail message below
+                PipelineDetailMessage = !string.IsNullOrEmpty(p.StatusMessage) ? p.StatusMessage : "";
             });
 
             int completed = 0;
@@ -699,13 +734,14 @@ public partial class AiAssistantViewModel : ViewModelBase
                     var chapter = newChapters[completed - 1];
                     chapter.Content = result.Content;
                     await _documentRepository.UpdateAsync(chapter, "AiGenerate", $"批量写作第 {completed} 章");
-                    PipelineStatus = $"已完成 {completed}/{BatchChapterCount} 个章节";
+                    CompletedChapters = completed;
                 }
             }
 
             // Reload chapters
             await LoadChaptersAsync();
             PipelineStatus = $"批量写作完成！共完成 {completed} 个章节";
+            PipelineDetailMessage = "";
         }
         catch (OperationCanceledException)
         {

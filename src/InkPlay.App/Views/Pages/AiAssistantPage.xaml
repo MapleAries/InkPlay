@@ -252,20 +252,32 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Text="自动写作" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,16" />
 
+                <!-- Batch Progress (shown when batch writing) -->
+                <TextBlock Grid.Row="1" Margin="0,0,0,8"
+                           Visibility="{x:Bind ViewModel.TotalChapters, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
+                    <Run Text="章节进度：" FontWeight="SemiBold" />
+                    <Run Text="{x:Bind ViewModel.CompletedChapters, Mode=OneWay}" />
+                    <Run Text="/" />
+                    <Run Text="{x:Bind ViewModel.TotalChapters, Mode=OneWay}" />
+                    <Run Text=" 已完成" />
+                </TextBlock>
+
                 <!-- Progress Bar -->
-                <ProgressBar Grid.Row="1" Margin="0,0,0,12"
+                <ProgressBar Grid.Row="2" Margin="0,0,0,12"
                              Value="{x:Bind ViewModel.PipelineStep, Mode=OneWay}"
                              Maximum="{x:Bind ViewModel.PipelineTotalSteps, Mode=OneWay}"
                              IsIndeterminate="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay}" />
 
                 <!-- Current Step -->
-                <TextBlock Grid.Row="2" Margin="0,0,0,8">
+                <TextBlock Grid.Row="3" Margin="0,0,0,4">
                     <Run Text="{x:Bind ViewModel.CurrentAgentName, Mode=OneWay}" FontWeight="SemiBold" />
                     <Run Text=" (" />
                     <Run Text="{x:Bind ViewModel.PipelineStep, Mode=OneWay}" />
@@ -275,14 +287,20 @@
                 </TextBlock>
 
                 <!-- Status -->
-                <ScrollViewer Grid.Row="3">
-                    <TextBlock Text="{x:Bind ViewModel.PipelineStatus, Mode=OneWay}"
+                <TextBlock Grid.Row="4" Margin="0,0,0,4"
+                           Text="{x:Bind ViewModel.PipelineStatus, Mode=OneWay}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                <!-- Detail Message -->
+                <ScrollViewer Grid.Row="5">
+                    <TextBlock Text="{x:Bind ViewModel.PipelineDetailMessage, Mode=OneWay}"
                                TextWrapping="Wrap"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                               FontSize="12"
+                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                 </ScrollViewer>
 
                 <!-- Cancel Button -->
-                <Button Grid.Row="4" Content="取消" HorizontalAlignment="Right" Margin="0,12,0,0"
+                <Button Grid.Row="6" Content="取消" HorizontalAlignment="Right" Margin="0,12,0,0"
                         Click="CancelAutoWrite_Click" />
             </Grid>
 
