@@ -131,17 +131,13 @@
                                 <Run Text="字数：" />
                                 <Run Text="{x:Bind ViewModel.WordCount, Mode=OneWay}" />
                             </TextBlock>
-                            <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                                <Run Text="目标：" />
-                                <Run Text="{x:Bind ViewModel.WordCountTarget, Mode=OneWay}" />
-                            </TextBlock>
                             <TextBlock Text="{x:Bind ViewModel.SaveStatus, Mode=OneWay}"
                                        FontSize="12"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
                             <Button Content="一键写作" Click="AutoWrite_Click" Padding="12,4"
-                                    Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                    Visibility="{x:Bind ViewModel.HasChapterContent, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
                             <Button Content="保存" Click="Save_Click" Padding="12,4"
                                     Style="{ThemeResource AccentButtonStyle}" />
                         </StackPanel>

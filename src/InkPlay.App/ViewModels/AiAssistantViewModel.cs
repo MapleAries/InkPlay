@@ -43,6 +43,9 @@ public partial class AiAssistantViewModel : ViewModelBase
     private bool _isChapterSelected;
 
     [ObservableProperty]
+    private bool _hasChapterContent;
+
+    [ObservableProperty]
     private string _chapterTitle = string.Empty;
 
     [ObservableProperty]
@@ -265,6 +268,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         {
             CurrentChapter = null;
             IsChapterSelected = false;
+            HasChapterContent = false;
             ChapterTitle = string.Empty;
             ChapterContent = string.Empty;
             WordCount = 0;
@@ -276,6 +280,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         IsChapterSelected = true;
         ChapterTitle = chapter.Title;
         ChapterContent = ExtractContent(chapter.Content);
+        HasChapterContent = !string.IsNullOrWhiteSpace(ChapterContent);
         WordCount = chapter.WordCount;
         SaveStatus = "已保存";
 
@@ -294,6 +299,18 @@ public partial class AiAssistantViewModel : ViewModelBase
             return string.Join('\n', lines.Skip(1)).TrimStart('\n', '\r');
         }
         return content;
+    }
+
+    private static string ExtractTitle(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return string.Empty;
+
+        var lines = content.Split('\n');
+        if (lines.Length > 0 && lines[0].StartsWith("# "))
+        {
+            return lines[0][2..].Trim();
+        }
+        return string.Empty;
     }
 
     private static string CombineTitleAndContent(string title, string content)
@@ -345,6 +362,7 @@ public partial class AiAssistantViewModel : ViewModelBase
 
         SaveStatus = "未保存";
         WordCount = CalculateWordCount(ChapterContent);
+        HasChapterContent = !string.IsNullOrWhiteSpace(ChapterContent);
         _ = DebounceSaveAsync();
     }
 
@@ -627,7 +645,15 @@ public partial class AiAssistantViewModel : ViewModelBase
 
             if (result.Success)
             {
+                // Extract title from AI result if present
+                var aiTitle = ExtractTitle(result.Content);
+                if (!string.IsNullOrWhiteSpace(aiTitle))
+                {
+                    ChapterTitle = aiTitle;
+                }
+
                 ChapterContent = ExtractContent(result.Content);
+                HasChapterContent = !string.IsNullOrWhiteSpace(ChapterContent);
                 OnContentChanged();
                 AgentProgressText = "写作完成！";
             }
