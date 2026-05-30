@@ -91,9 +91,6 @@ public partial class AiAssistantViewModel : ViewModelBase
     private string _agentProgressText = string.Empty;
 
     [ObservableProperty]
-    private string _chapterProgressText = string.Empty;
-
-    [ObservableProperty]
     private string _revisionProgressText = string.Empty;
 
     [ObservableProperty]
@@ -110,9 +107,6 @@ public partial class AiAssistantViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _pipelineStreamingContent = string.Empty;
-
-    [ObservableProperty]
-    private int _currentChapterIndex;
 
     [ObservableProperty]
     private int _totalChapters;
@@ -729,10 +723,8 @@ public partial class AiAssistantViewModel : ViewModelBase
                 // Update chapter progress
                 if (p.TotalChapters > 0)
                 {
-                    CurrentChapterIndex = p.ChapterIndex;
                     TotalChapters = p.TotalChapters;
                     CompletedChapters = p.CompletedChapters;
-                    ChapterProgressText = $"正在创作第 {p.ChapterIndex} 章，已完成 {p.CompletedChapters}/{p.TotalChapters} 章";
                 }
 
                 // Agent progress
@@ -782,7 +774,6 @@ public partial class AiAssistantViewModel : ViewModelBase
             // Reload chapters
             await LoadChaptersAsync();
             AgentProgressText = $"批量写作完成！共完成 {completed} 个章节";
-            ChapterProgressText = "";
             RevisionProgressText = "";
         }
         catch (OperationCanceledException)
