@@ -673,10 +673,12 @@ public partial class AiAssistantViewModel : ViewModelBase
         catch (OperationCanceledException)
         {
             AgentProgressText = "已取消";
+            RevisionProgressText = "";
         }
         catch (Exception ex)
         {
             AgentProgressText = $"错误: {ex.Message}";
+            RevisionProgressText = "";
         }
         finally
         {
@@ -811,10 +813,12 @@ public partial class AiAssistantViewModel : ViewModelBase
         catch (OperationCanceledException)
         {
             AgentProgressText = "批量写作已取消";
+            ChapterProgressText = "";
         }
         catch (Exception ex)
         {
             AgentProgressText = $"批量写作错误: {ex.Message}";
+            ChapterProgressText = "";
         }
         finally
         {
