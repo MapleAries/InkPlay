@@ -147,4 +147,42 @@ public abstract class BaseAgent : IAgent
         }
         return sb.ToString();
     }
+
+    public int EstimateTokens(AgentContext context)
+    {
+        var messages = BuildMessages(context);
+        var totalChars = messages.Sum(m => m.Content?.Length ?? 0);
+
+        // Rough estimation: Chinese chars ~2 tokens each, English words ~1 token
+        var chineseChars = 0;
+        var englishWords = 0;
+        var inWord = false;
+
+        foreach (var msg in messages)
+        {
+            if (msg.Content is null) continue;
+            foreach (var c in msg.Content)
+            {
+                if (c >= 0x4E00 && c <= 0x9FFF)
+                {
+                    chineseChars++;
+                    inWord = false;
+                }
+                else if (char.IsLetterOrDigit(c))
+                {
+                    if (!inWord)
+                    {
+                        englishWords++;
+                        inWord = true;
+                    }
+                }
+                else
+                {
+                    inWord = false;
+                }
+            }
+        }
+
+        return chineseChars * 2 + englishWords;
+    }
 }

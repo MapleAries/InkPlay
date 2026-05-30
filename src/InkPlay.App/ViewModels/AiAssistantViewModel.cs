@@ -110,6 +110,13 @@ public partial class AiAssistantViewModel : ViewModelBase
     [ObservableProperty]
     private string _pipelineStreamingContent = string.Empty;
 
+    // Cost estimation
+    [ObservableProperty]
+    private bool _showCostEstimate;
+
+    [ObservableProperty]
+    private string _costEstimateMessage = string.Empty;
+
     public AiAssistantViewModel(
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
@@ -538,6 +545,43 @@ public partial class AiAssistantViewModel : ViewModelBase
     // --- Auto Write Pipeline ---
 
     [RelayCommand]
+    private async Task EstimateCostAsync()
+    {
+        if (_currentProject is null || CurrentChapter is null) return;
+
+        var allDocs = await _documentRepository.GetByProjectIdAsync(_currentProject.Id);
+        var characters = await _characterRepository.GetByProjectIdAsync(_currentProject.Id);
+        var outlines = allDocs.Where(d => d.Type == DocumentType.Outline).ToList();
+        var chapters = allDocs.Where(d => d.Type == DocumentType.Chapter && d.Id != CurrentChapter.Id)
+                              .OrderBy(d => d.SortOrder)
+                              .ToList();
+
+        var agentContext = new AgentContext
+        {
+            Project = _currentProject,
+            Characters = characters,
+            Outlines = outlines,
+            Chapters = chapters,
+            CurrentDocument = CurrentChapter,
+            TargetWordCount = WordCountTarget,
+            UserRequest = $"请为章节「{ChapterTitle}」生成完整内容"
+        };
+
+        var estimate = _orchestrator.EstimateCost(agentContext);
+        CostEstimateMessage = $"预估消耗:\n" +
+                              $"- 输入 Token: ~{estimate.EstimatedInputTokens:N0}\n" +
+                              $"- 输出 Token: ~{estimate.EstimatedOutputTokens:N0}\n" +
+                              $"- 预估费用: ~${estimate.EstimatedCostUsd:F4}";
+        ShowCostEstimate = true;
+    }
+
+    [RelayCommand]
+    private void CloseCostEstimate()
+    {
+        ShowCostEstimate = false;
+    }
+
+    [RelayCommand]
     private async Task AutoWriteChapterAsync()
     {
         if (_currentProject is null || CurrentChapter is null) return;
@@ -602,6 +646,78 @@ public partial class AiAssistantViewModel : ViewModelBase
         catch (Exception ex)
         {
             PipelineStatus = $"错误: {ex.Message}";
+        }
+        finally
+        {
+            IsAutoWriting = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task AutoWriteBatchAsync()
+    {
+        if (_currentProject is null || Chapters.Count == 0) return;
+
+        // Find empty chapters (no content)
+        var emptyChapters = Chapters.Where(c => string.IsNullOrWhiteSpace(c.Content) || c.WordCount == 0).ToList();
+        if (emptyChapters.Count == 0)
+        {
+            PipelineStatus = "没有需要写作的章节（所有章节已有内容）";
+            return;
+        }
+
+        IsAutoWriting = true;
+        PipelineStatus = $"准备批量写作 {emptyChapters.Count} 个章节...";
+        _aiCts?.Cancel();
+        _aiCts = new CancellationTokenSource();
+
+        try
+        {
+            var allDocs = await _documentRepository.GetByProjectIdAsync(_currentProject.Id);
+            var characters = await _characterRepository.GetByProjectIdAsync(_currentProject.Id);
+            var outlines = allDocs.Where(d => d.Type == DocumentType.Outline).ToList();
+            var existingChapters = allDocs.Where(d => d.Type == DocumentType.Chapter && d.WordCount > 0)
+                                          .OrderBy(d => d.SortOrder)
+                                          .ToList();
+
+            var baseContext = new AgentContext
+            {
+                Project = _currentProject,
+                Characters = characters,
+                Outlines = outlines,
+                Chapters = existingChapters,
+                TargetWordCount = WordCountTarget
+            };
+
+            var progress = new Progress<PipelineProgress>(p =>
+            {
+                PipelineStep = p.StepNumber;
+                PipelineTotalSteps = p.TotalSteps;
+                CurrentAgentName = p.AgentName;
+                PipelineStatus = p.StreamingContent ?? $"{p.AgentName} - {p.Status}";
+            });
+
+            int completed = 0;
+            await foreach (var result in _orchestrator.AutoWriteBatchAsync(emptyChapters, baseContext, progress, _aiCts.Token))
+            {
+                if (result.Success)
+                {
+                    completed++;
+                    PipelineStatus = $"已完成 {completed}/{emptyChapters.Count} 个章节";
+                }
+            }
+
+            // Reload chapters
+            await LoadChaptersAsync();
+            PipelineStatus = $"批量写作完成！共完成 {completed} 个章节";
+        }
+        catch (OperationCanceledException)
+        {
+            PipelineStatus = "批量写作已取消";
+        }
+        catch (Exception ex)
+        {
+            PipelineStatus = $"批量写作错误: {ex.Message}";
         }
         finally
         {

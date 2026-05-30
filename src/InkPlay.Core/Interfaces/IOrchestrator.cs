@@ -9,4 +9,6 @@ public interface IOrchestrator
     IAsyncEnumerable<string> StreamStepAsync(AgentType type, AgentContext context, CancellationToken ct = default);
     Task<AgentResult> AutoWriteChapterAsync(AgentContext context, CancellationToken ct = default);
     Task<AgentResult> AutoWriteChapterAsync(AgentContext context, IProgress<PipelineProgress>? progress, CancellationToken ct = default);
+    IAsyncEnumerable<AgentResult> AutoWriteBatchAsync(IReadOnlyList<Document> chapters, AgentContext baseContext, IProgress<PipelineProgress>? progress = null, CancellationToken ct = default);
+    CostEstimate EstimateCost(AgentContext context);
 }

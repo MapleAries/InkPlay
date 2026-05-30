@@ -209,6 +209,84 @@ public class Orchestrator : IOrchestrator
         return result;
     }
 
+    public CostEstimate EstimateCost(AgentContext context)
+    {
+        var totalInputTokens = 0;
+
+        // Estimate tokens for each agent in the pipeline
+        foreach (var agent in _agents.Values)
+        {
+            if (agent is BaseAgent baseAgent)
+            {
+                totalInputTokens += baseAgent.EstimateTokens(context);
+            }
+        }
+
+        // Estimate output tokens (writer produces ~target word count, others produce structured output)
+        var estimatedOutputTokens = context.TargetWordCount * 2; // Chinese chars ~2 tokens each
+        estimatedOutputTokens += 2000; // Additional tokens for other agents' structured output
+
+        // Rough cost estimation (default to Claude pricing: ~$15/million input, ~$75/million output)
+        var inputCost = totalInputTokens * 15m / 1_000_000m;
+        var outputCost = estimatedOutputTokens * 75m / 1_000_000m;
+
+        return new CostEstimate
+        {
+            EstimatedInputTokens = totalInputTokens,
+            EstimatedOutputTokens = estimatedOutputTokens,
+            EstimatedCostUsd = inputCost + outputCost,
+            ModelId = "estimated"
+        };
+    }
+
+    public async IAsyncEnumerable<AgentResult> AutoWriteBatchAsync(
+        IReadOnlyList<Document> chapters,
+        AgentContext baseContext,
+        IProgress<PipelineProgress>? progress = null,
+        [EnumeratorCancellation] CancellationToken ct = default)
+    {
+        var completedChapters = new List<Document>(baseContext.Chapters);
+        var totalChapters = chapters.Count;
+
+        for (int i = 0; i < totalChapters; i++)
+        {
+            var chapter = chapters[i];
+
+            progress?.Report(new PipelineProgress
+            {
+                CurrentAgent = AgentType.Writer,
+                AgentName = $"章节 {i + 1}/{totalChapters}",
+                StepNumber = 0,
+                TotalSteps = 7,
+                Status = "running",
+                StreamingContent = $"正在写作: {chapter.Title}"
+            });
+
+            // Build context for this chapter
+            var chapterContext = new AgentContext
+            {
+                Project = baseContext.Project,
+                Characters = baseContext.Characters,
+                Outlines = baseContext.Outlines,
+                Chapters = completedChapters,
+                CurrentDocument = chapter,
+                TargetWordCount = baseContext.TargetWordCount,
+                UserRequest = $"请为章节「{chapter.Title}」生成完整内容"
+            };
+
+            var result = await AutoWriteChapterAsync(chapterContext, progress, ct);
+
+            // Add completed chapter to context for next iteration
+            if (result.Success)
+            {
+                chapter.Content = result.Content;
+                completedChapters.Add(chapter);
+            }
+
+            yield return result;
+        }
+    }
+
     private async Task PersistExtractedDataAsync(string dataAgentOutput, AgentContext context)
     {
         try
