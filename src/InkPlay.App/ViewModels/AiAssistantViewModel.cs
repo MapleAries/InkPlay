@@ -88,10 +88,16 @@ public partial class AiAssistantViewModel : ViewModelBase
     private bool _isAutoWriting;
 
     [ObservableProperty]
-    private string _pipelineStatus = string.Empty;
+    private string _agentProgressText = string.Empty;
 
     [ObservableProperty]
-    private string _pipelineDetailMessage = string.Empty;
+    private string _chapterProgressText = string.Empty;
+
+    [ObservableProperty]
+    private string _revisionProgressText = string.Empty;
+
+    [ObservableProperty]
+    private bool _isRevising;
 
     [ObservableProperty]
     private string _currentAgentName = string.Empty;
@@ -562,7 +568,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         if (_currentProject is null || CurrentChapter is null) return;
 
         IsAutoWriting = true;
-        PipelineStatus = "准备中...";
+        AgentProgressText = "准备中...";
         _aiCts?.Cancel();
         _aiCts = new CancellationTokenSource();
 
@@ -593,24 +599,32 @@ public partial class AiAssistantViewModel : ViewModelBase
                 PipelineTotalSteps = p.TotalSteps;
                 CurrentAgentName = p.AgentName;
 
-                // Priority: revision status > StatusMessage > status-based message
-                if (p.Status == "revision")
+                // Agent progress
+                if (!string.IsNullOrEmpty(p.StatusMessage))
                 {
-                    PipelineStatus = $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）";
-                }
-                else if (!string.IsNullOrEmpty(p.StatusMessage))
-                {
-                    PipelineStatus = p.StatusMessage;
+                    AgentProgressText = p.StatusMessage;
                 }
                 else
                 {
-                    PipelineStatus = p.Status switch
+                    AgentProgressText = p.Status switch
                     {
                         "running" => $"{p.AgentName} 正在工作...",
                         "completed" => $"{p.AgentName} 完成",
                         "failed" => $"{p.AgentName} 失败",
                         _ => p.Status
                     };
+                }
+
+                // Revision progress
+                if (p.Status == "revision")
+                {
+                    IsRevising = true;
+                    RevisionProgressText = $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）";
+                }
+                else if (p.Status == "running" && p.AgentType != AgentType.Reviser)
+                {
+                    IsRevising = false;
+                    RevisionProgressText = "";
                 }
             });
 
@@ -620,25 +634,27 @@ public partial class AiAssistantViewModel : ViewModelBase
             {
                 ChapterContent = ExtractContent(result.Content);
                 OnContentChanged();
-                PipelineStatus = "写作完成！";
-                PipelineDetailMessage = "";
+                AgentProgressText = "写作完成！";
             }
             else
             {
-                PipelineStatus = $"写作失败: {result.Content}";
+                AgentProgressText = $"写作失败: {result.Content}";
             }
+            IsRevising = false;
+            RevisionProgressText = "";
         }
         catch (OperationCanceledException)
         {
-            PipelineStatus = "已取消";
+            AgentProgressText = "已取消";
         }
         catch (Exception ex)
         {
-            PipelineStatus = $"错误: {ex.Message}";
+            AgentProgressText = $"错误: {ex.Message}";
         }
         finally
         {
             IsAutoWriting = false;
+            IsRevising = false;
         }
     }
 
@@ -662,7 +678,7 @@ public partial class AiAssistantViewModel : ViewModelBase
 
         ShowBatchDialog = false;
         IsAutoWriting = true;
-        PipelineStatus = $"准备批量写作 {BatchChapterCount} 个章节...";
+        AgentProgressText = $"准备批量写作 {BatchChapterCount} 个章节...";
         _aiCts?.Cancel();
         _aiCts = new CancellationTokenSource();
 
@@ -715,26 +731,35 @@ public partial class AiAssistantViewModel : ViewModelBase
                     CurrentChapterIndex = p.ChapterIndex;
                     TotalChapters = p.TotalChapters;
                     CompletedChapters = p.CompletedChapters;
+                    ChapterProgressText = $"正在创作第 {p.ChapterIndex} 章，已完成 {p.CompletedChapters}/{p.TotalChapters} 章";
                 }
 
-                // Priority: revision status > StatusMessage > status-based message
-                if (p.Status == "revision")
+                // Agent progress
+                if (!string.IsNullOrEmpty(p.StatusMessage))
                 {
-                    PipelineStatus = $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）";
-                }
-                else if (!string.IsNullOrEmpty(p.StatusMessage))
-                {
-                    PipelineStatus = p.StatusMessage;
+                    AgentProgressText = p.StatusMessage;
                 }
                 else
                 {
-                    PipelineStatus = p.Status switch
+                    AgentProgressText = p.Status switch
                     {
                         "running" => $"{p.AgentName} 正在工作...",
                         "completed" => $"{p.AgentName} 完成",
                         "failed" => $"{p.AgentName} 失败",
                         _ => p.Status
                     };
+                }
+
+                // Revision progress
+                if (p.Status == "revision")
+                {
+                    IsRevising = true;
+                    RevisionProgressText = $"审计未通过，正在返工（第 {p.RevisionRound}/{p.MaxRevisionRounds} 轮）";
+                }
+                else if (p.Status == "running" && p.AgentType != AgentType.Reviser)
+                {
+                    IsRevising = false;
+                    RevisionProgressText = "";
                 }
             });
 
@@ -754,20 +779,22 @@ public partial class AiAssistantViewModel : ViewModelBase
 
             // Reload chapters
             await LoadChaptersAsync();
-            PipelineStatus = $"批量写作完成！共完成 {completed} 个章节";
-            PipelineDetailMessage = "";
+            AgentProgressText = $"批量写作完成！共完成 {completed} 个章节";
+            ChapterProgressText = "";
+            RevisionProgressText = "";
         }
         catch (OperationCanceledException)
         {
-            PipelineStatus = "批量写作已取消";
+            AgentProgressText = "批量写作已取消";
         }
         catch (Exception ex)
         {
-            PipelineStatus = $"批量写作错误: {ex.Message}";
+            AgentProgressText = $"批量写作错误: {ex.Message}";
         }
         finally
         {
             IsAutoWriting = false;
+            IsRevising = false;
         }
     }
 

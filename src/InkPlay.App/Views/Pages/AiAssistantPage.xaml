@@ -244,53 +244,14 @@
                 </Grid>
             </Grid>
 
-            <!-- Right: Pipeline Progress (shown during auto-write) -->
-            <Grid Grid.Row="1" Grid.Column="2" Padding="16"
-                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                  Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Text="自动写作" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,16" />
-
-                <!-- Batch Progress (shown when batch writing) -->
-                <TextBlock Grid.Row="1" Margin="0,0,0,8"
-                           Visibility="{x:Bind ViewModel.TotalChapters, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}">
-                    <Run Text="章节进度：" FontWeight="SemiBold" />
-                    <Run Text="{x:Bind ViewModel.CompletedChapters, Mode=OneWay}" />
-                    <Run Text="/" />
-                    <Run Text="{x:Bind ViewModel.TotalChapters, Mode=OneWay}" />
-                    <Run Text=" 已完成" />
-                </TextBlock>
-
-                <!-- Progress Bar -->
-                <ProgressBar Grid.Row="2" Margin="0,0,0,12"
-                             Value="{x:Bind ViewModel.PipelineStep, Mode=OneWay}"
-                             Maximum="{x:Bind ViewModel.PipelineTotalSteps, Mode=OneWay}"
-                             IsIndeterminate="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay}" />
-
-                <!-- Status Message -->
-                <ScrollViewer Grid.Row="3">
-                    <TextBlock Text="{x:Bind ViewModel.PipelineStatus, Mode=OneWay}"
-                               TextWrapping="Wrap"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </ScrollViewer>
-
-                <!-- Cancel Button -->
-                <Button Grid.Row="4" Content="取消" HorizontalAlignment="Right" Margin="0,12,0,0"
-                        Click="CancelAutoWrite_Click" />
-            </Grid>
-
-            <!-- Right: AI Panel (shown when not auto-writing) -->
+            <!-- Right: AI Panel -->
             <Grid Grid.Row="1" Grid.Column="2" Padding="12"
-                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                  Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -305,8 +266,34 @@
                           SelectedItem="{x:Bind ViewModel.SelectedModel, Mode=TwoWay}"
                           DisplayMemberPath="Name" />
 
-                <!-- Chat Messages -->
-                <ScrollViewer Grid.Row="2">
+                <!-- Progress Bar (shown when auto-writing) -->
+                <ProgressBar Grid.Row="2" Margin="0,0,0,8"
+                             Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                             Value="{x:Bind ViewModel.PipelineStep, Mode=OneWay}"
+                             Maximum="{x:Bind ViewModel.PipelineTotalSteps, Mode=OneWay}"
+                             IsIndeterminate="True" />
+
+                <!-- Agent Progress -->
+                <TextBlock Grid.Row="3" Margin="0,0,0,4"
+                           Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                           Text="{x:Bind ViewModel.AgentProgressText, Mode=OneWay}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                <!-- Chapter Progress (batch writing) -->
+                <TextBlock Grid.Row="4" Margin="0,0,0,4"
+                           Visibility="{x:Bind ViewModel.ChapterProgressText, Mode=OneWay, Converter={StaticResource StringToVisibilityConverter}}"
+                           Text="{x:Bind ViewModel.ChapterProgressText, Mode=OneWay}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                <!-- Revision Progress -->
+                <TextBlock Grid.Row="5" Margin="0,0,0,8"
+                           Visibility="{x:Bind ViewModel.IsRevising, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                           Text="{x:Bind ViewModel.RevisionProgressText, Mode=OneWay}"
+                           Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+
+                <!-- Chat Messages (hidden when auto-writing) -->
+                <ScrollViewer Grid.Row="6"
+                              Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
                     <StackPanel Spacing="8">
                         <ItemsControl ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}">
                             <ItemsControl.ItemTemplate>
@@ -338,26 +325,34 @@
                     </StackPanel>
                 </ScrollViewer>
 
-                <!-- Input -->
-                <Grid Grid.Row="3" Margin="0,8,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                <!-- Input / Cancel Button -->
+                <Grid Grid.Row="7" Margin="0,8,0,0">
+                    <!-- Normal Input (hidden when auto-writing) -->
+                    <Grid Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
 
-                    <TextBox Grid.Column="0"
-                             x:Name="UserInputBox"
-                             PlaceholderText="输入写作需求..."
-                             Text="{x:Bind ViewModel.UserInput, Mode=TwoWay}"
-                             KeyDown="UserInput_KeyDown" />
+                        <TextBox Grid.Column="0"
+                                 x:Name="UserInputBox"
+                                 PlaceholderText="输入写作需求..."
+                                 Text="{x:Bind ViewModel.UserInput, Mode=TwoWay}"
+                                 KeyDown="UserInput_KeyDown" />
 
-                    <Button Grid.Column="1" Content="发送" Margin="8,0,0,0"
-                            Click="Send_Click" />
+                        <Button Grid.Column="1" Content="发送" Margin="8,0,0,0"
+                                Click="Send_Click" />
 
-                    <Button Grid.Column="2" Content="应用" Margin="8,0,0,0"
-                            Click="ApplyToEditor_Click"
-                            ToolTipService.ToolTip="将AI回复应用到编辑器" />
+                        <Button Grid.Column="2" Content="应用" Margin="8,0,0,0"
+                                Click="ApplyToEditor_Click"
+                                ToolTipService.ToolTip="将AI回复应用到编辑器" />
+                    </Grid>
+
+                    <!-- Cancel Button (shown when auto-writing) -->
+                    <Button Content="取消" HorizontalAlignment="Right"
+                            Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                            Click="CancelAutoWrite_Click" />
                 </Grid>
             </Grid>
         </Grid>

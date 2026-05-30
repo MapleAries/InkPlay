@@ -5,6 +5,7 @@ namespace InkPlay.Core.Models;
 public class PipelineProgress
 {
     public AgentType CurrentAgent { get; set; }
+    public AgentType AgentType { get; set; }
     public string AgentName { get; set; } = string.Empty;
     public int StepNumber { get; set; }
     public int TotalSteps { get; set; }
