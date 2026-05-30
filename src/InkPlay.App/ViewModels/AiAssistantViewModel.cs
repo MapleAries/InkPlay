@@ -752,39 +752,27 @@ public partial class AiAssistantViewModel : ViewModelBase
                 PipelineTotalSteps = p.TotalSteps;
                 CurrentAgentName = p.AgentName;
 
-                // Update chapter progress - only when chapter changes
-                if (p.TotalChapters > 0 && p.StreamingContent != null)
+                // Chapter progress (batch writing) - when TotalChapters is set
+                if (p.TotalChapters > 0)
                 {
                     TotalChapters = p.TotalChapters;
                     CompletedChapters = p.CompletedChapters;
-                    CurrentWritingChapter = p.StreamingContent.Replace("正在写作: ", "");
-                    ChapterProgressText = $"正在创作「{CurrentWritingChapter}」，已完成 {p.CompletedChapters}/{p.TotalChapters} 章";
-                }
-                else if (p.TotalChapters > 0)
-                {
-                    // Update completion count without changing chapter name
-                    CompletedChapters = p.CompletedChapters;
-                    if (!string.IsNullOrEmpty(CurrentWritingChapter))
+                    // Use StatusMessage for chapter progress if it contains chapter info
+                    if (!string.IsNullOrEmpty(p.StatusMessage) && p.StatusMessage.Contains("「"))
                     {
-                        ChapterProgressText = $"正在创作「{CurrentWritingChapter}」，已完成 {p.CompletedChapters}/{p.TotalChapters} 章";
+                        ChapterProgressText = p.StatusMessage;
                     }
                 }
 
-                // Agent progress
-                if (!string.IsNullOrEmpty(p.StatusMessage))
+                // Agent progress - use AgentName for agent-specific info
+                AgentProgressText = p.Status switch
                 {
-                    AgentProgressText = p.StatusMessage;
-                }
-                else
-                {
-                    AgentProgressText = p.Status switch
-                    {
-                        "running" => $"{p.AgentName} 正在工作...",
-                        "completed" => $"{p.AgentName} 完成",
-                        "failed" => $"{p.AgentName} 失败",
-                        _ => p.Status
-                    };
-                }
+                    "running" => $"{p.AgentName} 正在工作...",
+                    "completed" => $"{p.AgentName} 完成",
+                    "failed" => $"{p.AgentName} 失败",
+                    "revision" => $"审计未通过，正在返工（第 {p.RevisionRound} 轮）",
+                    _ => p.AgentName
+                };
 
                 // Revision progress - set when revision starts, clear when audit passes
                 if (p.Status == "revision")
