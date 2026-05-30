@@ -206,7 +206,7 @@ public partial class AssetsViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task FilterByCategoryAsync(string category)
+    public async Task FilterByCategoryAsync(string category)
     {
         if (CurrentProject == null) return;
 
