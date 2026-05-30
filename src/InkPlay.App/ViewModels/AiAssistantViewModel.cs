@@ -117,6 +117,16 @@ public partial class AiAssistantViewModel : ViewModelBase
     [ObservableProperty]
     private string _costEstimateMessage = string.Empty;
 
+    // Batch writing settings
+    [ObservableProperty]
+    private bool _showBatchDialog;
+
+    [ObservableProperty]
+    private int _batchChapterCount = 5;
+
+    [ObservableProperty]
+    private int _batchWordCountPerChapter = 3000;
+
     public AiAssistantViewModel(
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
@@ -656,29 +666,54 @@ public partial class AiAssistantViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task AutoWriteBatchAsync()
+    private void OpenBatchDialog()
     {
-        if (_currentProject is null || Chapters.Count == 0) return;
+        if (_currentProject is null) return;
+        ShowBatchDialog = true;
+    }
 
-        // Find empty chapters (no content)
-        var emptyChapters = Chapters.Where(c => string.IsNullOrWhiteSpace(c.Content) || c.WordCount == 0).ToList();
-        if (emptyChapters.Count == 0)
-        {
-            PipelineStatus = "没有需要写作的章节（所有章节已有内容）";
-            return;
-        }
+    [RelayCommand]
+    private void CloseBatchDialog()
+    {
+        ShowBatchDialog = false;
+    }
 
+    [RelayCommand]
+    private async Task ConfirmBatchWriteAsync()
+    {
+        if (_currentProject is null || BatchChapterCount <= 0) return;
+
+        ShowBatchDialog = false;
         IsAutoWriting = true;
-        PipelineStatus = $"准备批量写作 {emptyChapters.Count} 个章节...";
+        PipelineStatus = $"准备批量写作 {BatchChapterCount} 个章节...";
         _aiCts?.Cancel();
         _aiCts = new CancellationTokenSource();
 
         try
         {
+            // Create new chapters
+            var newChapters = new List<Document>();
+            var existingChapterCount = Chapters.Count(c => c.Title != "目录");
+
+            for (int i = 0; i < BatchChapterCount; i++)
+            {
+                var chapter = new Document
+                {
+                    ProjectId = _currentProject.Id,
+                    Title = $"第 {existingChapterCount + i + 1} 章",
+                    Type = DocumentType.Chapter,
+                    SortOrder = existingChapterCount + i
+                };
+                await _documentRepository.CreateAsync(chapter);
+                newChapters.Add(chapter);
+                Chapters.Add(chapter);
+            }
+
+            // Load context
             var allDocs = await _documentRepository.GetByProjectIdAsync(_currentProject.Id);
             var characters = await _characterRepository.GetByProjectIdAsync(_currentProject.Id);
             var outlines = allDocs.Where(d => d.Type == DocumentType.Outline).ToList();
-            var existingChapters = allDocs.Where(d => d.Type == DocumentType.Chapter && d.WordCount > 0)
+            var existingChapters = allDocs.Where(d => d.Type == DocumentType.Chapter && d.Id != newChapters[0].Id && d.WordCount > 0)
                                           .OrderBy(d => d.SortOrder)
                                           .ToList();
 
@@ -688,7 +723,7 @@ public partial class AiAssistantViewModel : ViewModelBase
                 Characters = characters,
                 Outlines = outlines,
                 Chapters = existingChapters,
-                TargetWordCount = WordCountTarget
+                TargetWordCount = BatchWordCountPerChapter
             };
 
             var progress = new Progress<PipelineProgress>(p =>
@@ -702,12 +737,16 @@ public partial class AiAssistantViewModel : ViewModelBase
             });
 
             int completed = 0;
-            await foreach (var result in _orchestrator.AutoWriteBatchAsync(emptyChapters, baseContext, progress, _aiCts.Token))
+            await foreach (var result in _orchestrator.AutoWriteBatchAsync(newChapters, baseContext, progress, _aiCts.Token))
             {
                 if (result.Success)
                 {
                     completed++;
-                    PipelineStatus = $"已完成 {completed}/{emptyChapters.Count} 个章节";
+                    // Save the completed chapter
+                    var chapter = newChapters[completed - 1];
+                    chapter.Content = result.Content;
+                    await _documentRepository.UpdateAsync(chapter, "AiGenerate", $"批量写作第 {completed} 章");
+                    PipelineStatus = $"已完成 {completed}/{BatchChapterCount} 个章节";
                 }
             }
 

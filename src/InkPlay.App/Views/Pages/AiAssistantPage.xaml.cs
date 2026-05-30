@@ -177,9 +177,19 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         ViewModel.CancelOperationCommand.Execute(null);
     }
 
-    private void AutoWriteBatch_Click(object sender, RoutedEventArgs e)
+    private void OpenBatchDialog_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.AutoWriteBatchCommand.Execute(null);
+        ViewModel.OpenBatchDialogCommand.Execute(null);
+    }
+
+    private void CloseBatchDialog_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.CloseBatchDialogCommand.Execute(null);
+    }
+
+    private async void ConfirmBatchWrite_Click(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.ConfirmBatchWriteCommand.ExecuteAsync(null);
     }
 
     private void CloseCostEstimate_Click(object sender, RoutedEventArgs e)
