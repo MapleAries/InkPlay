@@ -19,6 +19,8 @@ public partial class AiAssistantViewModel : ViewModelBase
     private readonly IProjectContext _projectContext;
     private readonly IProjectRepository _projectRepository;
     private readonly IDocumentVersionRepository _versionRepository;
+    private readonly IOrchestrator _orchestrator;
+    private readonly ICharacterRepository _characterRepository;
     private CancellationTokenSource? _aiCts;
     private AiConversation? _currentConversation;
     private Project? _currentProject;
@@ -89,6 +91,25 @@ public partial class AiAssistantViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isVersionHistoryVisible;
 
+    // Pipeline state
+    [ObservableProperty]
+    private bool _isAutoWriting;
+
+    [ObservableProperty]
+    private string _pipelineStatus = string.Empty;
+
+    [ObservableProperty]
+    private string _currentAgentName = string.Empty;
+
+    [ObservableProperty]
+    private int _pipelineStep;
+
+    [ObservableProperty]
+    private int _pipelineTotalSteps;
+
+    [ObservableProperty]
+    private string _pipelineStreamingContent = string.Empty;
+
     public AiAssistantViewModel(
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
@@ -97,7 +118,9 @@ public partial class AiAssistantViewModel : ViewModelBase
         IExportService exportService,
         IProjectContext projectContext,
         IProjectRepository projectRepository,
-        IDocumentVersionRepository versionRepository)
+        IDocumentVersionRepository versionRepository,
+        IOrchestrator orchestrator,
+        ICharacterRepository characterRepository)
     {
         _aiProviderFactory = aiProviderFactory;
         _settingsService = settingsService;
@@ -107,6 +130,8 @@ public partial class AiAssistantViewModel : ViewModelBase
         _projectContext = projectContext;
         _projectRepository = projectRepository;
         _versionRepository = versionRepository;
+        _orchestrator = orchestrator;
+        _characterRepository = characterRepository;
 
         SetupAutoSave();
     }
@@ -507,6 +532,80 @@ public partial class AiAssistantViewModel : ViewModelBase
             ChapterContent = AiResponse;
             AiResponse = string.Empty;
             OnContentChanged();
+        }
+    }
+
+    // --- Auto Write Pipeline ---
+
+    [RelayCommand]
+    private async Task AutoWriteChapterAsync()
+    {
+        if (_currentProject is null || CurrentChapter is null) return;
+
+        IsAutoWriting = true;
+        PipelineStatus = "准备中...";
+        _aiCts?.Cancel();
+        _aiCts = new CancellationTokenSource();
+
+        try
+        {
+            // Build AgentContext from current project state
+            var allDocs = await _documentRepository.GetByProjectIdAsync(_currentProject.Id);
+            var characters = await _characterRepository.GetByProjectIdAsync(_currentProject.Id);
+            var outlines = allDocs.Where(d => d.Type == DocumentType.Outline).ToList();
+            var chapters = allDocs.Where(d => d.Type == DocumentType.Chapter && d.Id != CurrentChapter.Id)
+                                  .OrderBy(d => d.SortOrder)
+                                  .ToList();
+
+            var agentContext = new AgentContext
+            {
+                Project = _currentProject,
+                Characters = characters,
+                Outlines = outlines,
+                Chapters = chapters,
+                CurrentDocument = CurrentChapter,
+                TargetWordCount = WordCountTarget,
+                UserRequest = $"请为章节「{ChapterTitle}」生成完整内容"
+            };
+
+            var progress = new Progress<PipelineProgress>(p =>
+            {
+                PipelineStep = p.StepNumber;
+                PipelineTotalSteps = p.TotalSteps;
+                CurrentAgentName = p.AgentName;
+                PipelineStatus = p.Status switch
+                {
+                    "running" => $"{p.AgentName} 正在工作...",
+                    "completed" => $"{p.AgentName} 完成",
+                    "failed" => $"{p.AgentName} 失败",
+                    _ => p.Status
+                };
+            });
+
+            var result = await _orchestrator.AutoWriteChapterAsync(agentContext, progress, _aiCts.Token);
+
+            if (result.Success)
+            {
+                ChapterContent = ExtractContent(result.Content);
+                OnContentChanged();
+                PipelineStatus = "写作完成！";
+            }
+            else
+            {
+                PipelineStatus = $"写作失败: {result.Content}";
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            PipelineStatus = "已取消";
+        }
+        catch (Exception ex)
+        {
+            PipelineStatus = $"错误: {ex.Message}";
+        }
+        finally
+        {
+            IsAutoWriting = false;
         }
     }
 

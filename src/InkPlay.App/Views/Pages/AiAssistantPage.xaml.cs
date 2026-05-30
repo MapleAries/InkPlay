@@ -166,4 +166,14 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
             ViewModel.SendMessageCommand.Execute(null);
         }
     }
+
+    private void AutoWrite_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.AutoWriteChapterCommand.Execute(null);
+    }
+
+    private void CancelAutoWrite_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.CancelOperationCommand.Execute(null);
+    }
 }

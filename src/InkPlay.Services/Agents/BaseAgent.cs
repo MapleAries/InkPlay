@@ -15,6 +15,8 @@ public abstract class BaseAgent : IAgent
     public abstract string Name { get; }
     public abstract string SystemPrompt { get; }
 
+    protected virtual int MaxRetries => 3;
+
     protected BaseAgent(IAiProviderFactory aiProviderFactory, ISettingsService settingsService)
     {
         AiProviderFactory = aiProviderFactory;
@@ -23,17 +25,63 @@ public abstract class BaseAgent : IAgent
 
     public virtual async Task<AgentResult> ExecuteAsync(AgentContext context, CancellationToken ct = default)
     {
-        var sb = new StringBuilder();
-        await foreach (var chunk in StreamExecuteAsync(context, ct))
+        for (int attempt = 0; attempt <= MaxRetries; attempt++)
         {
-            sb.Append(chunk);
+            try
+            {
+                var sb = new StringBuilder();
+                await foreach (var chunk in StreamExecuteAsync(context, ct))
+                {
+                    sb.Append(chunk);
+                }
+                return new AgentResult
+                {
+                    Success = true,
+                    Content = sb.ToString(),
+                    AgentType = Type
+                };
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                // User cancellation — do not retry
+                return new AgentResult
+                {
+                    Success = false,
+                    Content = "操作已取消",
+                    AgentType = Type
+                };
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries && IsTransientError(ex))
+            {
+                // Transient error — retry with exponential backoff
+                var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt));
+                await Task.Delay(delay, ct);
+            }
+            catch (Exception ex)
+            {
+                return new AgentResult
+                {
+                    Success = false,
+                    Content = $"Agent {Name} 执行失败: {ex.Message}",
+                    AgentType = Type
+                };
+            }
         }
+
         return new AgentResult
         {
-            Success = true,
-            Content = sb.ToString(),
+            Success = false,
+            Content = $"Agent {Name} 在 {MaxRetries} 次重试后仍然失败",
             AgentType = Type
         };
+    }
+
+    private static bool IsTransientError(HttpRequestException ex)
+    {
+        // Retry on network errors and server errors (5xx)
+        if (ex.StatusCode is null) return true; // Network-level error
+        var code = (int)ex.StatusCode;
+        return code >= 500 || code == 429; // Server error or rate limit
     }
 
     public virtual async IAsyncEnumerable<string> StreamExecuteAsync(

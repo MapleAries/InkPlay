@@ -140,6 +140,8 @@
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                            <Button Content="一键写作" Click="AutoWrite_Click" Padding="12,4"
+                                    Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
                             <Button Content="保存" Click="Save_Click" Padding="12,4"
                                     Style="{ThemeResource AccentButtonStyle}" />
                         </StackPanel>
@@ -236,9 +238,52 @@
                 </Grid>
             </Grid>
 
-            <!-- Right: AI Panel -->
+            <!-- Right: Pipeline Progress (shown during auto-write) -->
+            <Grid Grid.Row="1" Grid.Column="2" Padding="16"
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="自动写作" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,16" />
+
+                <!-- Progress Bar -->
+                <ProgressBar Grid.Row="1" Margin="0,0,0,12"
+                             Value="{x:Bind ViewModel.PipelineStep, Mode=OneWay}"
+                             Maximum="{x:Bind ViewModel.PipelineTotalSteps, Mode=OneWay}"
+                             IsIndeterminate="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay}" />
+
+                <!-- Current Step -->
+                <TextBlock Grid.Row="2" Margin="0,0,0,8">
+                    <Run Text="{x:Bind ViewModel.CurrentAgentName, Mode=OneWay}" FontWeight="SemiBold" />
+                    <Run Text=" (" />
+                    <Run Text="{x:Bind ViewModel.PipelineStep, Mode=OneWay}" />
+                    <Run Text="/" />
+                    <Run Text="{x:Bind ViewModel.PipelineTotalSteps, Mode=OneWay}" />
+                    <Run Text=")" />
+                </TextBlock>
+
+                <!-- Status -->
+                <ScrollViewer Grid.Row="3">
+                    <TextBlock Text="{x:Bind ViewModel.PipelineStatus, Mode=OneWay}"
+                               TextWrapping="Wrap"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </ScrollViewer>
+
+                <!-- Cancel Button -->
+                <Button Grid.Row="4" Content="取消" HorizontalAlignment="Right" Margin="0,12,0,0"
+                        Click="CancelAutoWrite_Click" />
+            </Grid>
+
+            <!-- Right: AI Panel (shown when not auto-writing) -->
             <Grid Grid.Row="1" Grid.Column="2" Padding="12"
-                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                  Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
