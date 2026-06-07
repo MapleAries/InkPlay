@@ -44,11 +44,9 @@ public partial class App : Application
                 services.AddSingleton<IAiProviderFactory, AiProviderFactory>();
 
                 // Video
+                services.AddHttpClient<KlingVideoProvider>();
                 services.AddSingleton<IVideoProvider>(sp =>
-                {
-                    var httpClient = new HttpClient();
-                    return new KlingVideoProvider(httpClient);
-                });
+                    sp.GetRequiredService<KlingVideoProvider>());
 
                 // Context
                 services.AddSingleton<IProjectContext, ProjectContext>();
