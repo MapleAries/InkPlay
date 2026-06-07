@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using InkPlay.Core.Interfaces;
@@ -25,9 +26,6 @@ public class KlingVideoProvider : IVideoProvider
         var baseUrl = config.BaseUrl.TrimEnd('/');
         var url = $"{baseUrl}/v1/videos/generations";
 
-        _httpClient.DefaultRequestHeaders.Clear();
-        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {config.ApiKey}");
-
         var body = new
         {
             prompt = request.Prompt,
@@ -37,7 +35,11 @@ public class KlingVideoProvider : IVideoProvider
             resolution = request.Resolution
         };
 
-        var response = await _httpClient.PostAsJsonAsync(url, body, cancellationToken);
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
+        httpRequest.Content = JsonContent.Create(body);
+
+        var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken);
@@ -58,10 +60,10 @@ public class KlingVideoProvider : IVideoProvider
         var baseUrl = config.BaseUrl.TrimEnd('/');
         var url = $"{baseUrl}/v1/videos/generations/{taskId}";
 
-        _httpClient.DefaultRequestHeaders.Clear();
-        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {config.ApiKey}");
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
 
-        var response = await _httpClient.GetAsync(url, cancellationToken);
+        var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken);
