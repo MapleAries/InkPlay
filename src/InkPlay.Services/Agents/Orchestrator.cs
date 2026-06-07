@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using InkPlay.Core;
 using InkPlay.Core.Enums;
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
@@ -125,9 +126,9 @@ public class Orchestrator : IOrchestrator
             context.AuditReport = auditorResult.Content;
 
             // Check if audit passed
-            bool auditPassed = auditorResult.Content.StartsWith("RESULT: PASS")
-                || auditorResult.Content.Contains("## 审计结果：通过")
-                || (!auditorResult.Content.Contains("不通过") && auditorResult.Content.Contains("通过"));
+            bool auditPassed = auditorResult.Content.StartsWith(Constants.AuditResult.PassPrefix)
+                || auditorResult.Content.Contains(Constants.AuditResult.PassSectionHeader)
+                || (!auditorResult.Content.Contains(Constants.AuditResult.FailChinese) && auditorResult.Content.Contains(Constants.AuditResult.PassChinese));
 
             if (auditPassed)
             {
@@ -173,7 +174,7 @@ public class Orchestrator : IOrchestrator
                 AgentName = "修订员",
                 StepNumber = 7,
                 TotalSteps = totalSteps,
-                Status = "revision",
+                Status = Constants.PipelineStatus.Revision,
                 StatusMessage = $"审计未通过，正在返工（第 {round + 1}/{MaxRevisionRounds} 轮）...",
                 RevisionRound = round + 1,
                 MaxRevisionRounds = MaxRevisionRounds
@@ -228,7 +229,7 @@ public class Orchestrator : IOrchestrator
             AgentName = agentName,
             StepNumber = stepNumber,
             TotalSteps = totalSteps,
-            Status = "running",
+            Status = Constants.PipelineStatus.Running,
             StatusMessage = $"{agentName} 正在{actionVerb}..."
         });
 
@@ -241,7 +242,7 @@ public class Orchestrator : IOrchestrator
             AgentName = agentName,
             StepNumber = stepNumber,
             TotalSteps = totalSteps,
-            Status = result.Success ? "completed" : "failed",
+            Status = result.Success ? Constants.PipelineStatus.Completed : Constants.PipelineStatus.Failed,
             StatusMessage = result.Success ? $"{agentName} {actionVerb}完成" : $"{agentName} {actionVerb}失败"
         });
 
@@ -541,7 +542,7 @@ public class Orchestrator : IOrchestrator
             // Append to the first outline document
             var outline = context.Outlines[0];
             outline.Content += updateNote;
-            await _documentRepository.UpdateAsync(outline, "DataAgent", $"自动更新：{context.CurrentDocument.Title}完成后同步");
+            await _documentRepository.UpdateAsync(outline, Constants.ChangeSource.DataAgent, $"自动更新：{context.CurrentDocument.Title}完成后同步");
         }
         catch (Exception ex)
         {

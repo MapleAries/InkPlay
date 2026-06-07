@@ -3,6 +3,7 @@ using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using InkPlay.App.Services;
+using InkPlay.Core;
 using InkPlay.Core.Enums;
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
@@ -333,7 +334,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         SaveStatus = "保存中...";
         CurrentChapter.Title = ChapterTitle;
         CurrentChapter.Content = CombineTitleAndContent(ChapterTitle, ChapterContent);
-        await _documentRepository.UpdateAsync(CurrentChapter, "ManualEdit", "手动保存");
+        await _documentRepository.UpdateAsync(CurrentChapter, Constants.ChangeSource.ManualEdit, "手动保存");
         WordCount = CurrentChapter.WordCount;
         SaveStatus = "已保存";
     }
@@ -344,7 +345,7 @@ public partial class AiAssistantViewModel : ViewModelBase
 
         CurrentChapter.Title = ChapterTitle;
         CurrentChapter.Content = CombineTitleAndContent(ChapterTitle, ChapterContent);
-        await _documentRepository.UpdateAsync(CurrentChapter, "AutoSave", "自动保存");
+        await _documentRepository.UpdateAsync(CurrentChapter, Constants.ChangeSource.AutoSave, "自动保存");
         WordCount = CurrentChapter.WordCount;
         SaveStatus = "已保存";
     }
@@ -799,7 +800,7 @@ public partial class AiAssistantViewModel : ViewModelBase
                     // Save the completed chapter
                     var chapter = newChapters[completed - 1];
                     chapter.Content = result.Content;
-                    await _documentRepository.UpdateAsync(chapter, "AiGenerate", $"批量写作第 {completed} 章");
+                    await _documentRepository.UpdateAsync(chapter, Constants.ChangeSource.AiGenerate, $"批量写作第 {completed} 章");
                     CompletedChapters = completed;
                 }
             }
