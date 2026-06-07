@@ -78,15 +78,41 @@ public class FileProjectService : IFileProjectService
         }
     }
 
-    public Task DeleteDocumentAsync(Guid documentId, Guid projectId)
+    public async Task DeleteDocumentAsync(Guid documentId, Guid projectId, string title, DocumentType type)
     {
-        // 文件删除由调用方处理路径
-        return Task.CompletedTask;
+        var project = await LoadProjectMetaAsync(projectId);
+        if (project is null) return;
+
+        var subDir = type switch
+        {
+            DocumentType.Outline => "大纲",
+            DocumentType.Chapter => "章节",
+            _ => "章节"
+        };
+
+        var dir = Path.Combine(project.ProjectPath, subDir);
+        var fileName = SanitizeFileName(title) + ".md";
+        var filePath = Path.Combine(dir, fileName);
+
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
     }
 
-    public Task DeleteCharacterAsync(Guid characterId, Guid projectId)
+    public async Task DeleteCharacterAsync(Guid characterId, Guid projectId, string name)
     {
-        return Task.CompletedTask;
+        var project = await LoadProjectMetaAsync(projectId);
+        if (project is null) return;
+
+        var dir = Path.Combine(project.ProjectPath, "角色");
+        var fileName = SanitizeFileName(name) + ".json";
+        var filePath = Path.Combine(dir, fileName);
+
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
     }
 
     private async Task SaveProjectMetaAsync(Project project)
