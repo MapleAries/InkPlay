@@ -6,6 +6,7 @@ namespace InkPlay.Services.Data;
 public class InkPlayDbContext : IDisposable
 {
     private readonly LiteDatabase _db;
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
 
     public InkPlayDbContext()
     {
@@ -14,7 +15,12 @@ public class InkPlayDbContext : IDisposable
             "InkPlay",
             "inkplay.db");
         Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
-        _db = new LiteDatabase(dbPath);
+
+        var connectionString = new ConnectionString(dbPath)
+        {
+            Connection = ConnectionType.Shared
+        };
+        _db = new LiteDatabase(connectionString);
     }
 
     public ILiteCollection<Project> Projects => _db.GetCollection<Project>("projects");
@@ -28,5 +34,41 @@ public class InkPlayDbContext : IDisposable
     public ILiteCollection<GlossaryEntry> GlossaryEntries => _db.GetCollection<GlossaryEntry>("glossary_entries");
     public ILiteCollection<DocumentVersion> DocumentVersions => _db.GetCollection<DocumentVersion>("document_versions");
 
-    public void Dispose() => _db.Dispose();
+    /// <summary>
+    /// Executes a write operation under a mutex lock to prevent concurrent database writes.
+    /// </summary>
+    public async Task<T> ExecuteWriteAsync<T>(Func<T> operation)
+    {
+        await _writeLock.WaitAsync();
+        try
+        {
+            return operation();
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Executes a write operation under a mutex lock to prevent concurrent database writes.
+    /// </summary>
+    public async Task ExecuteWriteAsync(Action operation)
+    {
+        await _writeLock.WaitAsync();
+        try
+        {
+            operation();
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    public void Dispose()
+    {
+        _writeLock.Dispose();
+        _db.Dispose();
+    }
 }
