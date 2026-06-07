@@ -3,6 +3,7 @@ using System.Text.Json;
 using InkPlay.Core.Enums;
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
+using Microsoft.Extensions.Logging;
 
 namespace InkPlay.Services.Agents;
 
@@ -14,6 +15,7 @@ public class Orchestrator : IOrchestrator
     private readonly IWorldSettingRepository _worldSettingRepository;
     private readonly IDocumentRepository _documentRepository;
     private readonly IGlossaryRepository _glossaryRepository;
+    private readonly ILogger<Orchestrator> _logger;
     private const int MaxRevisionRounds = 3;
 
     public Orchestrator(
@@ -22,7 +24,8 @@ public class Orchestrator : IOrchestrator
         ICharacterRelationshipRepository relationshipRepository,
         IWorldSettingRepository worldSettingRepository,
         IDocumentRepository documentRepository,
-        IGlossaryRepository glossaryRepository)
+        IGlossaryRepository glossaryRepository,
+        ILogger<Orchestrator> logger)
     {
         _agents = agents.ToDictionary(a => a.Type);
         _characterRepository = characterRepository;
@@ -30,6 +33,7 @@ public class Orchestrator : IOrchestrator
         _worldSettingRepository = worldSettingRepository;
         _documentRepository = documentRepository;
         _glossaryRepository = glossaryRepository;
+        _logger = logger;
     }
 
     public async Task<AgentResult> ExecuteStepAsync(AgentType type, AgentContext context, CancellationToken ct = default)
@@ -491,13 +495,13 @@ public class Orchestrator : IOrchestrator
                 }
             }
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            // DataAgent output may not be valid JSON — skip persistence
+            _logger.LogWarning(ex, "DataAgent output is not valid JSON, skipping data persistence");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Log but don't fail the pipeline
+            _logger.LogError(ex, "Failed to persist extracted data from DataAgent");
         }
     }
 
@@ -539,9 +543,9 @@ public class Orchestrator : IOrchestrator
             outline.Content += updateNote;
             await _documentRepository.UpdateAsync(outline, "DataAgent", $"自动更新：{context.CurrentDocument.Title}完成后同步");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Don't fail the pipeline on outline update errors
+            _logger.LogError(ex, "Failed to update outline after chapter completion");
         }
     }
 }

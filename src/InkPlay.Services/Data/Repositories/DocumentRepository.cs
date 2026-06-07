@@ -1,6 +1,7 @@
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
 using InkPlay.Services.Data;
+using Microsoft.Extensions.Logging;
 
 namespace InkPlay.Services.Data.Repositories;
 
@@ -10,13 +11,15 @@ public class DocumentRepository : IDocumentRepository
     private readonly IProjectRepository _projectRepository;
     private readonly IFileProjectService _fileProjectService;
     private readonly IDocumentVersionRepository _versionRepository;
+    private readonly ILogger<DocumentRepository> _logger;
 
-    public DocumentRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService, IDocumentVersionRepository versionRepository)
+    public DocumentRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService, IDocumentVersionRepository versionRepository, ILogger<DocumentRepository> logger)
     {
         _db = db;
         _projectRepository = projectRepository;
         _fileProjectService = fileProjectService;
         _versionRepository = versionRepository;
+        _logger = logger;
     }
 
     public Task<Document?> GetByIdAsync(Guid id)
@@ -41,7 +44,6 @@ public class DocumentRepository : IDocumentRepository
         document.WordCount = CalculateWordCount(document.Content);
         _db.Documents.Insert(document);
 
-        // 保存到文件系统
         await SaveToFileSystemAsync(document);
 
         return document;
@@ -49,11 +51,9 @@ public class DocumentRepository : IDocumentRepository
 
     public async Task UpdateAsync(Document document, string changeSource = "ManualEdit", string changeSummary = "")
     {
-        // 获取旧版本用于快照
         var existing = _db.Documents.FindById(document.Id);
         if (existing != null && existing.Content != document.Content)
         {
-            // 创建版本快照（保存旧内容）
             var version = new DocumentVersion
             {
                 DocumentId = document.Id,
@@ -71,7 +71,6 @@ public class DocumentRepository : IDocumentRepository
         document.WordCount = CalculateWordCount(document.Content);
         _db.Documents.Update(document);
 
-        // 保存到文件系统
         await SaveToFileSystemAsync(document);
     }
 
@@ -91,9 +90,9 @@ public class DocumentRepository : IDocumentRepository
                 await _fileProjectService.SaveDocumentAsync(document);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // 文件保存失败不影响 LiteDB 操作
+            _logger.LogWarning(ex, "Failed to save document '{Title}' to file system, database update still applied", document.Title);
         }
     }
 
@@ -102,12 +101,11 @@ public class DocumentRepository : IDocumentRepository
         if (string.IsNullOrWhiteSpace(content))
             return 0;
 
-        // Count Chinese characters + English words
         var count = 0;
         var inWord = false;
         foreach (var c in content)
         {
-            if (c >= 0x4E00 && c <= 0x9FFF) // CJK Unified Ideographs
+            if (c >= 0x4E00 && c <= 0x9FFF)
             {
                 count++;
                 inWord = false;

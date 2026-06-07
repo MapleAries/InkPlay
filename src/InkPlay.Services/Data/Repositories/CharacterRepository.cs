@@ -1,6 +1,7 @@
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
 using InkPlay.Services.Data;
+using Microsoft.Extensions.Logging;
 
 namespace InkPlay.Services.Data.Repositories;
 
@@ -9,12 +10,14 @@ public class CharacterRepository : ICharacterRepository
     private readonly InkPlayDbContext _db;
     private readonly IProjectRepository _projectRepository;
     private readonly IFileProjectService _fileProjectService;
+    private readonly ILogger<CharacterRepository> _logger;
 
-    public CharacterRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService)
+    public CharacterRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService, ILogger<CharacterRepository> logger)
     {
         _db = db;
         _projectRepository = projectRepository;
         _fileProjectService = fileProjectService;
+        _logger = logger;
     }
 
     public Task<Character?> GetByIdAsync(Guid id)
@@ -67,9 +70,9 @@ public class CharacterRepository : ICharacterRepository
                 await _fileProjectService.SaveCharacterAsync(character);
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // 文件保存失败不影响 LiteDB 操作
+            _logger.LogWarning(ex, "Failed to save character '{Name}' to file system, database update still applied", character.Name);
         }
     }
 }
