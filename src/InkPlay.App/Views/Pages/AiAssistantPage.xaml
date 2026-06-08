@@ -288,38 +288,44 @@
                            Foreground="{ThemeResource SystemFillColorCautionBrush}" />
 
                 <!-- Chat Messages (hidden when auto-writing) -->
-                <ScrollViewer Grid.Row="6"
-                              Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
-                    <StackPanel Spacing="8">
-                        <ItemsControl ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="models:AiChatMessage">
-                                    <Grid Padding="8,6"
-                                          Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                                          CornerRadius="4">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Text="{x:Bind Role}" FontSize="11"
-                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                        <TextBlock Grid.Row="1" Text="{x:Bind Content}"
-                                                   TextWrapping="Wrap" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                <Grid Grid.Row="6"
+                      Visibility="{x:Bind ViewModel.IsAutoWriting, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                        <!-- Streaming Response -->
-                        <Grid Padding="8,6"
-                              Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-                              CornerRadius="4"
-                              Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay}">
-                            <TextBlock Text="{x:Bind ViewModel.AiResponse, Mode=OneWay}"
-                                       TextWrapping="Wrap" />
-                        </Grid>
-                    </StackPanel>
-                </ScrollViewer>
+                    <ListView Grid.Row="0"
+                              ItemsSource="{x:Bind ViewModel.Messages, Mode=OneWay}"
+                              SelectionMode="None"
+                              IsItemClickEnabled="False">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="models:AiChatMessage">
+                                <Grid Padding="8,6"
+                                      Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                      CornerRadius="4">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Grid.Row="0" Text="{x:Bind Role}" FontSize="11"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    <TextBlock Grid.Row="1" Text="{x:Bind Content}"
+                                               TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <!-- Streaming Response -->
+                    <Grid Grid.Row="1" Padding="8,6"
+                          Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                          CornerRadius="4"
+                          Visibility="{x:Bind ViewModel.IsProcessing, Mode=OneWay}">
+                        <TextBlock Text="{x:Bind ViewModel.AiResponse, Mode=OneWay}"
+                                   TextWrapping="Wrap" />
+                    </Grid>
+                </Grid>
 
                 <!-- Input / Cancel Button -->
                 <Grid Grid.Row="7" Margin="0,8,0,0">
