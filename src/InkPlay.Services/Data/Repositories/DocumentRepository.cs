@@ -13,6 +13,8 @@ public class DocumentRepository : IDocumentRepository
     private readonly IFileProjectService _fileProjectService;
     private readonly IDocumentVersionRepository _versionRepository;
     private readonly ILogger<DocumentRepository> _logger;
+    private static readonly Dictionary<Guid, DateTime> _lastSnapshotTime = new();
+    private static readonly TimeSpan MinSnapshotInterval = TimeSpan.FromSeconds(30);
 
     public DocumentRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService, IDocumentVersionRepository versionRepository, ILogger<DocumentRepository> logger)
     {
@@ -64,17 +66,25 @@ public class DocumentRepository : IDocumentRepository
         var existing = _db.Documents.FindById(document.Id);
         if (existing != null && existing.Content != document.Content)
         {
-            var version = new DocumentVersion
+            // Rate-limit version snapshots to avoid excessive growth during auto-save
+            var shouldSnapshot = !_lastSnapshotTime.TryGetValue(document.Id, out var lastTime)
+                || DateTime.UtcNow - lastTime >= MinSnapshotInterval;
+
+            if (shouldSnapshot)
             {
-                DocumentId = document.Id,
-                ProjectId = document.ProjectId,
-                Content = existing.Content,
-                Title = existing.Title,
-                WordCount = existing.WordCount,
-                ChangeSource = changeSource,
-                ChangeSummary = changeSummary
-            };
-            await _versionRepository.CreateAsync(version);
+                var version = new DocumentVersion
+                {
+                    DocumentId = document.Id,
+                    ProjectId = document.ProjectId,
+                    Content = existing.Content,
+                    Title = existing.Title,
+                    WordCount = existing.WordCount,
+                    ChangeSource = changeSource,
+                    ChangeSummary = changeSummary
+                };
+                await _versionRepository.CreateAsync(version);
+                _lastSnapshotTime[document.Id] = DateTime.UtcNow;
+            }
         }
 
         document.UpdatedAt = DateTime.UtcNow;
