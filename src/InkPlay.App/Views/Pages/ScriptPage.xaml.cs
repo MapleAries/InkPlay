@@ -229,14 +229,14 @@ public sealed partial class ScriptPage : Page, IParameterizedPage
 
     private void AddDialogue_Click(object sender, RoutedEventArgs e)
     {
-        ViewModel.AddDialogueAsyncCommand.Execute(null);
+        ViewModel.AddDialogueCommand.Execute(null);
     }
 
     private void RemoveDialogue_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && button.Tag is SceneDialogue dialogue)
         {
-            ViewModel.RemoveDialogueAsyncCommand.Execute(dialogue);
+            ViewModel.RemoveDialogueCommand.Execute(dialogue);
         }
     }
 

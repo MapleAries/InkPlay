@@ -299,7 +299,7 @@ public partial class ScriptViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void AddDialogueAsync()
+    private void AddDialogue()
     {
         SceneDialogues.Add(new SceneDialogue
         {
@@ -309,7 +309,7 @@ public partial class ScriptViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void RemoveDialogueAsync(SceneDialogue? dialogue)
+    private void RemoveDialogue(SceneDialogue? dialogue)
     {
         if (dialogue is null) return;
         SceneDialogues.Remove(dialogue);
