@@ -238,7 +238,7 @@
 
                     <PasswordBox Grid.Row="2" Header="API Key" Margin="0,0,0,12"
                                  Password="{x:Bind ViewModel.EditApiKey, Mode=TwoWay}"
-                                 PasswordRevealMode="Visible" />
+                                 PasswordRevealMode="Peek" />
 
                     <TextBox Grid.Row="3" Header="Base URL" Margin="0,0,0,12"
                              Text="{x:Bind ViewModel.EditBaseUrl, Mode=TwoWay}"
