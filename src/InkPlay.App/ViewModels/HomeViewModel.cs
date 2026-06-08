@@ -40,6 +40,9 @@ public partial class HomeViewModel : ViewModelBase
     [ObservableProperty]
     private string _createStatusMessage = string.Empty;
 
+    [ObservableProperty]
+    private string _errorMessage = string.Empty;
+
     // Step tracking
     [ObservableProperty]
     private int _creationStep = 1; // 1=选择方式, 2=输入内容, 3=选择目录
@@ -333,8 +336,9 @@ public partial class HomeViewModel : ViewModelBase
 
             return response.Length > 0 ? response.ToString() : null;
         }
-        catch
+        catch (Exception ex)
         {
+            ErrorMessage = $"生成大纲失败: {ex.Message}";
             return null;
         }
     }
@@ -380,8 +384,9 @@ public partial class HomeViewModel : ViewModelBase
 
             return response.Length > 0 ? response.ToString() : null;
         }
-        catch
+        catch (Exception ex)
         {
+            ErrorMessage = $"生成大纲失败: {ex.Message}";
             return null;
         }
     }
@@ -429,8 +434,9 @@ public partial class HomeViewModel : ViewModelBase
 
             return (result?.GetValueOrDefault("title") ?? "", result?.GetValueOrDefault("summary") ?? "");
         }
-        catch
+        catch (Exception ex)
         {
+            ErrorMessage = $"提取标题摘要失败: {ex.Message}";
             return ("", "");
         }
     }
@@ -547,9 +553,9 @@ public partial class HomeViewModel : ViewModelBase
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Extraction failure doesn't affect project creation
+            ErrorMessage = $"提取角色失败: {ex.Message}";
         }
     }
 
