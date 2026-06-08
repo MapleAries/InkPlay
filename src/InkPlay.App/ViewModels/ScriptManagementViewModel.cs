@@ -44,6 +44,11 @@ public partial class ScriptManagementViewModel : ViewModelBase
     private bool _isConverting;
 
     [ObservableProperty]
+    private bool _isNotConverting = true;
+
+    partial void OnIsConvertingChanged(bool value) => IsNotConverting = !value;
+
+    [ObservableProperty]
     private string _conversionStatus = string.Empty;
 
     [ObservableProperty]
