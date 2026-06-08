@@ -17,6 +17,7 @@ public sealed partial class HomePage : Page
         InitializeComponent();
         DataContext = ViewModel;
         Loaded += async (_, _) => await ViewModel.LoadProjectsCommand.ExecuteAsync(null);
+        Unloaded += (_, _) => ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
     }
 
