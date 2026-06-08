@@ -107,7 +107,11 @@ public partial class HomeViewModel : ViewModelBase
         try
         {
             var projects = await _projectRepository.GetAllAsync();
-            Projects = new ObservableCollection<Project>(projects);
+            Projects.Clear();
+            foreach (var project in projects)
+            {
+                Projects.Add(project);
+            }
         }
         finally
         {

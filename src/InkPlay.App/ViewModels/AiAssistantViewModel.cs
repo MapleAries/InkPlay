@@ -225,7 +225,11 @@ public partial class AiAssistantViewModel : ViewModelBase
         if (_currentProject is null) return;
 
         var chapterDocs = await _documentRepository.GetByProjectIdAndTypeAsync(_currentProject.Id, DocumentType.Chapter);
-        Chapters = new ObservableCollection<Document>(chapterDocs);
+        Chapters.Clear();
+        foreach (var chapter in chapterDocs)
+        {
+            Chapters.Add(chapter);
+        }
         CurrentChapter = null;
         IsChapterSelected = false;
         ChapterContent = string.Empty;
