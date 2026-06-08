@@ -42,7 +42,13 @@ public class ClaudeProvider : AiProviderBase
 
         var response = await HttpClient.SendAsync(
             request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            var errorMessage = ExtractErrorMessage(errorBody) ?? response.ReasonPhrase ?? "请求失败";
+            throw new HttpRequestException($"API 错误 ({(int)response.StatusCode}): {errorMessage}");
+        }
 
         await foreach (var chunk in ReadSseStreamAsync(response, ExtractClaudeContent, cancellationToken))
         {
@@ -59,6 +65,21 @@ public class ClaudeProvider : AiProviderBase
             if (root.TryGetProperty("type", out var type) && type.GetString() == "content_block_delta")
             {
                 return root.GetProperty("delta").GetProperty("text").GetString();
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private static string? ExtractErrorMessage(string errorBody)
+    {
+        try
+        {
+            var doc = JsonDocument.Parse(errorBody);
+            if (doc.RootElement.TryGetProperty("error", out var error))
+            {
+                if (error.TryGetProperty("message", out var message))
+                    return message.GetString();
             }
         }
         catch { }

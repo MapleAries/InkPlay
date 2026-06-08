@@ -34,7 +34,13 @@ public class OpenAiProvider : AiProviderBase
 
         var response = await HttpClient.SendAsync(
             request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            var errorMessage = ExtractErrorMessage(errorBody) ?? response.ReasonPhrase ?? "请求失败";
+            throw new HttpRequestException($"API 错误 ({(int)response.StatusCode}): {errorMessage}");
+        }
 
         await foreach (var chunk in ReadSseStreamAsync(response, ExtractOpenAiContent, cancellationToken))
         {
@@ -52,6 +58,21 @@ public class OpenAiProvider : AiProviderBase
                 .GetProperty("delta")
                 .GetProperty("content")
                 .GetString();
+        }
+        catch { }
+        return null;
+    }
+
+    private static string? ExtractErrorMessage(string errorBody)
+    {
+        try
+        {
+            var doc = JsonDocument.Parse(errorBody);
+            if (doc.RootElement.TryGetProperty("error", out var error))
+            {
+                if (error.TryGetProperty("message", out var message))
+                    return message.GetString();
+            }
         }
         catch { }
         return null;
