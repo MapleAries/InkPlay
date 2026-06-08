@@ -188,6 +188,7 @@ public partial class AiAssistantViewModel : ViewModelBase
     private async Task DebounceSaveAsync()
     {
         _autoSaveCts?.Cancel();
+        _autoSaveCts?.Dispose();
         _autoSaveCts = new CancellationTokenSource();
         try
         {
@@ -422,6 +423,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         IsProcessing = true;
         AiResponse = string.Empty;
         _aiCts?.Cancel();
+        _aiCts?.Dispose();
         _aiCts = new CancellationTokenSource();
 
         try
@@ -582,6 +584,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         IsAutoWriting = true;
         AgentProgressText = "准备中...";
         _aiCts?.Cancel();
+        _aiCts?.Dispose();
         _aiCts = new CancellationTokenSource();
 
         try
@@ -703,6 +706,7 @@ public partial class AiAssistantViewModel : ViewModelBase
         IsAutoWriting = true;
         AgentProgressText = $"准备批量写作 {BatchChapterCount} 个章节...";
         _aiCts?.Cancel();
+        _aiCts?.Dispose();
         _aiCts = new CancellationTokenSource();
 
         try

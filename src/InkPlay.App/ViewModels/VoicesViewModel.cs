@@ -219,6 +219,7 @@ public partial class VoicesViewModel : ViewModelBase
         IsAiProcessing = true;
         AiResponse = string.Empty;
         _aiCts?.Cancel();
+        _aiCts?.Dispose();
         _aiCts = new CancellationTokenSource();
 
         try

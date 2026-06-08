@@ -286,6 +286,7 @@ public partial class CharactersViewModel : ViewModelBase
         IsAiProcessing = true;
         AiResponse = string.Empty;
         _aiCts?.Cancel();
+        _aiCts?.Dispose();
         _aiCts = new CancellationTokenSource();
 
         try
