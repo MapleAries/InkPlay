@@ -73,7 +73,7 @@
                     <Button Content="生成视频" Click="Generate_Click"
                             Style="{ThemeResource AccentButtonStyle}" />
                     <Button Content="取消" Click="Cancel_Click"
-                            IsEnabled="{x:Bind ViewModel.IsGenerating}" />
+                            IsEnabled="{x:Bind ViewModel.IsGenerating, Mode=OneWay}" />
                 </StackPanel>
 
                 <!-- Status -->
@@ -82,7 +82,7 @@
 
                 <!-- Progress Ring -->
                 <ProgressRing IsActive="{x:Bind ViewModel.IsGenerating, Mode=OneWay}"
-                              Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay}"
+                              Visibility="{x:Bind ViewModel.IsGenerating, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                               Width="40" Height="40" />
             </StackPanel>
         </ScrollViewer>
