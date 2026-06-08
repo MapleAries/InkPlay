@@ -283,16 +283,28 @@ public class Orchestrator : IOrchestrator
         var estimatedOutputTokens = context.TargetWordCount * 2; // Chinese chars ~2 tokens each
         estimatedOutputTokens += 2000; // Additional tokens for other agents' structured output
 
-        // Rough cost estimation (default to Claude pricing: ~$15/million input, ~$75/million output)
-        var inputCost = totalInputTokens * 15m / 1_000_000m;
-        var outputCost = estimatedOutputTokens * 75m / 1_000_000m;
+        // Provider-specific pricing (per million tokens)
+        var (inputPrice, outputPrice) = GetProviderPricing(context.Project.PreferredAiProvider);
+        var inputCost = totalInputTokens * inputPrice / 1_000_000m;
+        var outputCost = estimatedOutputTokens * outputPrice / 1_000_000m;
 
         return new CostEstimate
         {
             EstimatedInputTokens = totalInputTokens,
             EstimatedOutputTokens = estimatedOutputTokens,
             EstimatedCostUsd = inputCost + outputCost,
-            ModelId = "estimated"
+            ModelId = context.Project.PreferredModelId
+        };
+    }
+
+    private static (decimal inputPerMillion, decimal outputPerMillion) GetProviderPricing(string provider)
+    {
+        return provider?.ToLowerInvariant() switch
+        {
+            "claude" => (15m, 75m),        // Claude Sonnet
+            "openai" => (3m, 15m),         // GPT-4o
+            "qwen" => (1.2m, 1.2m),        // Qwen-Max
+            _ => (3m, 15m)                 // Default to OpenAI pricing
         };
     }
 
