@@ -139,7 +139,11 @@
                             <Button Content="一键写作" Click="AutoWrite_Click" Padding="12,4"
                                     Visibility="{x:Bind ViewModel.HasChapterContent, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
                             <Button Content="保存" Click="Save_Click" Padding="12,4"
-                                    Style="{ThemeResource AccentButtonStyle}" />
+                                    Style="{ThemeResource AccentButtonStyle}">
+                                <Button.KeyboardAccelerators>
+                                    <KeyboardAccelerator Key="S" Modifiers="Control" />
+                                </Button.KeyboardAccelerators>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Grid>
