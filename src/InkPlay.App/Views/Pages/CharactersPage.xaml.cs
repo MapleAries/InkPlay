@@ -86,15 +86,28 @@ public sealed partial class CharactersPage : Page, IParameterizedPage
         }
     }
 
-    private void DeleteCharacterMenu_Click(object sender, RoutedEventArgs e)
+    private async void DeleteCharacterMenu_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem item && item.Tag is Guid characterId)
         {
             var character = ViewModel.Characters.FirstOrDefault(c => c.Id == characterId);
             if (character is not null)
             {
-                ViewModel.SelectCharacterCommand.Execute(character);
-                ViewModel.DeleteCharacterCommand.Execute(null);
+                var dialog = new ContentDialog
+                {
+                    Title = "删除角色",
+                    Content = $"确定要删除「{character.Name}」吗？此操作不可撤销。",
+                    PrimaryButtonText = "删除",
+                    CloseButtonText = "取消",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = Content.XamlRoot
+                };
+                var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    ViewModel.SelectCharacterCommand.Execute(character);
+                    ViewModel.DeleteCharacterCommand.Execute(null);
+                }
             }
         }
     }

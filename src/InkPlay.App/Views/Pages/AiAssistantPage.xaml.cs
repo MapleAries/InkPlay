@@ -119,15 +119,28 @@ public sealed partial class AiAssistantPage : Page, IParameterizedPage
         RenameDialog.Visibility = Visibility.Collapsed;
     }
 
-    private void DeleteChapterMenu_Click(object sender, RoutedEventArgs e)
+    private async void DeleteChapterMenu_Click(object sender, RoutedEventArgs e)
     {
         if (sender is MenuFlyoutItem item && item.Tag is Guid chapterId)
         {
             var chapter = ViewModel.Chapters.FirstOrDefault(c => c.Id == chapterId);
             if (chapter is not null)
             {
-                ViewModel.SelectChapterCommand.Execute(chapter);
-                ViewModel.DeleteChapterCommand.Execute(null);
+                var dialog = new ContentDialog
+                {
+                    Title = "删除章节",
+                    Content = $"确定要删除「{chapter.Title}」吗？此操作不可撤销。",
+                    PrimaryButtonText = "删除",
+                    CloseButtonText = "取消",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = Content.XamlRoot
+                };
+                var result = await dialog.ShowAsync();
+                if (result == ContentDialogResult.Primary)
+                {
+                    ViewModel.SelectChapterCommand.Execute(chapter);
+                    ViewModel.DeleteChapterCommand.Execute(null);
+                }
             }
         }
     }
