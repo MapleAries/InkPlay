@@ -78,7 +78,7 @@
                         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
                             <Button Content="删除" Margin="0,0,8,0" Click="DeleteWorldSetting_Click"/>
                             <Button Content="保存" Click="SaveWorldSetting_Click"
-                                    Style="{StaticResource AccentButtonStyle}"/>
+                                    Style="{ThemeResource AccentButtonStyle}"/>
                         </StackPanel>
                     </Grid>
                 </Grid>
@@ -173,7 +173,7 @@
                             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
                                 <Button Content="删除" Margin="0,0,8,0" Click="DeleteGlossaryEntry_Click"/>
                                 <Button Content="保存" Click="SaveGlossaryEntry_Click"
-                                        Style="{StaticResource AccentButtonStyle}"/>
+                                        Style="{ThemeResource AccentButtonStyle}"/>
                             </StackPanel>
                         </Grid>
                     </Grid>

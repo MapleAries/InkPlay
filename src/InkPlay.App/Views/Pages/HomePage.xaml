@@ -95,7 +95,7 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="取消" Click="CancelCreate_Click" />
-                        <Button Content="下一步" Style="{StaticResource AccentButtonStyle}" Click="NextStep_Click" />
+                        <Button Content="下一步" Style="{ThemeResource AccentButtonStyle}" Click="NextStep_Click" />
                     </StackPanel>
                 </StackPanel>
 
@@ -140,7 +140,7 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="上一步" Click="PrevStep_Click" />
-                        <Button Content="下一步" Style="{StaticResource AccentButtonStyle}" Click="NextStep_Click" />
+                        <Button Content="下一步" Style="{ThemeResource AccentButtonStyle}" Click="NextStep_Click" />
                     </StackPanel>
                 </StackPanel>
 
@@ -166,7 +166,7 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="上一步" Click="PrevStep_Click" />
-                        <Button Content="创建" Style="{StaticResource AccentButtonStyle}" Click="ConfirmCreate_Click" />
+                        <Button Content="创建" Style="{ThemeResource AccentButtonStyle}" Click="ConfirmCreate_Click" />
                     </StackPanel>
                 </StackPanel>
 
@@ -270,7 +270,7 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="取消" Click="CancelEdit_Click" />
-                        <Button Content="保存" Style="{StaticResource AccentButtonStyle}" Click="SaveEdit_Click" />
+                        <Button Content="保存" Style="{ThemeResource AccentButtonStyle}" Click="SaveEdit_Click" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -322,7 +322,7 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="取消" Click="CancelRemove_Click" />
-                        <Button Content="从书架移除" Style="{StaticResource AccentButtonStyle}"
+                        <Button Content="从书架移除" Style="{ThemeResource AccentButtonStyle}"
                                 Foreground="{ThemeResource SystemFillColorCriticalBrush}"
                                 Click="RemoveFromIndex_Click" />
                     </StackPanel>
