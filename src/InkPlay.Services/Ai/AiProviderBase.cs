@@ -76,7 +76,22 @@ public abstract class AiProviderBase : IAiProvider
         while (!reader.EndOfStream)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var line = await reader.ReadLineAsync(cancellationToken);
+
+            // Per-read timeout: if no data arrives in 120 seconds, assume stalled connection
+            using var readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            readCts.CancelAfter(TimeSpan.FromSeconds(120));
+
+            string? line;
+            try
+            {
+                line = await reader.ReadLineAsync(readCts.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Read timeout (not user cancellation) — treat as stalled stream
+                yield break;
+            }
+
             if (line is null) break;
             if (!line.StartsWith("data: ")) continue;
 
