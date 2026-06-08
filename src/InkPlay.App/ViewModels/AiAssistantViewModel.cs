@@ -25,7 +25,6 @@ public partial class AiAssistantViewModel : ViewModelBase
     private AiConversation? _currentConversation;
     private Project? _currentProject;
     private CancellationTokenSource? _autoSaveCts;
-    private ApiKeyConfig? _selectedApiKey;
 
     [ObservableProperty]
     private bool _hasProject;
@@ -216,12 +215,6 @@ public partial class AiAssistantViewModel : ViewModelBase
             SelectedModel = keys.FirstOrDefault(k => k.IsDefault) ?? keys.FirstOrDefault();
         }
 
-        _selectedApiKey = SelectedModel;
-    }
-
-    partial void OnSelectedModelChanged(ApiKeyConfig? value)
-    {
-        _selectedApiKey = value;
     }
 
     // --- Chapter Management ---
@@ -428,7 +421,7 @@ public partial class AiAssistantViewModel : ViewModelBase
 
         try
         {
-            var apiKeyConfig = _selectedApiKey ?? _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
+            var apiKeyConfig = SelectedModel ?? _settingsService.GetDefaultApiKey(ApiKeyCategory.Text);
             if (apiKeyConfig is null)
             {
                 AiResponse = "请先在设置中配置文本生成 API Key";
