@@ -1,3 +1,4 @@
+using InkPlay.Core.Enums;
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
 using InkPlay.Services.Data;
@@ -32,6 +33,15 @@ public class DocumentRepository : IDocumentRepository
     {
         var docs = _db.Documents
             .Find(d => d.ProjectId == projectId)
+            .OrderBy(d => d.SortOrder)
+            .ToList();
+        return Task.FromResult<IReadOnlyList<Document>>(docs);
+    }
+
+    public Task<IReadOnlyList<Document>> GetByProjectIdAndTypeAsync(Guid projectId, DocumentType type)
+    {
+        var docs = _db.Documents
+            .Find(d => d.ProjectId == projectId && d.Type == type)
             .OrderBy(d => d.SortOrder)
             .ToList();
         return Task.FromResult<IReadOnlyList<Document>>(docs);

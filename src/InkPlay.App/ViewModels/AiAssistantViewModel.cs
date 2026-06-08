@@ -224,10 +224,7 @@ public partial class AiAssistantViewModel : ViewModelBase
     {
         if (_currentProject is null) return;
 
-        var docs = await _documentRepository.GetByProjectIdAsync(_currentProject.Id);
-        var chapterDocs = docs.Where(d => d.Type == DocumentType.Chapter)
-                              .OrderBy(d => d.SortOrder)
-                              .ToList();
+        var chapterDocs = await _documentRepository.GetByProjectIdAndTypeAsync(_currentProject.Id, DocumentType.Chapter);
         Chapters = new ObservableCollection<Document>(chapterDocs);
         CurrentChapter = null;
         IsChapterSelected = false;
@@ -875,11 +872,7 @@ public partial class AiAssistantViewModel : ViewModelBase
     {
         if (_currentProject is null) return;
 
-        var docs = await _documentRepository.GetByProjectIdAsync(_currentProject.Id);
-        var chapters = docs
-            .Where(d => d.Type == DocumentType.Chapter)
-            .OrderBy(d => d.SortOrder)
-            .ToList();
+        var chapters = await _documentRepository.GetByProjectIdAndTypeAsync(_currentProject.Id, DocumentType.Chapter);
 
         if (chapters.Count == 0) return;
 
