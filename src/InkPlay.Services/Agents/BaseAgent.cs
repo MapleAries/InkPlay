@@ -151,7 +151,6 @@ public abstract class BaseAgent : IAgent
     public int EstimateTokens(AgentContext context)
     {
         var messages = BuildMessages(context);
-        var totalChars = messages.Sum(m => m.Content?.Length ?? 0);
 
         // Rough estimation: Chinese chars ~2 tokens each, English words ~1 token
         var chineseChars = 0;

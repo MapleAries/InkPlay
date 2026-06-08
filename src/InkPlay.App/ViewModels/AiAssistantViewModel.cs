@@ -161,8 +161,6 @@ public partial class AiAssistantViewModel : ViewModelBase
         _projectRepository = projectRepository;
         _orchestrator = orchestrator;
         _characterRepository = characterRepository;
-
-        SetupAutoSave();
     }
 
     public override async void NavigatedTo(object? parameter)
@@ -185,11 +183,6 @@ public partial class AiAssistantViewModel : ViewModelBase
             HasProject = false;
             CurrentProjectTitle = "";
         }
-    }
-
-    private void SetupAutoSave()
-    {
-        // Debounced auto-save via OnContentChanged
     }
 
     private async Task DebounceSaveAsync()
@@ -957,9 +950,6 @@ public partial class AiAssistantViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _matchCase;
-
-    [ObservableProperty]
-    private string _exportStatus = string.Empty;
 
     [RelayCommand]
     private void ToggleSearch()
