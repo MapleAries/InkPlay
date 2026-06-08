@@ -207,6 +207,7 @@ public partial class ScriptViewModel : ViewModelBase
         CurrentEpisode = episode;
         IsEpisodeSelected = true;
         IsOutlineSelected = episode.Type == DocumentType.Outline;
+        CurrentScene = null; // Clear stale scene reference from previous episode
 
         if (IsOutlineSelected)
         {
@@ -215,7 +216,7 @@ public partial class ScriptViewModel : ViewModelBase
         else
         {
             Scenes = new ObservableCollection<ScriptScene>(episode.Scenes);
-            if (Scenes.Count > 0 && CurrentScene is null)
+            if (Scenes.Count > 0)
             {
                 SelectScene(Scenes[0]);
             }
