@@ -23,6 +23,9 @@ public partial class ScriptViewModel : ViewModelBase
     private Project? _currentProject;
 
     [ObservableProperty]
+    private string _currentProjectTitle = string.Empty;
+
+    [ObservableProperty]
     private bool _hasProject;
 
     [ObservableProperty]
@@ -107,6 +110,7 @@ public partial class ScriptViewModel : ViewModelBase
         {
             CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
             HasProject = CurrentProject is not null;
+            CurrentProjectTitle = CurrentProject?.Title ?? "";
             if (CurrentProject is not null)
             {
                 await LoadEpisodesAsync();
@@ -117,6 +121,7 @@ public partial class ScriptViewModel : ViewModelBase
         else
         {
             HasProject = false;
+            CurrentProjectTitle = "";
         }
     }
 

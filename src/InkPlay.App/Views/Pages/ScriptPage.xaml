@@ -33,7 +33,7 @@
 
             <!-- Project Title -->
             <TextBlock Grid.Row="0" Grid.ColumnSpan="3"
-                       Text="{x:Bind ViewModel.CurrentProject.Title, Mode=OneWay}"
+                       Text="{x:Bind ViewModel.CurrentProjectTitle, Mode=OneWay}"
                        FontSize="14" FontWeight="SemiBold" Padding="12,8"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 

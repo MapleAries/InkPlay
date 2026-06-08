@@ -23,6 +23,9 @@ public partial class CharactersViewModel : ViewModelBase
     private Project? _currentProject;
 
     [ObservableProperty]
+    private string _currentProjectTitle = string.Empty;
+
+    [ObservableProperty]
     private ObservableCollection<Character> _characters = new();
 
     [ObservableProperty]
@@ -107,6 +110,7 @@ public partial class CharactersViewModel : ViewModelBase
         {
             CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
             HasProject = CurrentProject is not null;
+            CurrentProjectTitle = CurrentProject?.Title ?? "";
             if (CurrentProject is not null)
             {
                 await LoadCharactersAsync();
@@ -116,6 +120,7 @@ public partial class CharactersViewModel : ViewModelBase
         else
         {
             HasProject = false;
+            CurrentProjectTitle = "";
         }
     }
 
