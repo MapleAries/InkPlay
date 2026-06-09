@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using InkPlay.Core.Enums;
 using InkPlay.Core.Interfaces;
 using InkPlay.Core.Models;
@@ -13,7 +14,7 @@ public class DocumentRepository : IDocumentRepository
     private readonly IFileProjectService _fileProjectService;
     private readonly IDocumentVersionRepository _versionRepository;
     private readonly ILogger<DocumentRepository> _logger;
-    private static readonly Dictionary<Guid, DateTime> _lastSnapshotTime = new();
+    private static readonly ConcurrentDictionary<Guid, DateTime> _lastSnapshotTime = new();
     private static readonly TimeSpan MinSnapshotInterval = TimeSpan.FromSeconds(30);
 
     public DocumentRepository(InkPlayDbContext db, IProjectRepository projectRepository, IFileProjectService fileProjectService, IDocumentVersionRepository versionRepository, ILogger<DocumentRepository> logger)
