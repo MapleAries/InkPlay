@@ -7,6 +7,7 @@ namespace InkPlay.Services.Settings;
 public class SettingsService : ISettingsService
 {
     private readonly string _settingsPath;
+    private readonly SemaphoreSlim _lock = new(1, 1);
     private List<ApiKeyConfig> _apiKeys;
     private Dictionary<string, AiProviderConfig> _providerConfigs;
     private string _defaultProviderId;
@@ -35,77 +36,152 @@ public class SettingsService : ISettingsService
 
     public IReadOnlyList<ApiKeyConfig> GetApiKeys(ApiKeyCategory category)
     {
-        return _apiKeys.Where(k => k.Category == category).ToList().AsReadOnly();
+        _lock.Wait();
+        try
+        {
+            return _apiKeys.Where(k => k.Category == category).ToList().AsReadOnly();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public ApiKeyConfig? GetDefaultApiKey(ApiKeyCategory category)
     {
-        return _apiKeys.FirstOrDefault(k => k.Category == category && k.IsDefault)
-            ?? _apiKeys.FirstOrDefault(k => k.Category == category);
+        _lock.Wait();
+        try
+        {
+            return _apiKeys.FirstOrDefault(k => k.Category == category && k.IsDefault)
+                ?? _apiKeys.FirstOrDefault(k => k.Category == category);
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public void SaveApiKey(ApiKeyConfig config)
     {
-        var existing = _apiKeys.FirstOrDefault(k => k.Id == config.Id);
-        if (existing is not null)
+        _lock.Wait();
+        try
         {
-            _apiKeys.Remove(existing);
-        }
-        _apiKeys.Add(config);
-
-        // Ensure only one default per category
-        if (config.IsDefault)
-        {
-            foreach (var key in _apiKeys.Where(k => k.Category == config.Category && k.Id != config.Id))
+            var existing = _apiKeys.FirstOrDefault(k => k.Id == config.Id);
+            if (existing is not null)
             {
-                key.IsDefault = false;
+                _apiKeys.Remove(existing);
             }
-        }
+            _apiKeys.Add(config);
 
-        SaveSettings();
+            // Ensure only one default per category
+            if (config.IsDefault)
+            {
+                foreach (var key in _apiKeys.Where(k => k.Category == config.Category && k.Id != config.Id))
+                {
+                    key.IsDefault = false;
+                }
+            }
+
+            SaveSettingsInternal();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public void DeleteApiKey(Guid id)
     {
-        _apiKeys.RemoveAll(k => k.Id == id);
-        SaveSettings();
+        _lock.Wait();
+        try
+        {
+            _apiKeys.RemoveAll(k => k.Id == id);
+            SaveSettingsInternal();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public void SetDefaultApiKey(Guid id, ApiKeyCategory category)
     {
-        foreach (var key in _apiKeys.Where(k => k.Category == category))
+        _lock.Wait();
+        try
         {
-            key.IsDefault = key.Id == id;
+            foreach (var key in _apiKeys.Where(k => k.Category == category))
+            {
+                key.IsDefault = key.Id == id;
+            }
+            SaveSettingsInternal();
         }
-        SaveSettings();
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     // --- Legacy AI Provider Config ---
 
     public AiProviderConfig GetAiProviderConfig(string providerId)
     {
-        if (_providerConfigs.TryGetValue(providerId, out var config))
-            return config;
-
-        return new AiProviderConfig
+        _lock.Wait();
+        try
         {
-            ProviderId = providerId,
-            BaseUrl = GetDefaultBaseUrl(providerId)
-        };
+            if (_providerConfigs.TryGetValue(providerId, out var config))
+                return config;
+
+            return new AiProviderConfig
+            {
+                ProviderId = providerId,
+                BaseUrl = GetDefaultBaseUrl(providerId)
+            };
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public void SaveAiProviderConfig(AiProviderConfig config)
     {
-        _providerConfigs[config.ProviderId] = config;
-        SaveSettings();
+        _lock.Wait();
+        try
+        {
+            _providerConfigs[config.ProviderId] = config;
+            SaveSettingsInternal();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
-    public string GetDefaultAiProviderId() => _defaultProviderId;
+    public string GetDefaultAiProviderId()
+    {
+        _lock.Wait();
+        try
+        {
+            return _defaultProviderId;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
 
     public void SetDefaultAiProviderId(string providerId)
     {
-        _defaultProviderId = providerId;
-        SaveSettings();
+        _lock.Wait();
+        try
+        {
+            _defaultProviderId = providerId;
+            SaveSettingsInternal();
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     // --- Persistence ---
@@ -131,7 +207,7 @@ public class SettingsService : ISettingsService
         }
     }
 
-    private void SaveSettings()
+    private void SaveSettingsInternal()
     {
         var data = new SettingsData
         {
@@ -140,7 +216,11 @@ public class SettingsService : ISettingsService
             DefaultProviderId = _defaultProviderId
         };
         var json = JsonSerializer.Serialize(data, JsonOptions);
-        File.WriteAllText(_settingsPath, json);
+
+        // Atomic write: write to temp file, then rename
+        var tempPath = _settingsPath + ".tmp";
+        File.WriteAllText(tempPath, json);
+        File.Move(tempPath, _settingsPath, overwrite: true);
     }
 
     private static string GetDefaultBaseUrl(string providerId) => providerId.ToLowerInvariant() switch
