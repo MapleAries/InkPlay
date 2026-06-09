@@ -32,51 +32,73 @@ public class WriterAgent : BaseAgent
 
     protected override List<AiChatMessage> BuildMessages(AgentContext context)
     {
-        var messages = base.BuildMessages(context);
+        var messages = new List<AiChatMessage>();
 
-        // Add genre-specific writing guidelines
+        // System prompt
+        messages.Add(new AiChatMessage { Role = "system", Content = SystemPrompt });
+
+        // Project system prompt
+        if (context.Project.SystemPrompt is { Length: > 0 } projectPrompt)
+        {
+            messages.Add(new AiChatMessage { Role = "system", Content = $"项目设定：{projectPrompt}" });
+        }
+
+        // Genre-specific writing guidelines
         var genre = context.Project.Genre;
         if (!string.IsNullOrWhiteSpace(genre))
         {
             var genrePrompt = PromptTemplates.GetWriterGenrePrompt(genre);
             if (!string.IsNullOrEmpty(genrePrompt))
             {
-                messages.Insert(messages.Count - 1, new AiChatMessage { Role = "system", Content = genrePrompt });
+                messages.Add(new AiChatMessage { Role = "system", Content = genrePrompt });
             }
         }
 
-        // Add user-defined style notes
+        // User-defined style notes
         if (!string.IsNullOrWhiteSpace(context.Project.WritingStyleNotes))
         {
-            messages.Insert(messages.Count - 1, new AiChatMessage
+            messages.Add(new AiChatMessage
             {
                 Role = "system",
                 Content = $"用户自定义风格要求：\n{context.Project.WritingStyleNotes}"
             });
         }
 
-        // Add chapter skeleton
-        if (!string.IsNullOrEmpty(context.ChapterSkeleton))
+        // Context brief
+        if (!string.IsNullOrEmpty(context.ContextBrief))
         {
-            messages.Insert(messages.Count - 1, new AiChatMessage
-            {
-                Role = "user",
-                Content = $"章节骨架：\n{context.ChapterSkeleton}"
-            });
+            messages.Add(new AiChatMessage { Role = "system", Content = $"创作简报：\n{context.ContextBrief}" });
         }
 
-        // Add character profiles for reference
+        // Writing rules
+        if (!string.IsNullOrEmpty(context.WritingRuleStack))
+        {
+            messages.Add(new AiChatMessage { Role = "system", Content = $"写作规则栈：\n{context.WritingRuleStack}" });
+        }
+
+        // Character profiles
         if (context.Characters.Count > 0)
         {
-            var charInfo = "角色参考：\n";
+            var charInfo = new System.Text.StringBuilder("角色参考：\n");
             foreach (var c in context.Characters)
             {
-                charInfo += $"- {c.Name}（{c.Role}）：{c.Personality}，说话风格参考\n";
+                charInfo.AppendLine($"- {c.Name}（{c.Role}）：{c.Personality}，说话风格参考");
             }
-            messages.Insert(messages.Count - 1, new AiChatMessage { Role = "system", Content = charInfo });
+            messages.Add(new AiChatMessage { Role = "system", Content = charInfo.ToString() });
         }
 
-        // Target word count
+        // Chapter skeleton
+        if (!string.IsNullOrEmpty(context.ChapterSkeleton))
+        {
+            messages.Add(new AiChatMessage { Role = "user", Content = $"章节骨架：\n{context.ChapterSkeleton}" });
+        }
+
+        // User request + target word count
+        var userRequest = context.UserRequest;
+        if (!string.IsNullOrEmpty(userRequest))
+        {
+            messages.Add(new AiChatMessage { Role = "user", Content = userRequest });
+        }
         messages.Add(new AiChatMessage
         {
             Role = "user",
