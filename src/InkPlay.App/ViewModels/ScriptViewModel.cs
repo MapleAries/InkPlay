@@ -16,7 +16,7 @@ public partial class ScriptViewModel : ViewModelBase
     private readonly IAiProviderFactory _aiProviderFactory;
     private readonly ISettingsService _settingsService;
     private readonly IProjectContext _projectContext;
-    private readonly NavigationService _navigationService;
+    private readonly INavigationService _navigationService;
     private CancellationTokenSource? _aiCts;
 
     [ObservableProperty]
@@ -92,7 +92,7 @@ public partial class ScriptViewModel : ViewModelBase
         IAiProviderFactory aiProviderFactory,
         ISettingsService settingsService,
         IProjectContext projectContext,
-        NavigationService navigationService)
+        INavigationService navigationService)
     {
         _documentRepository = documentRepository;
         _projectRepository = projectRepository;

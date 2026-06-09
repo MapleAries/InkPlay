@@ -14,7 +14,7 @@ public partial class VideoGenerationViewModel : ViewModelBase
     private readonly ISettingsService _settingsService;
     private readonly IProjectContext _projectContext;
     private readonly IProjectRepository _projectRepository;
-    private readonly NavigationService _navigationService;
+    private readonly INavigationService _navigationService;
     private CancellationTokenSource? _pollingCts;
 
     [ObservableProperty]
@@ -52,7 +52,7 @@ public partial class VideoGenerationViewModel : ViewModelBase
         ISettingsService settingsService,
         IProjectContext projectContext,
         IProjectRepository projectRepository,
-        NavigationService navigationService)
+        INavigationService navigationService)
     {
         _videoProvider = videoProvider;
         _settingsService = settingsService;
