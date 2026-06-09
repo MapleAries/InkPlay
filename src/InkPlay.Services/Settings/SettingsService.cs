@@ -7,7 +7,7 @@ namespace InkPlay.Services.Settings;
 public class SettingsService : ISettingsService
 {
     private readonly string _settingsPath;
-    private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly object _lock = new();
     private List<ApiKeyConfig> _apiKeys;
     private Dictionary<string, AiProviderConfig> _providerConfigs;
     private string _defaultProviderId;
@@ -36,35 +36,24 @@ public class SettingsService : ISettingsService
 
     public IReadOnlyList<ApiKeyConfig> GetApiKeys(ApiKeyCategory category)
     {
-        _lock.Wait();
-        try
+        lock (_lock)
         {
             return _apiKeys.Where(k => k.Category == category).ToList().AsReadOnly();
-        }
-        finally
-        {
-            _lock.Release();
         }
     }
 
     public ApiKeyConfig? GetDefaultApiKey(ApiKeyCategory category)
     {
-        _lock.Wait();
-        try
+        lock (_lock)
         {
             return _apiKeys.FirstOrDefault(k => k.Category == category && k.IsDefault)
                 ?? _apiKeys.FirstOrDefault(k => k.Category == category);
-        }
-        finally
-        {
-            _lock.Release();
         }
     }
 
     public void SaveApiKey(ApiKeyConfig config)
     {
-        _lock.Wait();
-        try
+        lock (_lock)
         {
             var existing = _apiKeys.FirstOrDefault(k => k.Id == config.Id);
             if (existing is not null)
@@ -84,30 +73,20 @@ public class SettingsService : ISettingsService
 
             SaveSettingsInternal();
         }
-        finally
-        {
-            _lock.Release();
-        }
     }
 
     public void DeleteApiKey(Guid id)
     {
-        _lock.Wait();
-        try
+        lock (_lock)
         {
             _apiKeys.RemoveAll(k => k.Id == id);
             SaveSettingsInternal();
-        }
-        finally
-        {
-            _lock.Release();
         }
     }
 
     public void SetDefaultApiKey(Guid id, ApiKeyCategory category)
     {
-        _lock.Wait();
-        try
+        lock (_lock)
         {
             foreach (var key in _apiKeys.Where(k => k.Category == category))
             {
@@ -115,18 +94,13 @@ public class SettingsService : ISettingsService
             }
             SaveSettingsInternal();
         }
-        finally
-        {
-            _lock.Release();
-        }
     }
 
     // --- Legacy AI Provider Config ---
 
     public AiProviderConfig GetAiProviderConfig(string providerId)
     {
-        _lock.Wait();
-        try
+        lock (_lock)
         {
             if (_providerConfigs.TryGetValue(providerId, out var config))
                 return config;
@@ -137,50 +111,31 @@ public class SettingsService : ISettingsService
                 BaseUrl = GetDefaultBaseUrl(providerId)
             };
         }
-        finally
-        {
-            _lock.Release();
-        }
     }
 
     public void SaveAiProviderConfig(AiProviderConfig config)
     {
-        _lock.Wait();
-        try
+        lock (_lock)
         {
             _providerConfigs[config.ProviderId] = config;
             SaveSettingsInternal();
-        }
-        finally
-        {
-            _lock.Release();
         }
     }
 
     public string GetDefaultAiProviderId()
     {
-        _lock.Wait();
-        try
+        lock (_lock)
         {
             return _defaultProviderId;
-        }
-        finally
-        {
-            _lock.Release();
         }
     }
 
     public void SetDefaultAiProviderId(string providerId)
     {
-        _lock.Wait();
-        try
+        lock (_lock)
         {
             _defaultProviderId = providerId;
             SaveSettingsInternal();
-        }
-        finally
-        {
-            _lock.Release();
         }
     }
 
