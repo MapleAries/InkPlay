@@ -1,7 +1,10 @@
+using LiteDB;
+
 namespace InkPlay.Core.Models;
 
 public class GlossaryEntry
 {
+    [BsonId]
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ProjectId { get; set; }
     public string Term { get; set; } = string.Empty;

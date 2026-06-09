@@ -1,7 +1,10 @@
+using LiteDB;
+
 namespace InkPlay.Core.Models;
 
 public class DocumentVersion
 {
+    [BsonId]
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid DocumentId { get; set; }
     public Guid ProjectId { get; set; }
