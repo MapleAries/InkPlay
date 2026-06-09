@@ -115,6 +115,13 @@ public partial class VoicesViewModel : ViewModelBase
         }
     }
 
+    public override void NavigatedFrom()
+    {
+        _aiCts?.Cancel();
+        _aiCts?.Dispose();
+        _aiCts = null;
+    }
+
     [RelayCommand]
     private async Task LoadVoicesAsync()
     {
