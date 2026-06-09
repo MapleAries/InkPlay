@@ -131,6 +131,13 @@ public partial class CharactersViewModel : ViewModelBase
         }
     }
 
+    public override void NavigatedFrom()
+    {
+        _aiCts?.Cancel();
+        _aiCts?.Dispose();
+        _aiCts = null;
+    }
+
     private void LoadAvailableModels()
     {
         var keys = _settingsService.GetApiKeys(ApiKeyCategory.Text);

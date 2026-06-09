@@ -84,6 +84,13 @@ public partial class VideoGenerationViewModel : ViewModelBase
         }
     }
 
+    public override void NavigatedFrom()
+    {
+        _pollingCts?.Cancel();
+        _pollingCts?.Dispose();
+        _pollingCts = null;
+    }
+
     [RelayCommand]
     private async Task GenerateVideoAsync()
     {

@@ -191,6 +191,16 @@ public partial class AiAssistantViewModel : ViewModelBase
         }
     }
 
+    public override void NavigatedFrom()
+    {
+        _aiCts?.Cancel();
+        _aiCts?.Dispose();
+        _aiCts = null;
+        _autoSaveCts?.Cancel();
+        _autoSaveCts?.Dispose();
+        _autoSaveCts = null;
+    }
+
     private async Task DebounceSaveAsync()
     {
         _autoSaveCts?.Cancel();
