@@ -23,6 +23,9 @@ public partial class ScriptManagementViewModel : ViewModelBase
     private Project? _currentProject;
 
     [ObservableProperty]
+    private string _currentProjectTitle = string.Empty;
+
+    [ObservableProperty]
     private bool _hasProject;
 
     [ObservableProperty]
@@ -83,20 +86,29 @@ public partial class ScriptManagementViewModel : ViewModelBase
 
     public override async void NavigatedTo(object? parameter)
     {
-        var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
-        if (projectId.HasValue)
+        try
         {
-            CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
-            HasProject = CurrentProject is not null;
-            if (CurrentProject is not null)
+            var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
+            if (projectId.HasValue)
             {
-                await LoadChaptersAsync();
-                await LoadCharactersAsync();
+                CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
+                HasProject = CurrentProject is not null;
+                CurrentProjectTitle = CurrentProject?.Title ?? "";
+                if (CurrentProject is not null)
+                {
+                    await LoadChaptersAsync();
+                    await LoadCharactersAsync();
+                }
+            }
+            else
+            {
+                HasProject = false;
+                CurrentProjectTitle = "";
             }
         }
-        else
+        catch (Exception ex)
         {
-            HasProject = false;
+            System.Diagnostics.Debug.WriteLine($"NavigatedTo failed: {ex.Message}");
         }
     }
 

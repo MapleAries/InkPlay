@@ -22,6 +22,9 @@ public partial class VoicesViewModel : ViewModelBase
     private Project? _currentProject;
 
     [ObservableProperty]
+    private string _currentProjectTitle = string.Empty;
+
+    [ObservableProperty]
     private ObservableCollection<Voice> _voices = new();
 
     [ObservableProperty]
@@ -87,19 +90,28 @@ public partial class VoicesViewModel : ViewModelBase
 
     public override async void NavigatedTo(object? parameter)
     {
-        var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
-        if (projectId.HasValue)
+        try
         {
-            CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
-            HasProject = CurrentProject is not null;
-            if (CurrentProject is not null)
+            var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
+            if (projectId.HasValue)
             {
-                await LoadVoicesAsync();
+                CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
+                HasProject = CurrentProject is not null;
+                CurrentProjectTitle = CurrentProject?.Title ?? "";
+                if (CurrentProject is not null)
+                {
+                    await LoadVoicesAsync();
+                }
+            }
+            else
+            {
+                HasProject = false;
+                CurrentProjectTitle = "";
             }
         }
-        else
+        catch (Exception ex)
         {
-            HasProject = false;
+            System.Diagnostics.Debug.WriteLine($"NavigatedTo failed: {ex.Message}");
         }
     }
 
