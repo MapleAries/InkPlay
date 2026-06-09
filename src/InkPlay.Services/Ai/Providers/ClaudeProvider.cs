@@ -17,7 +17,12 @@ public class ClaudeProvider : AiProviderBase
         IReadOnlyList<AiChatMessage> messages,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var systemMessage = messages.FirstOrDefault(m => m.Role == "system");
+        // Claude API 要求所有 system message 合并为单个 system 字段
+        var systemMessages = messages.Where(m => m.Role == "system").ToList();
+        var systemText = systemMessages.Count > 0
+            ? string.Join("\n\n", systemMessages.Select(m => m.Content))
+            : null;
+
         var chatMessages = messages
             .Where(m => m.Role != "system")
             .Select(m => new { role = m.Role, content = m.Content })
@@ -29,7 +34,7 @@ public class ClaudeProvider : AiProviderBase
             max_tokens = config.MaxTokens,
             temperature = config.Temperature,
             stream = true,
-            system = systemMessage?.Content,
+            system = systemText,
             messages = chatMessages
         };
 
@@ -60,7 +65,7 @@ public class ClaudeProvider : AiProviderBase
     {
         try
         {
-            var doc = JsonDocument.Parse(jsonData);
+            using var doc = JsonDocument.Parse(jsonData);
             var root = doc.RootElement;
             if (root.TryGetProperty("type", out var type) && type.GetString() == "content_block_delta")
             {
@@ -75,7 +80,7 @@ public class ClaudeProvider : AiProviderBase
     {
         try
         {
-            var doc = JsonDocument.Parse(errorBody);
+            using var doc = JsonDocument.Parse(errorBody);
             if (doc.RootElement.TryGetProperty("error", out var error))
             {
                 if (error.TryGetProperty("message", out var message))
