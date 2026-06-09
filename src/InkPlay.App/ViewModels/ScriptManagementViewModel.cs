@@ -163,6 +163,9 @@ public partial class ScriptManagementViewModel : ViewModelBase
 
         IsConverting = true;
         ConversionStatus = "正在转换...";
+        _aiCts?.Cancel();
+        _aiCts?.Dispose();
+        _aiCts = new CancellationTokenSource();
 
         try
         {
