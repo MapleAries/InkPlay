@@ -105,23 +105,30 @@ public partial class ScriptViewModel : ViewModelBase
 
     public override async void NavigatedTo(object? parameter)
     {
-        var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
-        if (projectId.HasValue)
+        try
         {
-            CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
-            HasProject = CurrentProject is not null;
-            CurrentProjectTitle = CurrentProject?.Title ?? "";
-            if (CurrentProject is not null)
+            var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
+            if (projectId.HasValue)
             {
-                await LoadEpisodesAsync();
-                await LoadCharactersAsync();
-                LoadAvailableModels();
+                CurrentProject = await _projectRepository.GetByIdAsync(projectId.Value);
+                HasProject = CurrentProject is not null;
+                CurrentProjectTitle = CurrentProject?.Title ?? "";
+                if (CurrentProject is not null)
+                {
+                    await LoadEpisodesAsync();
+                    await LoadCharactersAsync();
+                    LoadAvailableModels();
+                }
+            }
+            else
+            {
+                HasProject = false;
+                CurrentProjectTitle = "";
             }
         }
-        else
+        catch (Exception ex)
         {
-            HasProject = false;
-            CurrentProjectTitle = "";
+            System.Diagnostics.Debug.WriteLine($"NavigatedTo failed: {ex.Message}");
         }
     }
 

@@ -164,23 +164,30 @@ public partial class AiAssistantViewModel : ViewModelBase
 
     public override async void NavigatedTo(object? parameter)
     {
-        var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
-        if (projectId.HasValue)
+        try
         {
-            _currentProject = await _projectRepository.GetByIdAsync(projectId.Value);
-            HasProject = _currentProject is not null;
-            CurrentProjectTitle = _currentProject?.Title ?? "";
-
-            if (_currentProject is not null)
+            var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
+            if (projectId.HasValue)
             {
-                await LoadChaptersAsync();
-                LoadAvailableModels();
+                _currentProject = await _projectRepository.GetByIdAsync(projectId.Value);
+                HasProject = _currentProject is not null;
+                CurrentProjectTitle = _currentProject?.Title ?? "";
+
+                if (_currentProject is not null)
+                {
+                    await LoadChaptersAsync();
+                    LoadAvailableModels();
+                }
+            }
+            else
+            {
+                HasProject = false;
+                CurrentProjectTitle = "";
             }
         }
-        else
+        catch (Exception ex)
         {
-            HasProject = false;
-            CurrentProjectTitle = "";
+            System.Diagnostics.Debug.WriteLine($"NavigatedTo failed: {ex.Message}");
         }
     }
 

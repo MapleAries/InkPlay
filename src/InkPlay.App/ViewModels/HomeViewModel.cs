@@ -97,7 +97,14 @@ public partial class HomeViewModel : ViewModelBase
 
     public override async void NavigatedTo(object? parameter)
     {
-        await LoadProjectsAsync();
+        try
+        {
+            await LoadProjectsAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"NavigatedTo failed: {ex.Message}");
+        }
     }
 
     [RelayCommand]

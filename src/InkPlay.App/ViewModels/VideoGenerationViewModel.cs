@@ -63,17 +63,24 @@ public partial class VideoGenerationViewModel : ViewModelBase
 
     public override async void NavigatedTo(object? parameter)
     {
-        var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
-        if (projectId.HasValue)
+        try
         {
-            var project = await _projectRepository.GetByIdAsync(projectId.Value);
-            HasProject = project is not null;
-            CurrentProjectTitle = project?.Title ?? "";
+            var projectId = parameter as Guid? ?? _projectContext.CurrentProjectId;
+            if (projectId.HasValue)
+            {
+                var project = await _projectRepository.GetByIdAsync(projectId.Value);
+                HasProject = project is not null;
+                CurrentProjectTitle = project?.Title ?? "";
+            }
+            else
+            {
+                HasProject = false;
+                CurrentProjectTitle = "";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            HasProject = false;
-            CurrentProjectTitle = "";
+            System.Diagnostics.Debug.WriteLine($"NavigatedTo failed: {ex.Message}");
         }
     }
 
