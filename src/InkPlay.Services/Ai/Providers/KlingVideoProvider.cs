@@ -42,13 +42,13 @@ public class KlingVideoProvider : IVideoProvider
         var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken);
+        using var result = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken);
         var root = result?.RootElement;
 
         return new VideoGenerationResult
         {
-            TaskId = root?.GetProperty("task_id").GetString() ?? string.Empty,
-            Status = root?.GetProperty("status").GetString() ?? "pending"
+            TaskId = root?.TryGetProperty("task_id", out var taskIdProp) == true ? taskIdProp.GetString() ?? "" : "",
+            Status = root?.TryGetProperty("status", out var statusProp) == true ? statusProp.GetString() ?? "pending" : "pending"
         };
     }
 
@@ -66,20 +66,20 @@ public class KlingVideoProvider : IVideoProvider
         var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken);
+        using var result = await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken);
         var root = result?.RootElement;
 
-        var status = root?.GetProperty("status").GetString() ?? "unknown";
+        var status = root?.TryGetProperty("status", out var statusProp) == true ? statusProp.GetString() ?? "unknown" : "unknown";
         var videoUrl = string.Empty;
         var errorMessage = string.Empty;
 
         if (status == "completed")
         {
-            videoUrl = root?.GetProperty("video_url").GetString() ?? string.Empty;
+            videoUrl = root?.TryGetProperty("video_url", out var urlProp) == true ? urlProp.GetString() ?? "" : "";
         }
         else if (status == "failed")
         {
-            errorMessage = root?.GetProperty("error").GetString() ?? "生成失败";
+            errorMessage = root?.TryGetProperty("error", out var errProp) == true ? errProp.GetString() ?? "生成失败" : "生成失败";
         }
 
         return new VideoGenerationResult

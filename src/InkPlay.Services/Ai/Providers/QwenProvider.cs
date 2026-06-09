@@ -56,7 +56,7 @@ public class QwenProvider : AiProviderBase
     {
         try
         {
-            var doc = JsonDocument.Parse(jsonData);
+            using var doc = JsonDocument.Parse(jsonData);
             var choices = doc.RootElement.GetProperty("choices");
             if (choices.GetArrayLength() > 0)
             {
@@ -75,7 +75,7 @@ public class QwenProvider : AiProviderBase
     {
         try
         {
-            var doc = JsonDocument.Parse(errorBody);
+            using var doc = JsonDocument.Parse(errorBody);
             if (doc.RootElement.TryGetProperty("error", out var error))
             {
                 if (error.TryGetProperty("message", out var message))
