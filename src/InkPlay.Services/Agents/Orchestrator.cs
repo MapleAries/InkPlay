@@ -371,6 +371,12 @@ public class Orchestrator : IOrchestrator
             }
 
             yield return result;
+
+            // Inter-chapter delay to avoid hitting API rate limits
+            if (i < totalChapters - 1)
+            {
+                await Task.Delay(2000, ct);
+            }
         }
     }
 
